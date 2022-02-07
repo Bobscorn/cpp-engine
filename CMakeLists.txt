@@ -3,6 +3,17 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
+project("Encapsulated")
+
+set(EC_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(EC_LIBRARY_DIR "${EC_BASE_DIR}/Libraries")
+set(SDL_DIR "${EC_LIBRARY_DIR}/SDL")
+set(SDL_IMAGE_DIR "${EC_LIBRARY_DIR}/SDLImage")
+set(SDL_TTF_DIR "${EC_LIBRARY_DIR}/SDLTTF")
+set(BULLET_DIR "${EC_LIBRARY_DIR}/Bullet3")
+set(GLEW_DIR "${EC_LIBRARY_DIR}/Glew")
+set(ASSIMP_DIR "${EC_LIBRARY_DIR}/Assimp")
+
 # Include Directories
 cmake_policy(SET CMP0077 NEW)
 
@@ -16,12 +27,11 @@ if (EC_PROFILE)
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /Profile")
 	endif (MSVC)
 	add_definitions(-DEC_PROFILE)
-	message("die")
+	message("Enabled Windows Profiling")
 endif (EC_PROFILE)
 
 if(EC_USE_BULLET)
 add_definitions(-DUSE_BULLET_STUFF)
-# add_definitions(-DBULLET_EULER_DEFAULT_ZYX)
 endif(EC_USE_BULLET)
 
 option(SDL_LOAD_PNG "Link in PNG libraries and tell SDL to load PNG support" ON)
