@@ -1,0 +1,75 @@
+#pragma once
+
+#include "VoxelChunk.h"
+
+namespace Voxel
+{
+	struct IWorldUpdater
+	{
+		virtual void DisplaceWorld(floaty3 by) = 0;
+	};
+
+	struct IChunkLoader
+	{
+		virtual ChunkyBoi::ChunkData LoadChunk(int64_t x, int64_t y, int64_t z) = 0;
+	};
+
+	struct IChunkUnloader
+	{
+		virtual void UnloadChunk(std::unique_ptr<ChunkyBoi> &&chunk) = 0;
+	};
+
+	struct WorldStuff
+	{
+		IWorldUpdater *m_WorldUpdater;
+		IChunkLoader *m_ChunkLoader;
+		IChunkUnloader *m_ChunkUnloader;
+		// The half extent of extra chunks along the X/Y/Z Axes, there will always be the very centre chunk
+		size_t HalfBonusWidth = 1;
+		size_t HalfBonusHeight = 1;
+		size_t HalfBonusDepth = 1;
+
+		size_t ChunkLeniance = 1; // The number of chunks the centre must be away from the middle loaded chunk to load/unload new/old chunks
+	};
+
+	// VoxelWorld is a class designed to load*, unload chunks, and displace the physics world in order to keep the player at the centre of world
+	// *Loading is not done in this class
+	struct VoxelWorld
+	{
+		VoxelWorld(WorldStuff stuff);
+		~VoxelWorld();
+
+		// Update is the main method of the dynamic world centre
+		// It takes an input of New_Centre, a vector describing a new Centre of World, in Displaced World Space ie. New_Centre must be treat at m_PhysicsDisplacement as its origin
+		// It returns the given (if any) displacement of the physics world allowing an centre of world not updated via m_WorldUpdater->DisplaceWorld to keep track of the new origin
+		floaty3 Update(floaty3 New_Centre);
+
+
+	protected:
+
+		WorldStuff m_Stuff;
+
+
+		std::list<std::list<std::list<std::unique_ptr<ChunkyBoi>>>> m_Chunks;
+
+		// The chunk at [0][0][0] of m_Chunks will be displaced by these coordinates (measured in number of chunks)
+		int64_t m_XChunkDisplacement = 0;
+		int64_t m_YChunkDisplacement = 0;
+		int64_t m_ZChunkDisplacement = 0;
+		// [0][0][0] is in reality just (*m_Chunks.begin().begin().begin())
+
+		// Displacement for the entire physics world
+		DOUBLE3 m_PhysicsDisplacement = { 0.0, 0.0, 0.0 };
+
+
+		// Does not shift the ChunkDisplacements
+		void UnloadChunkYZ(bool positive); // Unload a plane of chunks perpendicular to the X-Axis (along the Y and Z axes)
+		void UnloadChunkXZ(bool positive); // Unload a plane of chunks perpendicular to the Y-Axis (along the X and Z axes)
+		void UnloadChunkXY(bool positive); // Unload a plane of chunks perpendicular to the Z-Axis (along the X and Y axes)
+
+		// Does not shift the ChunkDisplacements
+		void LoadChunkYZ(bool positive); // Load a plane of chunks perpendicular to the X-Axis (along the Y and Z axes)
+		void LoadChunkXZ(bool positive); // Load a plane of chunks perpendicular to the Y-Axis (along the X and Z axes)
+		void LoadChunkXY(bool positive); // Load a plane of chunks perpendicular to the Z-Axis (along the X and Y axes)
+	};
+}

@@ -1,0 +1,34 @@
+#version 420 core
+
+layout(binding = 0, std140) uniform PerObject
+{
+	mat4 View;
+	mat4 Proj;
+};
+
+layout(location = 0) in vec3 PosL;
+layout(location = 1) in vec3 TangentL;
+layout(location = 2) in vec3 BinormalL;
+layout(location = 3) in vec3 NormalL;
+layout(location = 4) in vec2 Tex;
+layout(location = 5) in mat4 World;
+
+out vec3 PosVS;
+out vec3 TangentVS;
+out vec3 BinormalVS;
+out vec3 NormalVS;
+out vec2 TexOut;
+
+void main()
+{
+	TexOut = Tex;
+	
+	mat4 WorldView = View * World;
+	PosVS = (WorldView * vec4(PosL, 1.f)).xyz;
+
+	TangentVS = mat3(WorldView) * TangentL;
+	BinormalVS = mat3(WorldView) * BinormalL;
+	NormalVS = mat3(WorldView) * NormalL;
+
+	gl_Position = Proj * WorldView * vec4(PosL, 1.f);
+}

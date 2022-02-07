@@ -1,0 +1,10 @@
+#version 420 core
+
+in vec3 ColorFS;
+
+out vec4 FinalColor;
+
+void main()
+{
+	FinalColor = vec4(ColorFS, 0.9f);
+}

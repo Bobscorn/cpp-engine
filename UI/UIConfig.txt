@@ -1,0 +1,46 @@
+<Appearance>
+	[Primary]
+		Type: Linear
+		R0: 0.52
+		G0: 0.8
+		B0: 0.92
+		A0: 1.0
+		F0: 0.0
+		R1: 0.9
+		G1: 0.9
+		B1: 0.9
+		A1: 1.0
+		F1: 1.0
+		X0: 0.0
+		Y0: 0.0
+		X1: 500.0
+		Y1: 500.0
+	[Secondary]
+		Type: Solid
+		R: 0.2314
+		G: 0.4549
+		B: 0.8902
+		A: 0.8
+	[Accent]
+		Type: Solid
+		R: 0.96
+		G: 0.96
+		B: 1.0
+		A: 1.0
+	[Text]
+		Type: Solid
+		R: 0.95
+		G: 0.95
+		B: 0.95
+		A: 1.0
+	[TextFormat]
+		Font: Whitney
+		Weight: Light
+		ParagraphAlign: Center
+		TextAlign: Center
+	[TooltipBrush]
+		Type: Solid
+		R: 0.01
+		G: 0.01
+		B: 0.01
+		A: 1.0

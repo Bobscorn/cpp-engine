@@ -1,0 +1,18 @@
+#version 420
+
+layout(binding = 3, std140) uniform SharedProjData
+{
+	mat4 ProjectionMatrix;
+};
+layout(binding = 4, std140) uniform SharedTransformData
+{
+	mat4 ModelMatrix;
+};
+
+layout(location = 0) in vec2 PosL;
+
+void main()
+{
+	// Just project and transform
+	gl_Position = ProjectionMatrix * ModelMatrix * vec4(PosL, 0.f, 1.f);
+}

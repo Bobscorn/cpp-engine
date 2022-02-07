@@ -1,0 +1,11 @@
+#version 420 core
+
+struct FogInfo
+{
+	vec4 Normal;
+	float UpperDistance; // Position of the fog's upper boundary along its normal
+	float LowerDistance; // Position of the fog's lower boundary along its normal
+	vec3 Color; 
+};
+
+

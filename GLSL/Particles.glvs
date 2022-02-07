@@ -1,0 +1,27 @@
+#version 420 core
+
+layout(binding = 0, std140) uniform PerObject
+{
+	mat4 ViewProj;
+};
+
+layout(location = 0) in vec3 PosL;
+layout(location = 1) in vec2 Tex;
+// v Instanced data |     ^ Vertex Data
+layout(location = 2) in vec3 Position;
+layout(location = 3) in vec4 Color;
+
+out vec2 TexFS;
+out vec4 ColorFS;
+
+uniform vec2 TextureScale;
+
+void main()
+{
+	TexFS.x = Tex.x * TextureScale.x;
+	TexFS.y = Tex.y * TextureScale.y;
+
+	ColorFS = Color;
+	
+	gl_Position = ViewProj * vec4(PosL.x + Position.x, PosL.y + Position.y, PosL.z + Position.z, 1.f);
+}

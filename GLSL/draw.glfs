@@ -1,0 +1,9 @@
+#version 400
+
+uniform vec4 DrawColor;
+
+void main()
+{
+	// Just set it to the uniform color
+	gl_FragColor = DrawColor;
+}

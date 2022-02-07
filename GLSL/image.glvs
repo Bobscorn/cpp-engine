@@ -1,0 +1,30 @@
+#version 420
+// Image drawing Vertex Shader
+
+// Matrices
+layout(binding = 3, std140) uniform SharedProjData
+{
+	mat4 ProjectionMatrix;
+};
+layout(binding = 4, std140) uniform SharedTransformData
+{
+	mat4 TransformMatrix;
+};
+uniform vec2 TexTrans;
+
+// Input 2D Coords + Tex Coords
+layout(location = 0) in vec2 InVertexPos;
+layout(location = 1) in vec2 InTex;
+
+// Output Tex Coordinate to be interpolated in fragment shader
+out vec2 TexCoord;
+
+void main()
+{
+	// Just pass Tex coord through
+	TexCoord.x = InTex.x * TexTrans.x;
+	TexCoord.y = InTex.y * TexTrans.y;
+
+	// Project vertices
+	gl_Position = ProjectionMatrix * TransformMatrix * vec4(InVertexPos.x, InVertexPos.y, 0.0, 1.0);
+}

@@ -1,0 +1,13 @@
+#version 420 core
+
+in vec2 TexFS;
+in vec4 ColorFS;
+
+layout(binding = 2) uniform sampler2D ParticleTexture;
+
+out vec4 FinalColor;
+
+void main()
+{
+	FinalColor = ColorFS * texture(ParticleTexture, TexFS);
+}

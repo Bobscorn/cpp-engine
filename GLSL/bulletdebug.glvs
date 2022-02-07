@@ -1,0 +1,18 @@
+#version 420 core
+
+layout(binding = 0, std140) uniform MatrixBuffer
+{
+	mat4 ViewProj;
+};
+
+layout(location = 0) in vec3 Pos;
+layout(location = 1) in vec3 ColorVS;
+
+out vec3 ColorFS;
+
+void main()
+{
+	gl_Position = ViewProj * vec4(Pos, 1.f);
+
+	ColorFS = ColorVS;
+}

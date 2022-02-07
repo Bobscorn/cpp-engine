@@ -1,0 +1,24 @@
+// Auto Generated WindowConfig.txt
+// This file stores UI Config 
+// Formatting rules: 
+// Comments are lines that start with # or // both must be at the start of any line, mid line comments not supported (yet) 
+// <> Tags to denote a Section, (eg Appearance for UI) 
+// [] Tags to denote Section Part, or item (eg [Primary] for Primary Brush Description in UI) 
+// No tags to denote a property (eg Red Component (normally like 'R: 0.1')) 
+// Tag Names may have spaces (eg <UI Appearance> or [Ass Chow] (neither exist)) 
+// Property Names may not have spaces, The first word on a line without tags (or comments) is interpreted as a property name 
+// Properties can have a colon after them (without whitespace in between) but nothing else 
+// Property values can be comma separated, all commas will be ignored 
+// Example: 
+// AssColor: 0.5f, 0.2f, 0.4f, 1.0f   - This will be parsed correctly 
+// AssColor 1.5f 421 25 -2			- This will be parsed correctly, although most parsing will do things like clip colors to 0-1 range 
+// AssColor = 0.5 0.5 0.5 1.0 
+      - This will NOT be parsed correctly, it will look like the first property value is '=' 
+
+<Last Session> 
+	[Window]
+		FullScreen: 0 
+		Height: 538 
+		Width: 795 
+		X: 541 
+		Y: 134 

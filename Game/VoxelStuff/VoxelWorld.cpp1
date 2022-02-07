@@ -1,0 +1,126 @@
+#include "VoxelWorld1.h"
+#include "VoxelWorld.h"
+
+Voxel::VoxelWorld::VoxelWorld(WorldStuff stuff) : m_Stuff(stuff)
+{
+	m_Stuff.ChunkLeniance = fmin(m_Stuff.ChunkLeniance, m_Stuff.HalfBonusWidth);
+	m_Stuff.ChunkLeniance = fmin(m_Stuff.ChunkLeniance, m_Stuff.HalfBonusHeight);
+	m_Stuff.ChunkLeniance = fmin(m_Stuff.ChunkLeniance, m_Stuff.HalfBonusDepth);
+
+	if (m_Stuff.ChunkLeniance < 1)
+		m_Stuff.ChunkLeniance = 1;
+}
+
+Voxel::VoxelWorld::~VoxelWorld()
+{
+}
+
+floaty3 Voxel::VoxelWorld::Update(floaty3 New_Centre)
+{
+	// What to do:
+	// check if player if ChunkLeniance chunks away from the centre
+
+	// Convert New_Centre to World space
+	DOUBLE3 centre = (DOUBLE3)New_Centre + m_PhysicsDisplacement;
+
+	// Convert World space to chunk space
+	centre = { centre.x / (double)(ChunkyBoi::BlockSize * ChunkyBoi::Chunk_Size), centre.y / (double)(ChunkyBoi::BlockSize * ChunkyBoi::Chunk_Height), centre.z / (double)(ChunkyBoi::BlockSize * ChunkyBoi::Chunk_Size) };
+
+	// centre is now in world chunk space
+
+	// Convert to local chunk space
+	floaty3 chunk_space = { m_XChunkDisplacement + m_Stuff.HalfBonusWidth - 0.5f, m_YChunkDisplacement + m_Stuff.HalfBonusHeight - 0.5f, m_ZChunkDisplacement + m_Stuff.HalfBonusDepth - 0.5f };
+	centre = centre + chunk_space;
+
+	int x_stretch = (int)(fabs(centre.x) - ((double)m_Stuff.ChunkLeniance - 0.5));
+	x_stretch *= centre.x > 0.f ? 1 : -1;
+	int y_stretch = (int)(fabs(centre.y) - ((double)m_Stuff.ChunkLeniance - 0.5));
+	y_stretch *= centre.y > 0.f ? 1 : -1;
+	int z_stretch = (int)(fabs(centre.z) - ((double)m_Stuff.ChunkLeniance - 0.5));
+	z_stretch *= centre.z > 0.f ? 1 : -1;
+
+	// These stretch variables represent the amount of chunks the player is away from the centre and its leniance
+
+
+}
+
+void Voxel::VoxelWorld::UnloadChunkYZ(bool positive)
+{
+	decltype(m_Chunks.begin()) it;
+
+	if (positive)
+	{
+		it = m_Chunks.end();
+	}
+	else
+	{
+		it = m_Chunks.begin();
+	}
+
+	if (m_Stuff.m_ChunkUnloader)
+	for (auto &ys : *it)
+	{
+		for (auto &zs : ys)
+		{
+			m_Stuff.m_ChunkUnloader->UnloadChunk(std::move(zs));
+		}
+	}
+
+	m_Chunks.erase(it);
+}
+
+void Voxel::VoxelWorld::UnloadChunkXZ(bool positive)
+{
+	// Go through the Y axis chunks
+	for (auto &ys : m_Chunks)
+	{
+		decltype(ys.begin()) it;
+		if (positive)
+			it = ys.end();
+		else
+			it = ys.begin();
+
+		if (m_Stuff.m_ChunkUnloader)
+			for (auto &zs : *it)
+			{
+				m_Stuff.m_ChunkUnloader->UnloadChunk(std::move(zs));
+			}
+
+		ys.erase(it);
+	}
+}
+
+void Voxel::VoxelWorld::UnloadChunkXY(bool positive)
+{
+	for (auto &ys : m_Chunks)
+	{
+		for (auto &zs : ys)
+		{
+			decltype(zs.begin()) it;
+			if (positive)
+				it = zs.end();
+			else
+				it = zs.begin();
+
+			if (m_Stuff.m_ChunkUnloader)
+			{
+				m_Stuff.m_ChunkUnloader->UnloadChunk(std::move(*it));
+			}
+
+			zs.erase(it);
+		}
+	}
+}
+
+void Voxel::VoxelWorld::LoadChunkYZ(bool positive)
+{
+	int64_t x_start = 0ll;
+}
+
+void Voxel::VoxelWorld::LoadChunkXZ(bool positive)
+{
+}
+
+void Voxel::VoxelWorld::LoadChunkXY(bool positive)
+{
+}

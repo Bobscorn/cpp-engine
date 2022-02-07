@@ -1,0 +1,11 @@
+#version 400
+
+uniform sampler2D TextureThing;
+
+in vec2 TexCoord;
+
+void main()
+{
+	// Do some sampling
+	gl_FragColor = texture(TextureThing, TexCoord);
+}
