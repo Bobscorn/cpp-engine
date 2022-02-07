@@ -9,6 +9,9 @@
 out/
 build/
 
+# Library Folder
+Libraries/
+
 # Compiled Object files
 *.slo
 *.lo
