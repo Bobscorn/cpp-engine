@@ -13,11 +13,9 @@
 #include <vector>
 #include <unordered_map>
 
-#ifdef USE_BULLET_STUFF
 #pragma warning(push, 0)
 #include <btBulletDynamicsCommon.h>
 #pragma warning(pop)
-#endif
 
 
 namespace G1

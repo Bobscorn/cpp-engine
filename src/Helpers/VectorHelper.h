@@ -1,13 +1,11 @@
 ﻿#pragma once
 
-#ifdef USE_BULLET_STUFF
 #pragma warning(push, 0)
 #include <LinearMath/btMatrix3x3.h>
 #include <LinearMath/btTransform.h>
 #include <Bullet3Common/b3Vector3.h>
 #include <LinearMath/btVector3.h>
 #pragma warning(pop)
-#endif
 
 #include <assimp/vector3.h>
 #include <assimp/matrix4x4.h>
@@ -192,7 +190,6 @@ struct floaty3
 	constexpr floaty3(float x, float y, float z) : x(x), y(y), z(z) {}
 	constexpr floaty3(const floaty3 &a) : x(a.x), y(a.y), z(a.z) {}
 	constexpr floaty3(const DOUBLE3 &a) : x(static_cast<float>(a.x)), y(static_cast<float>(a.y)), z(static_cast<float>(a.z)) {}
-#ifdef USE_BULLET_STUFF
 	//floaty3(const DirectX::XMFLOAT3& a) : x(a.x), y(a.y), z(a.z) {}
 	explicit constexpr floaty3(const b3Vector3& a) : x(a.x), y(a.y), z(a.z) {}
 	explicit floaty3(const btVector3& a) : x(a.x()), y(a.y()), z(a.z()) {}
@@ -200,7 +197,6 @@ struct floaty3
 	inline operator btVector3() const { return { x, y, z }; }
 	inline operator DOUBLE3() const { return { x, y, z }; }
 	//inline operator DirectX::XMFLOAT3() { return { x, y, z }; }
-#endif
 	explicit constexpr floaty3(const aiVector3D &a) : x(a.x), y(a.y), z(a.z) {}
 
 	inline float dot(const floaty3 &other) const
@@ -366,7 +362,6 @@ struct floaty4
 {
 	floaty4() = default;
 	constexpr floaty4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
-#ifdef USE_BULLET_STUFF
 	//floaty4(const DirectX::XMFLOAT4& a) : x(a.x), y(a.y), z(a.z), w(a.w) {};
 	constexpr floaty4(const b3Vector3& a) : x(a.x), y(a.y), z(a.z), w(a.w) {}
 	floaty4(const btQuaternion &a) : x(a.x()), y(a.y()), z(a.z()), w(a.w()) {}
@@ -374,7 +369,6 @@ struct floaty4
 	inline operator b3Vector4() { return b3MakeVector4(x, y, z, w); }
 	inline operator btVector4() { return { x, y, z, w }; }
 	inline operator btQuaternion() { return { x, y, z, w }; }
-#endif
 	floaty4(SDL_Color color);
 	explicit constexpr floaty4(const aiVector3D &a) : x(a.x), y(a.y), z(a.z), w(0.f) {}
 

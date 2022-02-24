@@ -329,7 +329,41 @@ void GLRen::Sort(std::vector<size_t>& keys, const std::unordered_map<size_t, Dra
 		}
 	};
 
-	std::sort(keys.rbegin(), keys.rend(), DrawAfterGuy(calls, View3D, false));
+	std::vector<size_t> transparentKeys{};
+	std::vector<size_t> opaqueKeys{};
+
+	transparentKeys.reserve(keys.size());
+	opaqueKeys.reserve(keys.size());
+
+	for (int i = 0; i < keys.size(); ++i)
+	{
+		const auto& key = keys[i];
+		auto findIt = calls.find(key);
+		if (findIt == calls.end())
+			continue;
+		
+		const auto& call = findIt->second;
+		const auto& mat = *call.Material;
+
+		if (mat.DiffuseColor.w < 1.f)
+			transparentKeys.push_back(key);
+		else
+			opaqueKeys.push_back(key);
+	}
+
+	std::sort(transparentKeys.rbegin(), transparentKeys.rend(), DrawAfterGuy(calls, View3D, false));
+
+	int key_index = 0;
+	for (int i = 0; i < transparentKeys.size(); ++i, ++key_index)
+	{
+		keys[key_index] = transparentKeys[i];
+	}
+	for (int i = 0; i < opaqueKeys.size(); ++i, ++key_index)
+	{
+		keys[key_index] = opaqueKeys[i];
+	}
+	for (; keys.size() > key_index; ++key_index)
+		keys.pop_back();
 }
 
 void GLRen::Resize(unsigned int NewWidth, unsigned int NewHeight)

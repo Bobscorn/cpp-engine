@@ -8,8 +8,66 @@ You will need to put OpenAL32.lib into <repo dir>/Libraries/OpenAL
 If building with Physics (recommended), use option EC_USE_BULLET
 You will need to put BulletCollision.lib, BulletDynamics.lib and LinearMath.lib into <repo dir>/Libraries/Bullet
 
+For Windows, The Cmake Config should automatically download any libraries you don't have,
+With the exception of zlib, glew and freetype (a dependency of SDL_ttf)
+
+Please download zlib from https://github.com/madley/zlib and a glew release from https://github.com/nigels-com/glew/releases (linux might not have to)
+
+To build and install zlib Run:
+
+	cmake -B build
+	cmake --build build
+	cmake --install build --config Debug
+
+To get glew working, unpack the contents of the glew release zip file into <repo dir>/external/glew such that the glew README.md is at <repo dir>/external/glew/README.md
+Cmake should find it from there
+
+To build and install freetype, use similar instructions to zlib,
+However on windows (linux hasn't been tested and probably 'just works') you will have to go into the repo, go into <repo dir>/include/freetype/config/ftoption.h, 
+And comment out 
+
+	//#define FT_CONFIG_OPTION_USE_ZLIB
+
+(As of writing this is line 198 in ftoption.h)
+Then to install:
+Run the following in the root directory of the modified freetype clone:
+
+	cmake -B build
+	cmake --build build --config Release
+	cmake --install build --config Release
+
+
+This is most likely only a windows requirement, linux usually has prebuilt versions of all these dependencies as packages.
+On Windows, this will build and install zlib and freetype binaries and include headers into your C:\Program Files (x86)\ folder.
+Currently there is a singular cmake hack that allows SDL_ttf to find freetype without trouble by setting the environment variable FREETYPE_DIR (done with set(ENV{FREETYPE_DIR} "C:\\Program Files (x86)\\freetype)),
+To Change this hardcoding, define the environment variable yourself to wherever you have installed freetype before running cmake.
+
+Every other dependency is automatically managed by cmake and git submodules (likely on linux cmake will look for packages, so you may install those)
+The dependencies are:
+- [SDL2](https://github.com/libsdl-org/SDL)
+- [SDL_image](https://github.com/libsdl-org/SDL_image)
+- [SDL_ttf](https://github.com/libsdl-orf/SDL_ttf)
+	- [Freetype](https://gitlab.freedesktop.org/freetype/freetype)
+- [OpenAL](https://github.com/kcat/openal-soft)
+- [Bullet Physics](https://github.com/bulletphysics/bullet3)
+- [zlib](https://github.com/madley/zlib)
+- [Assimp](https://github.com/assimp/assimp)
+- OpenGL/glu
+- [GLEW](https://github.com/nigels-com/glew)
+- There will also probably be SDL_net in the future
+
+Cmake will look for these packages itself, and if it does not find them,
+It will clone the github repo into a submodule and Cmake will build it for you.
+It does this for all dependencies EXCEPT OpenGL, GLU, zlib and freetype
+
+This means if you use cmake to install these packages yourself, cmake won't download the repos.
+
+Any repos it does download will appear in the external/ folder.
+
 
 ### Libraries
+
+--- OLD LIBRARIES ---
 
  LINUX REQUIREMENTS HAVE NOT BEEN TESTED
  THESE ARE MERELY GUESSES BASED ON PREVIOUS LINUX BUILDS
@@ -68,11 +126,16 @@ Place Libraries/Binaries in Folder: <repo dir>/Libraries/OpenAL
 Release Build Binaries:
 - OpenAL32.lib
 - ex-common.lib
-Debug Build Binaries:
-- OpenAL32.lib
-- ex-common.lib
+Debug Build Binaries: (you might have to append _Debug to their names)
+- OpenAL32_Debug.lib
+- ex-common_Debug.lib
 
 You will likely have to manually build OpenAL
+
+#### SDL2
+Place Libraries/Binaries in Folder: <repo dir>/Libraries/SDL2
+Release Build Binaries:
+- 
 
 #### Bullet Physics
 Place Libraries/Binaries in Folder: <repo dir>/Libraries/Bullet
@@ -94,7 +157,7 @@ Build Binaries:
 
 You will likely have to manually build Assimp
 
-#### OpenGL/GLEW
+#### OpenGL/GLU/GLEW
 Place Libraries/Binaries in Folder: <repo dir>/Libraries/OpenGL
 Release Build Binaries:
 - glew32.lib
@@ -103,7 +166,10 @@ Debug Build Binaries:
 - glew32d.lib
 - glew32sd.lib
 
-You will almost definitely download precompiled Glew binaries
+Opengl32 and glu32 are also linked against, but should come with windows itself (I think)
+
+You will almost definitely download precompiled OpenGL and glu binaries
+You can build Glew binaries yourself
 
 ## Building
 

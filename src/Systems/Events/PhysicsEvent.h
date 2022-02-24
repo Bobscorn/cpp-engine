@@ -1,7 +1,6 @@
 #include "EventsBase.h"
 #include "Converter.h"
 
-#ifdef USE_BULLET_STUFF
 #pragma warning(push, 0)
 #include <BulletDynamics/Dynamics/btDynamicsWorld.h>
 #pragma warning(pop)
@@ -33,4 +32,3 @@ namespace Event
 		inline bool operator==(Events::IEvent *other) override { auto *e = Events::ConvertEvent<AfterPhysicsEvent>(other); if (!e) return false; return (e->World == this->World); }
 	};
 }
-#endif
