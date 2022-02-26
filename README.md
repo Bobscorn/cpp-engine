@@ -13,11 +13,12 @@ With the exception of zlib, glew and freetype (a dependency of SDL_ttf)
 
 Please download zlib from https://github.com/madley/zlib and a glew release from https://github.com/nigels-com/glew/releases (linux might not have to)
 
-To build and install zlib Run:
+To build and install Debug and Release zlib builds Run:
 
 	cmake -B build
 	cmake --build build
 	cmake --install build --config Debug
+	cmake --install build --config Release
 
 To get glew working, unpack the contents of the glew release zip file into <repo dir>/external/glew such that the glew README.md is at <repo dir>/external/glew/README.md
 Cmake should find it from there

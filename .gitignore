@@ -12,6 +12,8 @@ build/
 # Library Folder
 Libraries/
 external/glew/
+external/zlib/
+external/freetype/
 
 # Compiled Object files
 *.slo
