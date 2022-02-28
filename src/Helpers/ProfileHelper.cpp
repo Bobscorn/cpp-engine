@@ -2,6 +2,11 @@
 
 #include "DebugHelper.h"
 
+#include <iostream>
+#include <fstream>
+#include <cstdio>
+#include <functional>
+
 constexpr float OtherThreshold = 0.001f;
 
 #ifdef EC_PROFILE
@@ -215,4 +220,71 @@ void ProfileMcGee::FillOutFrame(double frametime, double parenttime, TimedEvent 
 	}
 }
 
+void BigBoiStats::WriteToFile(const BigBoiStats& stats, std::string filename)
+{
+	std::ofstream file{ filename, std::ios::binary };
+
+	int nameSpace = 20;
+	int maxCharacters = 100;
+	constexpr char indicatorChar = '#';
+	constexpr char spaceChar = ' ';
+	constexpr char indentChar = ' ';
+	constexpr size_t indentSize = 1; // number of spaces indent_char takes up
+
+	std::function<void(const TimedEvent&, int indent)> print_event;
+	print_event = [&](const TimedEvent& e, int indent)
+	{
+		int64_t namePadding = indent * indentSize + nameSpace - e.Name.length();
+		std::string realName = e.Name;
+		if (namePadding < 0)
+		{
+			realName = realName.substr(namePadding * -1, realName.length() + namePadding);
+			namePadding = 0;
+		}
+		int myMax = (maxCharacters - realName.length() - namePadding);
+		char info_buffer[90];
+		auto buf_len = snprintf(info_buffer, sizeof(info_buffer), "%4.2fms - %4.2f%% of Frame - %4.2f%% of Parent", e.Time * 1000.0, e.PercentOfFrame * 100.0, e.PercentOfParent * 100.0);
+		int numIndicators = (int)roundf(e.PercentOfFrame * (float)myMax);
+		int numSpaces = myMax - numIndicators;
+		file << std::string(namePadding, indentChar) << realName << "-" << std::string(numIndicators, indicatorChar) << std::string(numSpaces, spaceChar) << "| " << std::string(info_buffer, info_buffer + buf_len) << std::endl;
+		for (int i = 0; i < e.ChildEvents.size(); ++i)
+			print_event(e.ChildEvents[i], indent + 1);
+	};
+
+	if (file.good())
+	{
+
+		file << "------------ Profile Information -------------" << std::endl;
+		for (int i = 0; i < stats.Frames.size(); ++i)
+		{
+			const auto& frame = stats.Frames[i];
+			file << "Frame took " << frame.Time * 1000 << "ms " << std::endl;
+
+			int indent = 0;
+			std::string realName = frame.Name;
+			int64_t namePadding = (nameSpace + indent * indentSize) - frame.Name.length();
+			if (namePadding < 0)
+			{
+				realName = realName.substr(namePadding * -1, realName.length() + namePadding);
+				namePadding = 0;
+			}
+
+			int myMax = (maxCharacters - realName.length() - namePadding);
+			int num_indicators = (int)roundf(frame.PercentOfFrame * (float)myMax);
+			int num_spaces = myMax - num_indicators;
+
+			char info_buffer[90];
+			auto buf_len = snprintf(info_buffer, sizeof(info_buffer), "%4.2fms - %4.2f%% of Frame - %4.2f%% of Parent", frame.Time * 1000.0, frame.PercentOfFrame * 100.0, frame.PercentOfParent * 100.0);
+
+			file << std::string(namePadding, ' ') << frame.Name << "-" << std::string(num_indicators, indicatorChar) << std::string(num_spaces, spaceChar) << "| " << std::string(info_buffer, info_buffer + buf_len) << std::endl;
+
+			for (int j = 0; j < frame.ChildEvents.size(); ++j)
+				print_event(frame.ChildEvents[j], 1);
+
+			file << "---------------------------------------------------------------------------------------" << std::endl;
+		}
+		file << "------------ End Profile Information ------------" << std::endl;
+	}
+}
 #endif
+

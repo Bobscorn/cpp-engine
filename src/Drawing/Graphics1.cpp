@@ -81,7 +81,7 @@ void G1::IGSpace::PhysicsCull(std::vector<std::shared_ptr<btCollisionObject>>& o
 
 void G1::IGSpace::BeforeDrawShapes(IShape * shape)
 {
-	PROFILE_PUSH("BeforeDraw " + shape->GetName());
+	PROFILE_PUSH("Shape " + shape->GetName());
 	if (shape)
 	{
 		shape->BeforeDraw();
@@ -111,7 +111,7 @@ void G1::IGSpace::DrawShapes(IShape *shape)
 
 void G1::IGSpace::AfterDrawShapes(IShape * shape)
 {
-	PROFILE_PUSH("AfterDraw " + shape->GetName());
+	PROFILE_PUSH("Shape " + shape->GetName());
 	if (shape)
 	{
 		shape->AfterDraw();
@@ -158,7 +158,9 @@ Pointer::f_ptr<G1::IShape> G1::IGSpace::FindShapeFPtr(std::string name)
 
 void G1::IGSpace::BeforeDraw()
 {
+	PROFILE_PUSH("BeforeDraw Shapes");
 	BeforeDrawShapes(&Root);
+	PROFILE_POP();
 	BeforeDrawI();
 }
 
@@ -170,7 +172,9 @@ void G1::IGSpace::Draw()
 
 void G1::IGSpace::AfterDraw()
 {
+	PROFILE_PUSH("AfterDraw Shapes");
 	AfterDrawShapes(&Root);
+	PROFILE_POP();
 	AfterDrawI();
 }
 

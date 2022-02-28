@@ -1074,5 +1074,9 @@ void G1I::ProfilerShape::ReportProfiling(double time)
 	const auto &stats = mResources->Profile->Finish(true);
 #endif
 
+	DINFO("Writing frames to file 'profile.txt'");
+
+	BigBoiStats::WriteToFile(stats, "profile.txt");
+
 	DINFO("-----------End Profiling----------------");
 }

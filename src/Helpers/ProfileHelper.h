@@ -68,6 +68,8 @@ struct BigBoiStats
 
 	TimedEvent *LongestFrame = nullptr;
 	TimedEvent *ShortestFrame = nullptr;
+
+	static void WriteToFile(const BigBoiStats& stats, std::string filename = "profile.txt");
 };
 
 struct ProfileOptions
