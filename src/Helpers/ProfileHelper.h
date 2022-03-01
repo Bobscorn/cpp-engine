@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 #include <stack>
+#include <cstdio>
 
 struct TimedEvent
 {
@@ -55,6 +56,13 @@ struct TimedEvent
 	double PercentOfParent = 0.0;
 	double PercentOfFrame = 0.0;
 #endif
+
+	inline std::string TimeString() const
+	{
+		char info_buffer[90] = { 0 };
+		auto buf_len = snprintf(info_buffer, sizeof(info_buffer), "%4.2fms - %4.2f%% of Frame - %4.2f%% of Parent", Time * 1000.0, PercentOfFrame * 100.0, PercentOfParent * 100.0);
+		return std::string(info_buffer, info_buffer + buf_len);
+	}
 };
 
 struct BigBoiStats

@@ -6,6 +6,7 @@
 #include <fstream>
 #include <cstdio>
 #include <functional>
+#include <algorithm>
 
 constexpr float OtherThreshold = 0.001f;
 
@@ -222,6 +223,7 @@ void ProfileMcGee::FillOutFrame(double frametime, double parenttime, TimedEvent 
 
 void BigBoiStats::WriteToFile(const BigBoiStats& stats, std::string filename)
 {
+
 	std::ofstream file{ filename, std::ios::binary };
 
 	int nameSpace = 20;
@@ -242,13 +244,21 @@ void BigBoiStats::WriteToFile(const BigBoiStats& stats, std::string filename)
 			namePadding = 0;
 		}
 		int myMax = (maxCharacters - realName.length() - namePadding);
-		char info_buffer[90];
-		auto buf_len = snprintf(info_buffer, sizeof(info_buffer), "%4.2fms - %4.2f%% of Frame - %4.2f%% of Parent", e.Time * 1000.0, e.PercentOfFrame * 100.0, e.PercentOfParent * 100.0);
 		int numIndicators = (int)roundf(e.PercentOfFrame * (float)myMax);
 		int numSpaces = myMax - numIndicators;
-		file << std::string(namePadding, indentChar) << realName << "-" << std::string(numIndicators, indicatorChar) << std::string(numSpaces, spaceChar) << "| " << std::string(info_buffer, info_buffer + buf_len) << std::endl;
+		file << std::string(namePadding, indentChar) << realName << "-" << std::string(numIndicators, indicatorChar) << std::string(numSpaces, spaceChar) << "| " << e.TimeString() << std::endl;
 		for (int i = 0; i < e.ChildEvents.size(); ++i)
 			print_event(e.ChildEvents[i], indent + 1);
+	};
+
+	std::function<void(std::vector<const TimedEvent*>&, double, const TimedEvent&)> findHighContributors;
+	findHighContributors = [&findHighContributors](std::vector<const TimedEvent*>& vec, double minTime, const TimedEvent& e)
+	{
+		if (e.ChildEvents.empty() && e.Time > minTime)
+			vec.push_back(&e);
+
+		for (int i = 0; i < e.ChildEvents.size(); ++i)
+			findHighContributors(vec, minTime, e.ChildEvents[i]);
 	};
 
 	if (file.good())
@@ -259,6 +269,51 @@ void BigBoiStats::WriteToFile(const BigBoiStats& stats, std::string filename)
 		{
 			const auto& frame = stats.Frames[i];
 			file << "Frame took " << frame.Time * 1000 << "ms " << std::endl;
+
+			// Print highest contributors first
+			std::vector<const TimedEvent*> highestContributors{};
+			double minTime = 0.001;
+			findHighContributors(highestContributors, minTime, frame);
+
+			std::sort(highestContributors.begin(), highestContributors.end(), [](const const TimedEvent*& a, const const TimedEvent*& b) { return a->Time < b->Time; });
+
+			file << "Highest Contributors (child-less events with time > 1ms):" << std::endl;
+			for (int i = 0; i < highestContributors.size(); ++i)
+			{
+				int charsUsed = 0;
+				const auto& contrib = highestContributors[i];
+				file << '\t';
+				std::vector<std::string> names;
+				for (auto e = contrib; e; e = e->Parent)
+					names.push_back(e->Name);
+
+				for (auto it = names.rbegin(); it != names.rend(); it++)
+				{
+					file << *it;
+					charsUsed += it->length();
+					if (it + 1 != names.rend())
+					{
+						file << "-";
+						charsUsed += 1;
+					}
+					else
+					{
+						file << ": ";
+						charsUsed += 2;
+					}
+				}
+
+				int targetPadding = 80;
+				int neededPadding = targetPadding - charsUsed;
+				if (neededPadding < 0)
+					neededPadding = 0;
+
+				file << std::string(neededPadding, ' ');
+
+
+				file << contrib->TimeString() << std::endl;
+			}
+			file << ". . . . END HIGH CONTRIBUTORS . . . ." << std::endl;
 
 			int indent = 0;
 			std::string realName = frame.Name;
@@ -273,10 +328,7 @@ void BigBoiStats::WriteToFile(const BigBoiStats& stats, std::string filename)
 			int num_indicators = (int)roundf(frame.PercentOfFrame * (float)myMax);
 			int num_spaces = myMax - num_indicators;
 
-			char info_buffer[90];
-			auto buf_len = snprintf(info_buffer, sizeof(info_buffer), "%4.2fms - %4.2f%% of Frame - %4.2f%% of Parent", frame.Time * 1000.0, frame.PercentOfFrame * 100.0, frame.PercentOfParent * 100.0);
-
-			file << std::string(namePadding, ' ') << frame.Name << "-" << std::string(num_indicators, indicatorChar) << std::string(num_spaces, spaceChar) << "| " << std::string(info_buffer, info_buffer + buf_len) << std::endl;
+			file << std::string(namePadding, ' ') << frame.Name << "-" << std::string(num_indicators, indicatorChar) << std::string(num_spaces, spaceChar) << "| " << frame.TimeString() << std::endl;
 
 			for (int j = 0; j < frame.ChildEvents.size(); ++j)
 				print_event(frame.ChildEvents[j], 1);

@@ -113,7 +113,7 @@ void EventProc(const SDL_Event *e);
 #		define RUN_PROFILE_POP() g_Engine->Resources.Profile->Pop(__FUNCTION_NAME__, __LINE__)
 #	else
 #		define RUN_PROFILE_PUSH(x) g_Engine->Resources.Profile->Push(x)
-#		define RUN_PROFILE_POP()
+#		define RUN_PROFILE_POP() g_Engine->Resources.Profile->Pop()
 #	endif
 #else
 #	define RUN_PROFILE_PUSH(x)

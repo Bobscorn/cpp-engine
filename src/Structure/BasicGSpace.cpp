@@ -50,6 +50,7 @@ void G1I::BasicGSpace::DrawI()
 
 	if (DebugDrawing)
 	{
+		DynamicsWorld->setDebugDrawer(&debugdrawer);
 		DynamicsWorld->debugDrawWorld();
 		debugdrawer.drawLine({ 0.f, 1.5f, 0.f }, { 1.f, 1.5f, 0.f }, { 1.f, 0.f, 0.f });
 		debugdrawer.drawLine({ 0.f, 1.5f, 0.f }, { 0.f, 2.5f, 0.f }, { 0.f, 1.f, 0.f });
