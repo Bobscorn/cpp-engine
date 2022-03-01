@@ -206,7 +206,7 @@ if (NOT BULLET_FOUND)
 		set(BUILD_SHARED_LIBS ${EC_TMP_BUILD_SHARED_LIBS})
 	endif()
 else()
-	target_include_directories(Encapsulated PRIVATE ${BULLET_INCLUDE_DIRECTORIES})
+	target_include_directories(Encapsulated PRIVATE ${BULLET_INCLUDE_DIRS})
 endif()
 
 target_link_libraries(Encapsulated PRIVATE ${BULLET_LIBRARIES})
@@ -255,6 +255,8 @@ if(NOT OPENAL_FOUND)
 					WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 	add_subdirectory(external/openal-soft)
+
+	set(OPENAL_LIBRARY OpenAL)
 endif()
 	
-target_link_libraries(Encapsulated PRIVATE OpenAL)
+target_link_libraries(Encapsulated PRIVATE ${OPENAL_LIBRARY})
