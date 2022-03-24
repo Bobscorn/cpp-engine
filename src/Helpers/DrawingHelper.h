@@ -89,10 +89,11 @@ namespace Drawing
 		DrawCallHolder(size_t key, CommonResources *resources = nullptr) : DrawKey(key), FullResourceHolder(resources) {}
 		~DrawCallHolder() { FreeDrawCall(); }
 
-		inline void SetDrawCall(DrawCall call)
+		inline void SetDrawCall(size_t callKey)
 		{
 			if (DrawKey != DeadKey)
 				FreeDrawCall();
+			DrawKey = callKey;
 		}
 
 		void FreeDrawCall();

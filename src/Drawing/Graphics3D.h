@@ -61,9 +61,9 @@ struct Material
 
 enum LightType : uint32_t
 {
-	PointLight = 0u,
-	SpotLight = 0u,
-	DirectionalLight = 0u,
+	PointLight = LIGHT_POINT,
+	SpotLight = LIGHT_SPOT,
+	DirectionalLight = LIGHT_DIRECTION,
 };
 
 #define COLOR_NORMAL 0u

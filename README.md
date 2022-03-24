@@ -7,11 +7,12 @@ You will need to put OpenAL32.lib into <repo dir>/Libraries/OpenAL
 
 If building with Physics (recommended), use option EC_USE_BULLET
 You will need to put BulletCollision.lib, BulletDynamics.lib and LinearMath.lib into <repo dir>/Libraries/Bullet
+Building without physics has been deprecated.
 
 For Windows, The Cmake Config should automatically download any libraries you don't have,
 With the exception of zlib, glew and freetype (a dependency of SDL_ttf)
 
-Please download zlib from https://github.com/madley/zlib and a glew release from https://github.com/nigels-com/glew/releases (linux might not have to)
+Please download zlib from https://github.com/madley/zlib and a glew release from https://github.com/nigels-com/glew/releases (for glew get the source code not the binaries) (linux might not have to)
 
 To build and install Debug and Release zlib builds Run:
 
