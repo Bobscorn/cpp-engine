@@ -14,7 +14,7 @@
 #include <stack>
 
 using StringHelper::IsWhiteSpace;
-using StringHelper::IsDouble;
+using StringHelper::IfDouble;
 
 Importing::XMLElement & Importing::XMLThing::push_back(Stringy ename)
 {
@@ -85,7 +85,7 @@ R * Importing::FindClass<R, M>::Find(Stringy Name, std::initializer_list<std::pa
 					}
 					else
 					{
-						if (!IsDouble(ity->second, nullptr))
+						if (!IfDouble(ity->second, nullptr))
 						{
 							HasAllProps = false;
 							break;
@@ -165,7 +165,7 @@ std::vector<Importing::XMLElement*> Importing::FindAll(Stringy Name, std::initia
 					}
 					else
 					{
-						if (!IsDouble(ity->second, nullptr))
+						if (!IfDouble(ity->second, nullptr))
 						{
 							HasAllProps = false;
 							break;

@@ -8,6 +8,8 @@
 #include "Systems/Input/InputAttachment.h"
 #include "Systems/Timer/Timer.h"
 
+#include "Drawing/DrawCallReference.h"
+
 #include <memory>
 
 #ifdef USE_BULLET_STUFF
@@ -448,5 +450,16 @@ namespace G1I
 		std::vector<double> m_DeltaTimes;
 		size_t m_StartID = 0ull;
 		ProfilerThings m_Info;
+	};
+
+	struct GLRen2TestShape : G1::IShape
+	{
+		GLRen2TestShape(G1::IShapeThings tings);
+
+		inline virtual void BeforeDraw() override {}
+		inline virtual void AfterDraw() override {}
+
+	protected:
+		Drawing::DrawCallReference m_DrawCallKey;
 	};
 }

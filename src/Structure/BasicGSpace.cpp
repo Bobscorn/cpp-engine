@@ -240,6 +240,8 @@ bool G1I::BasicDebugDrawer::Draw(Matrixy4x4 ViewProj)
 
 	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer.Get());
 
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, MatrixBuffer.Get());
+
 	glDrawArrays(GL_LINES, 0, (GLsizei)CurrentBuffer.size() * 2);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

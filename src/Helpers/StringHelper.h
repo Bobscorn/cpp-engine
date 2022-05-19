@@ -48,11 +48,10 @@ namespace StringHelper
 
 	bool StoB(Stringy a);
 
-	bool IsDouble(Stringy const & test, double * out);
-
 	bool IfFloat(Stringy const &s, float *out);
 	bool IfDouble(Stringy const &s, double *out);
 	bool IfUINT(Stringy const &s, UINT *out);
+	bool IfSizeT(const Stringy& s, size_t* out);
 	bool IfINT(Stringy const &s, INT *out);
 	bool IfBool(Stringy const &s, bool *out);
 #ifdef WIN32

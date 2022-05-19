@@ -12,6 +12,7 @@
 
 #include <string>
 #include <fstream>
+#include <unordered_map>
 
 #if defined(_DEBUG) | defined(DEBUG)
 #include <iostream>
@@ -138,7 +139,34 @@ struct Wrapper2 : Wrapper<Funcylicious<func>>
 };
 
 using GLBuffer = Wrapper2<&glDeleteBuffers>;
-using GLVertexArray = Wrapper2<&glDeleteVertexArrays>;
+class GLVertexArray : public Wrapper2<&glDeleteVertexArrays>
+{
+public:
+	struct ArrayAttribState
+	{
+		bool Enabled;
+		GLint Size;
+		GLenum Type;
+		GLboolean Normalized;
+		GLsizei Stride;
+		GLvoid* Offset;
+	};
+
+private:
+
+	std::unordered_map<GLuint, ArrayAttribState> _state;
+
+public:
+	GLVertexArray() = default;
+	GLVertexArray(GLuint name) : Wrapper2<&glDeleteVertexArrays>(name) {}
+
+	void ResetState();
+
+	void SetState(GLuint index, ArrayAttribState state);
+
+	ArrayAttribState GetState(GLuint index) const;
+
+};
 
 GLuint LoadShader(std::string file, GLenum type);
 void OutputShaderLog(GLuint shader);

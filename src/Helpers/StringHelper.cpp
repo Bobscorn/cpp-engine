@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <sstream>
+#include <cstdlib>
 #ifdef WIN32
 #include <dwrite_3.h>
 #endif
@@ -71,73 +72,58 @@ bool StringHelper::StoB(Stringy a)
 	return a == "true" || a == "true" || std::stol(a) > 0;
 }
 
-bool StringHelper::IsDouble(Stringy const &test, double * out)
-{
-	if (test.empty())
-		return false;
-
-	size_t thing;
-	if (out)
-		*out = std::stod(test, &thing);
-	else
-		std::stod(test, &thing);
-	return thing;
-}
-
 bool StringHelper::IfFloat(Stringy const &s, float * out)
 {
-	size_t thing;
+	auto c_str = s.c_str();
+	char* p = 0;
+	float val = std::strtof(c_str, &p);
 	if (out)
-		*out = std::stof(s, &thing);
-	else
-		std::stof(s, &thing);
-	return thing;
+		*out = val;
+	return p != c_str;
 }
 
-bool StringHelper::IfDouble(Stringy const & test, double * out)
+bool StringHelper::IfDouble(Stringy const & s, double * out)
 {
-	if (test.empty())
-		return false;
-
-	size_t thing;
-	if (out)
-		*out = std::stod(test, &thing);
-	else
-		std::stod(test, &thing);
-	return thing;
+	auto c_str = s.c_str();
+	char* p = 0;
+	double val = std::strtod(c_str, &p);
+	if (out && p != c_str)
+		*out = val;
+	return p != c_str;
 }
 
 bool StringHelper::IfUINT(Stringy const &s, UINT *out)
-{	
-	size_t thing;
-	if (out)
-		*out = std::stoul(s, &thing);
-	else
-		std::stoul(s, &thing);
-	return thing;
+{
+	auto c_str = s.c_str();
+	char* p = 0;
+	UINT val = (UINT)std::strtoul(c_str, &p, 10);
+	if (out && p != c_str)
+		*out = val;
+	return p != c_str;
 }
 
 bool StringHelper::IfINT(Stringy const &s, INT * out)
-{	
-	size_t thing;
-	try
-	{
-		if (out)
-			*out = std::stoi(s, &thing);
-		else
-			std::stoi(s, &thing);
-	}
-	catch (const std::invalid_argument &e)
-	{
-		(void)e;
-		return false;
-	}
-	return thing;
+{
+	auto c_str = s.c_str();
+	char* p = 0;
+	int val = (int)std::strtol(c_str, &p, 10);
+	if (out && p != c_str)
+		*out = val;
+	return p != c_str;
+}
+
+bool StringHelper::IfSizeT(Stringy const& s, size_t* out)
+{
+	auto c_str = s.c_str();
+	char* p = 0;
+	size_t val = (size_t)std::strtoull(c_str, &p, 10);
+	if (out && p != c_str)
+		*out = val;
+	return p != c_str;
 }
 
 bool StringHelper::IfBool(Stringy const &s, bool * out)
 {
-	Stringy tmp(s.size(), L'$');
 	if (s == "0" || s == "false")
 	{
 		*out = false;

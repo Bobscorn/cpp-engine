@@ -74,7 +74,7 @@ Debug::DebugReturn Scene::StartingScene::Request(Requests::Request & action)
 		if (action.Params.size())
 		{
 			double in{ 0.f };
-			if (StringHelper::IsDouble(action.Params[0], &in))
+			if (StringHelper::IfDouble(action.Params[0], &in))
 			{
 				return LoadGame((unsigned int)in);
 			}

@@ -1,0 +1,41 @@
+# Processed using YAML
+name: MyProgram
+materialbuf: Material
+perobjectbuf: PerObject
+shaders:
+{
+	example_geometry.glgs: GEOMETRY,
+	example_vertex.glvs: VERTEX,
+	example_fragment.glfs: FRAGMENT
+}
+geometry:
+	position: # Position is required
+		# Order starts at zero and determines the order of components
+		order: 0 
+		# Size determines how many 4 byte values there are (eg. floating points) 3 means its a 3D (x,y,z) position vector
+		size: 3 
+	normal: # Normals are optional
+		order: 1
+		size: 3
+	binormal: # Binormals are optional
+		order: 2
+		size: 3
+	tangent: # Tangents are optional
+		order: 3
+		size: 3
+	tex: # Tex coords are optional
+		order: 4
+		# Tex coords, even in 3D are 2 dimensional (u,v), tex coordinates are pretty much always 2 dimensional so having a size is kind of redundant but still required
+		size: 2 
+
+# Tell the renderer what the name of sampler2D(s) are
+# possible types are: diffuse, opacity, ambient, emissive, specular, specpower, normal, bump
+textures:
+	diffuse: DiffuseTexture
+	specular: SpecularTexture
+	opacity: OpacityTexture
+	ambient: AmbientTexture
+	emissive: EmissiveTexture
+	specpower: SpecularPowerTexture
+	normal: NormalTexture
+	bump: BumpTexture

@@ -8,6 +8,9 @@
 #include "Drawing/IRen3D.h"
 #include "Drawing/Particles.h"
 
+// GLRen2 Stuff
+#include "GLRen2.h"
+
 #ifndef __glew_h__
 #include <GL/glew.h>
 #endif
@@ -64,7 +67,6 @@ protected:
 	std::vector<GeometryInternalDesc> Descriptions;
 	size_t LastKey = 1ull;
 	GLVertexArray VAO;
-	GLVertexArray InstancedVAO;
 	GLBuffer VertexBuffer;
 	GLBuffer IndexBuffer;
 	GLBuffer InstanceBuffer;
@@ -336,14 +338,28 @@ struct GLRen : IRen2D, IRen3D, Particles::IParticleDrawer, virtual FullResourceH
 	Drawing::DrawCall *GetDrawCall(size_t key) override;
 
 	void DrawCalls(Matrixy4x4 View, Matrixy4x4 Proj, Voxel::CameraFrustum frustum) override;
-	void ApplyMaterial(Material *mat) override;
+	void ApplyMaterial(Material *mat);
 
 	//void SetMatrix(Matrixy4x4 *mat) override;
-	void Sort(std::vector<size_t> &keys, const std::unordered_map<size_t, Drawing::DrawCall> &calls) override;
+	void Sort(std::vector<size_t> &keys, const std::unordered_map<size_t, Drawing::DrawCall> &calls);
 
 	inline void DidSomething() override { DidWork = true; }
 
 	// 3D
+	// ---------------------------------------
+	// 3D v2
+
+	Drawing::DrawCallReference AddDrawCallv2(Drawing::DrawCallv2 call);
+	bool RemoveDrawCallv2(size_t key);
+
+	const Drawing::DrawCallv2* GetDrawCallv2(size_t key) const;
+	bool SetDrawCallv2(size_t key, Drawing::DrawCallv2 updatedValue);
+
+	void Drawv2(Matrixy4x4 view, Matrixy4x4 proj, Voxel::CameraFrustum frustum);
+
+	inline Drawing::DrawCallRenderer* Getv2() { return &m_Renv2; }
+
+	// 3D v2
 	/// --------------------------------------
 	// Particles
 
@@ -449,6 +465,8 @@ protected:
 	GLBuffer Proj2DBuffer;
 	GLBuffer Trans2DBuffer;
 
+	// New 3D
+	Drawing::DrawCallRenderer m_Renv2;
 
 	Matrixy4x4 View3D;
 	Matrixy4x4 Projection3D;
@@ -458,7 +476,6 @@ protected:
 	constexpr static GLint m_PerObjectLoc = 2u;
 	GLBuffer PerObjectBuf;
 	GLBuffer m_MaterialBuf;
-	constexpr static unsigned int PerObjectLoc = 0u;
 	constexpr static unsigned int MaterialBufLoc = 1u;
 	GeometryManager GeoMan;
 	//MaterialManager MatMan;

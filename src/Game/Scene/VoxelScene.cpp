@@ -13,6 +13,8 @@ Voxel::VoxelScene::VoxelScene(CommonResources *resources)
 
 	(void)m_GSpace.FindShapeyRaw("")->AddChild(new G1I::ProfilerShape({ &m_GSpace, resources, "Profiler McGee" }, { 10.0, false }));
 
+	(void)m_GSpace.FindShapeyRaw("")->AddChild(new G1I::GLRen2TestShape({ &m_GSpace, resources, "GLRen2 test" }));
+
 	m_UI.AddChildTop(&m_Crosshair);
 
 	m_Crosshair.Initialize();
@@ -26,6 +28,7 @@ Voxel::VoxelScene::~VoxelScene()
 
 Debug::DebugReturn Voxel::VoxelScene::Initialize()
 {
+	m_World->Update(m_Ass->GetPosition());
 
 
 	return true;
@@ -54,7 +57,7 @@ void Voxel::VoxelScene::Draw()
 
 void Voxel::VoxelScene::AfterDraw()
 {
-	m_World->Update(m_Ass->GetPosition());
+	//m_World->Update(m_Ass->GetPosition());
 	m_GSpace.AfterDraw();
 }
 

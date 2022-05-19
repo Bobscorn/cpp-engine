@@ -153,6 +153,9 @@ int main(int argc, char *args[])
 {
 	(void)argc;
 	(void)args;
+
+	std::cout << "Encapsulated!" << std::endl;
+	std::cout << ".." << std::endl;
 	
 	bool Init = true;
 

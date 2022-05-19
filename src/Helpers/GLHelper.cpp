@@ -52,3 +52,40 @@ GLProgram GLProgram::CreateProgram(std::vector<GLShaderPair> shaderfiles)
 
 	return out;
 }
+
+void GLVertexArray::ResetState()
+{
+	glBindVertexArray(Get());
+	for (auto& pair : _state)
+	{
+		glVertexAttribPointer(pair.first, 4, GL_FLOAT, 0, 0, 0);
+		glDisableVertexAttribArray(pair.first);
+	}
+	glBindVertexArray(0);
+
+	_state.clear();
+}
+
+void GLVertexArray::SetState(GLuint index, ArrayAttribState state)
+{
+	_state[index] = state;
+
+	glBindVertexArray(Get());
+	if (state.Enabled)
+	{
+		glEnableVertexAttribArray(index);
+		glVertexAttribPointer(index, state.Size, state.Type, state.Normalized, state.Stride, state.Offset);
+	}
+	else
+		glDisableVertexAttribArray(index);
+
+	glBindVertexArray(0);
+}
+
+GLVertexArray::ArrayAttribState GLVertexArray::GetState(GLuint index) const
+{
+	auto it = _state.find(index);
+	if (it == _state.end())
+		return ArrayAttribState{ false, 0, GL_NONE, GL_FALSE, 0, nullptr };
+	return it->second;
+}

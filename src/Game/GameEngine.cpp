@@ -3,10 +3,17 @@
 #include "Scene/StartingScene.h"
 #include "Scene/VoxelScene.h"
 
+#include "Drawing/Program.h"
+#include "Drawing/Material.h"
+
 #include <iostream>
 
 Engine::GameEngine::GameEngine() : IWindowEngine() 
 { 
+	Drawing::VertexBuffer::InitializeStaticBuffer();
+	Drawing::MaterialStore::InitializeStore("Materials");
+	Drawing::ProgramStore::InitializeStore("Programs");
+
 	SwitchScene(new Voxel::VoxelScene(&Resources)); 
 	Req.Add(this); 
 

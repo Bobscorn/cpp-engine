@@ -69,8 +69,8 @@ namespace Drawing
 	struct DrawCall
 	{
 		std::shared_ptr<GeoThing> Geometry = nullptr; // Passed to a IGeometryGuy
-		std::shared_ptr<struct Textures> Textures = nullptr;
-		std::shared_ptr<struct Material> Material = nullptr;
+		std::shared_ptr<Textures> Textures = nullptr;
+		std::shared_ptr<::Material> Material = nullptr;
 		Matrixy4x4 *Matrix{ nullptr };
 		bool Enabled = true;
 		std::string DebugString;

@@ -260,3 +260,21 @@ if(NOT OPENAL_FOUND)
 endif()
 	
 target_link_libraries(Encapsulated PRIVATE ${OPENAL_LIBRARY})
+
+
+# Find YAML-CPP
+find_package(YAML_CPP QUIET)
+
+if (NOT YAML_CPP_FOUND)
+	message("Unable to find YAML CPP package, using git submodule")
+
+	execute_process(COMMAND git submodule update --init -- external/openal-soft
+					WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+	set(YAML_CPP_INSTALL ON CACHE BOOL "Enable YAML Cpp install targets" FORCE)
+	add_subdirectory(external/yaml)
+
+	set(YAML_CPP_LIBRARY yaml-cpp)
+endif()
+
+target_link_libraries(Encapsulated PRIVATE ${YAML_CPP_LIBRARY})

@@ -10,6 +10,9 @@
 #include "Systems/Input/Input.h"
 #include "Systems/Requests/Requester.h"
 
+#include "Drawing/GLRen.h"
+#include "Drawing/Material.h"
+
 #if false
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
@@ -1079,4 +1082,19 @@ void G1I::ProfilerShape::ReportProfiling(double time)
 	BigBoiStats::WriteToFile(stats, "profile.txt");
 
 	DINFO("-----------End Profiling----------------");
+}
+
+G1I::GLRen2TestShape::GLRen2TestShape(G1::IShapeThings tings) 
+	: G1::IShape(tings.WithName("GLRen2TestShape"))
+{
+	auto glren = dynamic_cast<GLRen*>(tings.Resources->Ren3);
+
+	if (glren)
+	{
+		std::shared_ptr<Drawing::Mesh> epico_mesh = std::make_shared<Drawing::Mesh>(Drawing::CreateCubeMesh(), Drawing::MeshStorageType::STATIC_BUFFER);
+
+		std::shared_ptr<Drawing::Material> epico_mat = Drawing::MaterialStore::Instance().GetMaterial("example-material");
+
+		m_DrawCallKey = glren->AddDrawCallv2(Drawing::DrawCallv2{ std::move(epico_mesh), std::move(epico_mat), std::make_shared<Matrixy4x4>(Matrixy4x4::Translate(0.f, 5.f, 1.f)), "GLren2 Test" });
+	}
 }
