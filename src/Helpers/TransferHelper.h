@@ -53,6 +53,11 @@ namespace Config
 	class IConfigThrone;
 }
 
+namespace Drawing
+{
+	struct IRen3Dv2;
+}
+
 struct CommonResources
 {
 #ifdef EC_PROFILE
@@ -60,6 +65,7 @@ struct CommonResources
 #endif
 	IRen2D								*Ren2;
 	IRen3D								*Ren3;
+	Drawing::IRen3Dv2					*Ren3v2;
 	Particles::IParticleDrawer			*Particles;
 	SDL_Window							*Window;
 	Events::EventManager				*Event;

@@ -152,7 +152,7 @@ namespace Drawing
 	{
 	}
 
-	DrawCallReference DrawCallRenderer::SubmitDrawCall(DrawCallv2 drawCall)
+	DrawCallReference DrawCallRenderer::SubmitDrawCall(DrawCallv2&& drawCall)
 	{
 		auto key = _nextKey;
 		_nextKey++;
@@ -175,13 +175,13 @@ namespace Drawing
 		return GetDrawCall(reference.GetKey());
 	}
 
-	bool DrawCallRenderer::SetDrawCall(size_t key, DrawCallv2 call)
+	bool DrawCallRenderer::SetDrawCall(size_t key, DrawCallv2&& call)
 	{
 		auto it = _drawCalls.find(key);
 		if (it == _drawCalls.end())
 			return false;
 
-		_drawCalls[key] = call;
+		_drawCalls[key] = std::move(call);
 		return true;
 	}
 

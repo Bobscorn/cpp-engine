@@ -1,0 +1,119 @@
+# This will be the Default 3D program used for rendering
+
+name: Default3D
+
+# For now use the example shaders
+shaders:
+{
+  example_vertex.glvs: VERTEX,
+  example_fragment.glfs: FRAGMENT
+}
+
+perobjectbuf: PerObject
+
+
+lightbuf: Lights
+
+materialbuf: Material
+
+# The ORDERED properties of the material
+# And texture names/gl names
+material:
+    properties:
+    -
+        name: ambient
+        size: 4
+        type: float
+        default:
+            x: 0.1
+            y: 0.1
+            z: 0.1
+            w: 1.0
+    -
+        name: emissive
+        size: 4
+        type: float
+        default:
+            x: 0
+            y: 0
+            z: 0
+            w: 0
+    -
+        name: diffuse
+        size: 4
+        type: float
+        default:
+            x: 0.7
+            y: 0.7
+            z: 0.7
+            w: 1.0
+    -
+        name: specular
+        size: 4
+        type: float
+        default:
+            x: 0.7
+            y: 0.7
+            z: 0.7
+            w: 1.0
+    -
+        name: IOR
+        size: 1
+        type: float
+        default:
+            x: 1
+    -
+        name: tex-bitmap
+        size: 1
+        type: int
+        default:
+            x: 0
+    -
+        name: padding
+        size: 2
+        type: float
+        default:
+            x: 0
+            y: 0
+
+    textures:
+    -
+        mat_name: diffuse
+        gl_name: DiffuseTexture
+    -
+        mat_name: specular
+        gl_name: SpecularTexture
+    -
+        mat_name: opacity
+        gl_name: OpacityTexture
+    -
+        mat_name: ambient
+        gl_name: AmbientTexture
+    -
+        mat_name: emissive
+        gl_name: EmissiveTexture
+    -
+        mat_name: normal
+        gl_name: NormalTexture
+    -
+        mat_name: bump
+        gl_name: BumpTexture
+
+
+# How the geometry has been laid out in GLSL
+geometry:
+    position:
+        order: 1
+        size: 3 
+    normal:
+        order: 2
+        size: 3
+    binormal:
+        order: 3
+        size: 3
+    tangent:
+        order: 4
+        size: 3
+    tex:
+        order: 5
+        size: 2 

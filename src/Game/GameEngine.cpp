@@ -11,7 +11,7 @@
 Engine::GameEngine::GameEngine() : IWindowEngine() 
 { 
 	Drawing::VertexBuffer::InitializeStaticBuffer();
-	Drawing::MaterialStore::InitializeStore("Materials");
+	Drawing::MaterialStore::InitializeStore("Materials", std::vector<Drawing::SerializableMaterial>{ {Drawing::SerializableMaterial{ "Default3D", "Default3D", {}, { Drawing::MaterialProperty::from("diffuse", floaty4{ 0.5f, 0.5f, 0.5f, 1.f }, Drawing::MaterialSize::FOUR), Drawing::MaterialProperty::from("specular", floaty4{ 0.8f, 0.8f, 0.8f, 3.f }, Drawing::MaterialSize::FOUR) } }} });
 	Drawing::ProgramStore::InitializeStore("Programs");
 
 	SwitchScene(new Voxel::VoxelScene(&Resources)); 

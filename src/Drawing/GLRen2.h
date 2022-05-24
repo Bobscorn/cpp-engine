@@ -5,6 +5,7 @@
 #include "DrawCall.h"
 #include "DrawCallReference.h"
 #include "Frustum.h"
+#include "IRen3D.h"
 
 #include "Helpers/VectorHelper.h"
 
@@ -16,7 +17,7 @@ namespace Drawing
 		Matrixy4x4 WorldViewProj;
 	};
 
-	class DrawCallRenderer
+	class DrawCallRenderer : public IRen3Dv2
 	{
 		std::unordered_map<size_t, DrawCallv2> _drawCalls;
 
@@ -39,14 +40,14 @@ namespace Drawing
 		static constexpr GLuint PerObjectBufLoc = 0u;
 		static constexpr GLuint LightBufLoc = 7u;
 
-		DrawCallReference SubmitDrawCall(DrawCallv2 drawCall);
+		DrawCallReference SubmitDrawCall(DrawCallv2&& drawCall) override;
 
-		const DrawCallv2 *GetDrawCall(size_t key) const;
+		const DrawCallv2 *GetDrawCall(size_t key) const override;
 		const DrawCallv2 *GetDrawCall(const DrawCallReference& reference) const;
-		bool SetDrawCall(size_t key, DrawCallv2 call); // Returns true if it updated an existing value, false if it is a new value
+		bool SetDrawCall(size_t key, DrawCallv2&& call) override; // Returns true if it updated an existing value, false if it is a new value
 		bool SetDrawCall(const DrawCallReference& reference, DrawCallv2 call); // Returns true if it updated an existing value, false if it is a new value
 
-		bool RemoveDrawCall(size_t key); // Returns whether the key existed
+		bool RemoveDrawCall(size_t key) override; // Returns whether the key existed
 		bool RemoveDrawCall(const DrawCallReference& reference); // Returns whether the key existed
 
 		void Draw(Matrixy4x4 View, Matrixy4x4 Proj, Voxel::CameraFrustum frustum);

@@ -103,6 +103,13 @@ material:
         type: int
         default:
             x: 0
+    -
+        name: padding
+        size: 2
+        type: float
+        default:
+            x: 0
+            y: 0
 
     textures:
     -

@@ -35,11 +35,17 @@ namespace Drawing
 	public:
 		Mesh() = default;
 		Mesh(const RawMesh& mesh, MeshStorageType storage);
+		Mesh(Mesh&& other);
 
 		~Mesh() = default;
+
+		void Reset();
+
+		Mesh& operator=(Mesh&& other);
 
 		inline operator bool() const { return _meshData && _storage.Buffer; }
 
 		inline const MeshStorage& GetStorage() const { return _storage; }
+		inline const RawMesh* GetMesh() const { return _meshData.get(); }
 	};
 }

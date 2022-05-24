@@ -333,9 +333,9 @@ struct GLRen : IRen2D, IRen3D, Particles::IParticleDrawer, virtual FullResourceH
 
 	size_t AddDrawCall(Drawing::DrawCall call) override;
 	std::shared_ptr<GeoThing> AddGeometry(std::vector<FullVertex> vertices, std::vector<unsigned int> indices) override;
-	void RemoveDrawCall(size_t Key) override;
+	void IRen3D::RemoveDrawCall(size_t Key) override;
 	void RemoveGeometry(size_t key) override;
-	Drawing::DrawCall *GetDrawCall(size_t key) override;
+	Drawing::DrawCall *IRen3D::GetDrawCall(size_t key) override;
 
 	void DrawCalls(Matrixy4x4 View, Matrixy4x4 Proj, Voxel::CameraFrustum frustum) override;
 	void ApplyMaterial(Material *mat);
@@ -349,11 +349,6 @@ struct GLRen : IRen2D, IRen3D, Particles::IParticleDrawer, virtual FullResourceH
 	// ---------------------------------------
 	// 3D v2
 
-	Drawing::DrawCallReference AddDrawCallv2(Drawing::DrawCallv2 call);
-	bool RemoveDrawCallv2(size_t key);
-
-	const Drawing::DrawCallv2* GetDrawCallv2(size_t key) const;
-	bool SetDrawCallv2(size_t key, Drawing::DrawCallv2 updatedValue);
 
 	void Drawv2(Matrixy4x4 view, Matrixy4x4 proj, Voxel::CameraFrustum frustum);
 

@@ -141,6 +141,7 @@ Engine::IWindowEngine::IWindowEngine() : Win("", "Config/windowconfig.xml", SDL_
 {
 	Resources.Ren2 = &Ren;
 	Resources.Ren3 = &Ren;
+	Resources.Ren3v2 = Ren.Getv2();
 	Resources.Window = Win.Get();
 	Resources.UIConfig = &UIC;
 	Resources.Config = Config.get();

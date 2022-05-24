@@ -69,6 +69,17 @@ namespace Drawing
 
 		template<class T>
 		void set_from(T val); // Used with T's the same as the as() method
+
+		template<class T>
+		static MaterialProperty from(std::string name, T val, MaterialSize size, PropertyType type = PropertyType::FLOAT)
+		{
+			MaterialProperty me;
+			me.name = name;
+			me.size = size;
+			me.type = type;
+			me.set_from(val);
+			return me;
+		}
 	};
 
 	struct MaterialDescription

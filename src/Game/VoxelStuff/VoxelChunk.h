@@ -8,6 +8,10 @@
 #include "VoxelCube.h"
 #include "VoxelChunkCuller.h"
 
+#include "Drawing/Mesh.h"
+#include "Drawing/Material.h"
+#include "Drawing/DrawCallReference.h"
+
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
 
 #include <vector>
@@ -46,9 +50,9 @@ namespace Voxel
 		typedef std::array<std::array<std::array<BlockData, Voxel::Chunk_Size>, Voxel::Chunk_Height>, Voxel::Chunk_Size> RawChunkData;
 		typedef std::unordered_map<ChunkCoord, BlockData> RawChunkDataMap;
 
-		ChunkyBoi(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 origin);
-		ChunkyBoi(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 origin, RawChunkData initial_dat);
-		ChunkyBoi(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 origin, RawChunkDataMap initial_dat);
+		ChunkyBoi(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 origin, ChunkCoord coord);
+		ChunkyBoi(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 origin, RawChunkData initial_dat, ChunkCoord coord);
+		ChunkyBoi(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 origin, RawChunkDataMap initial_dat, ChunkCoord coord);
 		~ChunkyBoi();
 
 		void BeforeDraw() override;
@@ -63,9 +67,13 @@ namespace Voxel
 		void set(size_t x, size_t y, size_t z, std::unique_ptr<Voxel::ICube> val);
 		void create(size_t x, size_t y, size_t z);
 
+		ICube* get(size_t x, size_t y, size_t z);
+
 		void SetTo(RawChunkData data);
 
 		typedef std::array<std::array<std::array<std::unique_ptr<Voxel::ICube>, Chunk_Size>, Chunk_Height>, Chunk_Size> ChunkData;
+
+		void RecomputeMesh();
 
 	protected:
 		
@@ -74,10 +82,18 @@ namespace Voxel
 		ChunkData m_Data;
 		floaty3 m_Origin;
 		VoxelWorld *m_World = nullptr;
+		ChunkCoord m_Coord;
 
 		std::unique_ptr<ChunkyFrustumCuller> m_Culler;
 
 		std::shared_ptr<btBoxShape> m_Shape;
-		std::shared_ptr<Material> m_Material;
+		std::shared_ptr<Drawing::Material> m_Material;
+
+		// v2 Rendering stuff
+		std::shared_ptr<Drawing::Mesh> m_Mesh;
+		std::shared_ptr<Drawing::Material> m_Matv2;
+		std::shared_ptr<Matrixy4x4> m_Matrix;
+
+		Drawing::DrawCallReference m_DrawCall;
 	};
 }

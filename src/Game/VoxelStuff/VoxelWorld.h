@@ -67,6 +67,9 @@ namespace Voxel
 		void ReplaceStaticCube(BlockCoord coord, std::unique_ptr<ICube> cube);
 		void SetStaticCube(BlockCoord coord);
 
+		ICube* GetCubeAt(BlockCoord coord);
+		bool IsCubeAt(BlockCoord coord);
+
 		// Get the coords of a block/chunk given by position, in Displaced Physics space
 		BlockCoord GetBlockCoordFromPhys(floaty3 phys_pos);
 		ChunkCoord GetChunkCoordFromPhys(floaty3 phys_pos);

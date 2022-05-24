@@ -36,7 +36,7 @@ namespace Drawing
 		size_t numBytes = sizeof(Full3DVertex) * vertices.size();
 		VertexData desc;
 		desc.Description = Full3DVertexDesc;
-		desc.Vertices = std::vector<char>((char)0, numBytes);
+		desc.Vertices = std::vector<char>(numBytes, (char)0);
 
 		memcpy(desc.Vertices.data(), vertices.data(), numBytes);
 

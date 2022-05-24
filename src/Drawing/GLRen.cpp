@@ -368,26 +368,6 @@ void GLRen::Sort(std::vector<size_t>& keys, const std::unordered_map<size_t, Dra
 		keys.pop_back();
 }
 
-Drawing::DrawCallReference GLRen::AddDrawCallv2(Drawing::DrawCallv2 call)
-{
-	return m_Renv2.SubmitDrawCall(call);
-}
-
-bool GLRen::RemoveDrawCallv2(size_t key)
-{
-	return m_Renv2.RemoveDrawCall(key);
-}
-
-const Drawing::DrawCallv2* GLRen::GetDrawCallv2(size_t key) const
-{
-	return m_Renv2.GetDrawCall(key);
-}
-
-bool GLRen::SetDrawCallv2(size_t key, Drawing::DrawCallv2 updatedValue)
-{
-	return m_Renv2.SetDrawCall(key, updatedValue);
-}
-
 void GLRen::Drawv2(Matrixy4x4 view, Matrixy4x4 proj, Voxel::CameraFrustum frustum)
 {
 	m_Renv2.Draw(view, proj, frustum);

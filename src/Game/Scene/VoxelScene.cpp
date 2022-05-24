@@ -57,7 +57,7 @@ void Voxel::VoxelScene::Draw()
 
 void Voxel::VoxelScene::AfterDraw()
 {
-	//m_World->Update(m_Ass->GetPosition());
+	m_World->Update(m_Ass->GetPosition());
 	m_GSpace.AfterDraw();
 }
 

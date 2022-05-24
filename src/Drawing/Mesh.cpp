@@ -21,4 +21,35 @@ namespace Drawing
 			break;
 		}
 	}
+
+	Mesh::Mesh(Mesh&& other)
+		: _storage(std::move(other._storage))
+		, _meshData(std::move(other._meshData))
+	{
+		other._storage.Buffer = nullptr;
+		other._storage.ID = 0;
+
+		other._meshData = nullptr;
+	}
+
+	void Mesh::Reset()
+	{
+		_storage.Buffer = nullptr;
+		_storage.ID = 0;
+		_meshData = nullptr;
+	}
+
+	Mesh& Mesh::operator=(Mesh&& other)
+	{
+		Reset();
+
+		_storage = std::move(other._storage);
+		_meshData = std::move(other._meshData);
+
+		other._storage.Buffer = nullptr;
+		other._storage.ID = 0;
+		other._meshData = nullptr;
+
+		return *this;
+	}
 }

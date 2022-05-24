@@ -53,7 +53,7 @@ namespace Drawing
 
 	std::vector<char> Material::ConvertBytesViaDescription(const Material& mat, const MaterialDescription& desc)
 	{
-		std::vector<char> bytes{ (char)0, 80 };
+		std::vector<char> bytes{ (size_t)desc.CalculateMaterialByteSize(), (char)0, std::allocator<char>() };
 		int offset = 0;
 		for (int i = 0; i < desc.Properties.size(); ++i)
 		{

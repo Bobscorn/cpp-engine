@@ -416,6 +416,21 @@ void Voxel::VoxelWorld::SetStaticCube(BlockCoord coord)
 	}
 }
 
+Voxel::ICube* Voxel::VoxelWorld::GetCubeAt(BlockCoord coord)
+{
+	auto it = m_Chunks.find(coord.Chunk);
+	if (it != m_Chunks.end())
+	{
+		return it->second->get(coord.X, coord.Y, coord.Z);
+	}
+	return nullptr;
+}
+
+bool Voxel::VoxelWorld::IsCubeAt(BlockCoord coord)
+{
+	return GetCubeAt(coord) != nullptr;
+}
+
 Voxel::BlockCoord Voxel::VoxelWorld::GetBlockCoordFromPhys(floaty3 phys_pos)
 {
 	BlockCoord out;
@@ -544,7 +559,7 @@ void Voxel::VoxelWorld::Load(ChunkCoord at)
 	auto it = m_Chunks.find(at);
 	if (it == m_Chunks.end())
 	{
-		m_Chunks.emplace(at, std::make_unique<ChunkyBoi>(GetContainer(), GetResources(), this, ChunkOrigin(at), m_Stuff.m_ChunkLoader->LoadChunk(at.X, at.Y, at.Z)));
+		m_Chunks.emplace(at, std::make_unique<ChunkyBoi>(GetContainer(), GetResources(), this, ChunkOrigin(at), m_Stuff.m_ChunkLoader->LoadChunk(at.X, at.Y, at.Z), at));
 	}
 }
 

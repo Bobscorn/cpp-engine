@@ -1087,14 +1087,9 @@ void G1I::ProfilerShape::ReportProfiling(double time)
 G1I::GLRen2TestShape::GLRen2TestShape(G1::IShapeThings tings) 
 	: G1::IShape(tings.WithName("GLRen2TestShape"))
 {
-	auto glren = dynamic_cast<GLRen*>(tings.Resources->Ren3);
+	std::shared_ptr<Drawing::Mesh> epico_mesh = std::make_shared<Drawing::Mesh>(Drawing::CreateCubeMesh(), Drawing::MeshStorageType::STATIC_BUFFER);
 
-	if (glren)
-	{
-		std::shared_ptr<Drawing::Mesh> epico_mesh = std::make_shared<Drawing::Mesh>(Drawing::CreateCubeMesh(), Drawing::MeshStorageType::STATIC_BUFFER);
+	std::shared_ptr<Drawing::Material> epico_mat = Drawing::MaterialStore::Instance().GetMaterial("example-material");
 
-		std::shared_ptr<Drawing::Material> epico_mat = Drawing::MaterialStore::Instance().GetMaterial("example-material");
-
-		m_DrawCallKey = glren->AddDrawCallv2(Drawing::DrawCallv2{ std::move(epico_mesh), std::move(epico_mat), std::make_shared<Matrixy4x4>(Matrixy4x4::Translate(0.f, 5.f, 1.f)), "GLren2 Test" });
-	}
+	m_DrawCallKey = tings.Resources->Ren3v2->SubmitDrawCall(Drawing::DrawCallv2{ std::move(epico_mesh), std::move(epico_mat), std::make_shared<Matrixy4x4>(Matrixy4x4::Translate(0.f, 5.f, 1.f)), "GLren2 Test" });
 }
