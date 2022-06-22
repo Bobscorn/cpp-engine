@@ -1009,9 +1009,6 @@ void G1I::ProfilerShape::AfterDraw()
 
 void G1I::ProfilerShape::Restart()
 {
-#ifdef EC_PROFILE
-	(void)mResources->Profile->Finish();
-#endif
 	if (m_Info.Running)
 	{
 		m_Timer.Tick();
