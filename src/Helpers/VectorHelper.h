@@ -175,6 +175,17 @@ struct floaty2
 		return { e.x + width, -e.y + height };
 	}
 
+	inline bool operator==(const floaty2& other) const
+	{
+		return x == other.x
+			&& y == other.y;
+	}
+
+	inline bool operator!=(const floaty2& other) const
+	{
+		return !(*this == other);
+	}
+
 	float x{ 0.f }, y{ 0.f };
 };
 
@@ -513,6 +524,14 @@ inline floaty2 operator*(const floaty2 &a, const Matrixy2x2 &b)
 	return b.TransformPoint(a);
 }
 
+/**
+* \brief A 2x3 matrix struct
+* 
+* Matrixy2x3 is a 2x3 matrix struct used primarily for 2D transformations.
+* It is capable of representing any typical 2D transformations like rotations, translations, scaling, shearing.
+* Unlike Matrixy4x4 and Matrixy3x3, Matrixy2x3 (this class) is *row-major* and as such does not work smoothly with OpenGL.
+* However OpenGL does not have an equivalent to a 2x3 matrix, this class is primarily intended for CPU based transforming.
+*/
 struct Matrixy2x3
 {
 	union
@@ -625,6 +644,13 @@ struct Matrixy2x3
 		return { m11, m12, m21, m22 };
 	}
 
+	/**
+	* Sets this matrix to the product of multiplying a with b
+	* Unlike Matrixy4x4 and Matrixy3x3 operations, these multiplications apply *A then B*
+	* 
+	* \param a is the matrix to apply the transformation of first
+	* \param b is the matrix to apply the transformation of last
+	*/
 	inline void SetProduct(const Matrixy2x3 &a, const Matrixy2x3 &b) noexcept
 	{
 		_11 = a._11 * b._11 + a._12 * b._21;
@@ -634,7 +660,16 @@ struct Matrixy2x3
 		_13 = a._13 * b._11 + a._23 * b._21 + b._13;
 		_23 = a._13 * b._12 + a._23 * b._22 + b._23;
 	}
-		
+	
+	/**
+	* Multiples this matrix with another matrix.
+	* This produces a matrix that transforms something identically to transforming by A and then B
+	* 
+	* \param other is the other to multiple with
+	* \returns The matrix that applies this transformation and then the other transformation
+	* 
+	* \remarks Unlike Matrixy3x3 and Matrixy4x4, Matrixy2x3 multiplication produces a matrix that applies *A then B* (not B then A)
+	*/
 	inline Matrixy2x3 operator*(const Matrixy2x3 &other) const
 	{
 		Matrixy2x3 out;
@@ -647,6 +682,12 @@ struct Matrixy2x3
 		return out;
 	}
 
+	/**
+	* The equivalent of *this = *this * other;
+	* Applies this transformation then other's transformation
+	* 
+	* \sa Matrixy2x3::operator*(const Matrixy2x3& other) const
+	*/
 	inline Matrixy2x3& operator*=(const Matrixy2x3 &other)
 	{
 		Matrixy2x3 copy = *this;
@@ -679,6 +720,12 @@ struct Matrixy2x3
 	}
 };
 
+/**
+* \brief A column-major 3x3 matrix
+* 
+* Matrixy3x3 is a 3x3 matrix class used for non-translation based 3D transformation (or otherwise).
+* It is column-major to be consistent with Matrixy4x4 and OpenGL.
+*/
 struct Matrixy3x3
 {
 	union
@@ -732,6 +779,12 @@ struct Matrixy3x3
 	static Matrixy3x3 Transpose(const Matrixy3x3 &mat);
 };
 
+/**
+* \brief A column-major 4x4 matrix struct
+* 
+* Matrixy4x4 is a column-major 4x4 matrix class.
+* It is column-major to interop with OpenGL as smoothly as possible.
+*/
 struct Matrixy4x4
 {
 	union
@@ -834,7 +887,7 @@ struct Matrixy4x4
 		return { m11, m12, m13, m21, m22, m23, m31, m32, m33 };
 	}
 
-	inline bool IsIdentity() const noexcept
+	constexpr inline bool IsIdentity() const noexcept
 	{
 		return m11 == 1.f
 			&& m12 == 0.f
@@ -879,9 +932,29 @@ struct Matrixy4x4
 		Matrixy4x4 tmp(other);
 		return operator=(tmp);
 	}
+	/**
+	* \brief Multiples matrix A with B
+	* 
+	*  Multiplies 2 matrices together to produce a matrix that applies b and then a
+	* 
+	* @param a is the matrix whose transformation is applied after b's
+	* @param b is the matrix whose transformation is applied first
+	* @return Returns the matrix that applies the transformation B then A
+	*/
+	static Matrixy4x4 Multiply(const Matrixy4x4 &a, const Matrixy4x4 &b);
 
-	static Matrixy4x4 Multiply(const Matrixy4x4 &a, const Matrixy4x4 &b); // Effectively: Create matrix that Applies matrix B, then matrix A
-	inline static Matrixy4x4 MultiplyE(const Matrixy4x4 &a, const Matrixy4x4 &b) { return Multiply(b, a); } // Multiply A with B to create a matrix that applies A then B
+	/**
+	* \brief Multiplse B with A
+	* 
+	* Multiplies 2 matrices together, in the opposite order of Matrixy4x4::Multiply 
+	* 
+	* \sa Matrixy4x4::Multiply
+	* 
+	* \param a is the matrix whose transformation is applied first
+	* \param b is the matrix whose transformation is applied last
+	* \return Returns the transformation that applies A then B
+	*/
+	inline static Matrixy4x4 MultiplyE(const Matrixy4x4 &a, const Matrixy4x4 &b) { return Multiply(b, a); } 
 	inline floaty3 Transform(const floaty3 &vec) const { return Transform(vec, *this); }
 	inline floaty4 Transform(const floaty4 &vec) const { return Transform(vec, *this); }
 	static floaty3 Transform(const floaty3 &vec, const Matrixy4x4 &mat);

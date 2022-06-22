@@ -7,6 +7,7 @@
 #include "Helpers/YAMLHelper.h"
 
 #include "GLRen2.h"
+#include "BindingManager.h"
 
 namespace Drawing
 {
@@ -31,6 +32,7 @@ namespace Drawing
 	}
 
 	MaterialDescription ProcessMaterialYAML(const YAML::Node& node);
+	std::vector<TextureMapping> ProcessTextureMappings(const YAML::Node& node);
 
 	void ProgramStore::LoadProgram(ProgramDescription desc)
 	{
@@ -232,28 +234,7 @@ namespace Drawing
 
 					desc.InputDesc = geoDesc;
 
-					// Load texture names
-					if (yaml["textures"])
-					{
-						auto tex = yaml["textures"];
-
-						if (auto diffuse = tex["diffuse"])
-							desc.DiffuseTextureName = diffuse.as<std::string>();
-						if (auto ambient = tex["ambient"])
-							desc.AmbientTextureName = ambient.as<std::string>();
-						if (auto opacity = tex["opacity"])
-							desc.OpacityTextureName = opacity.as<std::string>();
-						if (auto emissive = tex["emissive"])
-							desc.EmissiveTextureName = emissive.as<std::string>();
-						if (auto specular = tex["specular"])
-							desc.SpecularTextureName = specular.as<std::string>();
-						if (auto specpower = tex["specpower"])
-							desc.SpecularPowerTextureName = specpower.as<std::string>();
-						if (auto normal = tex["normal"])
-							desc.NormalTextureName = normal.as<std::string>();
-						if (auto bump = tex["bump"])
-							desc.BumpTextureName = bump.as<std::string>();
-					}
+					desc.TextureMappings = ProcessTextureMappings(yaml["textures"]);
 
 					LoadProgram(desc);
 				}
@@ -263,6 +244,55 @@ namespace Drawing
 				}
 			}
 		}
+	}
+
+	std::vector<TextureMapping> ProcessTextureMappings(const YAML::Node& node)
+	{
+		if (!node || !node.IsSequence())
+		{
+			if (node)
+				DWARNING("When processing program: texture node was not a sequence!");
+			return {};
+		}
+
+		std::vector<TextureMapping> mapping{};
+
+		for (YAML::const_iterator it = node.begin(); it != node.end(); ++it)
+		{
+			auto seqNode = *it;
+			if (!seqNode)
+				continue;
+			if (!seqNode.IsMap())
+			{
+				DWARNING("When processing program at line " + std::to_string(seqNode.Mark().line) + ": entry in texture sequence is not a map!");
+				continue;
+			}
+
+			auto matNameNode = seqNode["mat-name"];
+			auto glNameNode = seqNode["gl-name"];
+
+			if (!matNameNode || !matNameNode.IsScalar())
+			{
+				if (matNameNode)
+					DWARNING("When processing program at line '" + std::to_string(matNameNode.Mark().line) + "': 'mat-name' was not a scalar!");
+				else
+					DWARNING("When processing program: at line '" + std::to_string(seqNode.Mark().line) + "', expected tag 'mat-name'!");
+				continue;
+			}
+
+			if (!glNameNode || !glNameNode.IsScalar())
+			{
+				if (matNameNode)
+					DWARNING("When processing program at line '" + std::to_string(glNameNode.Mark().line) + "': 'gl-name' tag was not a scalar!");
+				else
+					DWARNING("When processing program: at line '" + std::to_string(seqNode.Mark().line) + "', expected tag 'gl-name'!");
+				continue;
+			}
+
+			mapping.emplace_back(TextureMapping{ matNameNode.Scalar(), glNameNode.Scalar() });
+		}
+
+		return mapping;
 	}
 
 	MaterialDescription ProcessMaterialYAML(const YAML::Node& node)
@@ -402,6 +432,7 @@ namespace Drawing
 
 					val.m[i] = compVal;
 				}
+				prop.set_from(val);
 				return;
 			};
 
@@ -471,14 +502,16 @@ namespace Drawing
 			int byteSize = _matDesc.CalculateMaterialByteSize();
 			if (byteSize > 0)
 			{
+				CHECK_GL_ERR("Before Creating Material Buffer");
 				GLuint buf = 0;
 				glGenBuffers(1, &buf);
 
-				GLint blockIndex = glGetUniformBlockIndex(_program.Get(), _desc.MaterialBufferName.c_str());
-				glUniformBlockBinding(_program.Get(), blockIndex, DrawCallRenderer::MaterialBufLoc);
+				if (!_matBufBinding)
+					_matBufBinding = BindingManager::GetNext();
 
-				glBindBufferBase(GL_UNIFORM_BUFFER, DrawCallRenderer::MaterialBufLoc, buf);
+				glBindBufferBase(GL_UNIFORM_BUFFER, _matBufBinding, buf);
 				glBufferData(GL_UNIFORM_BUFFER, byteSize, nullptr, GL_STREAM_DRAW);
+				CHECK_GL_ERR("Binding and uploading buffer");
 
 				glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
@@ -491,59 +524,80 @@ namespace Drawing
 		: _program(GenerateShaders(desc))
 		, _desc(desc)
 		, _matDesc(desc.MaterialDesc)
-		, _diffuseTextureLoc(0)
-		, _opacityTextureLoc(0)
-		, _ambientTextureLoc(0)
-		, _emissiveTextureLoc(0)
-		, _specularTextureLoc(0)
-		, _specularPowerTextureLoc(0)
-		, _normalTextureLoc(0)
-		, _bumpTextureLoc(0)
+		, _textureMappings()
 	{
+		glUseProgram(_program.Get());
 		CHECK_GL_ERR("Pre-program initialization");
 		GLuint vao = 0;
 		glGenVertexArrays(1, &vao);
 		_inputVAO.Reset(vao);
 
-		if (desc.DiffuseTextureName.size())
-			_diffuseTextureLoc = glGetUniformLocation(_program.Get(), desc.DiffuseTextureName.c_str());
-		if (desc.OpacityTextureName.size())
-			_opacityTextureLoc = glGetUniformLocation(_program.Get(), desc.OpacityTextureName.c_str());
-		if (desc.AmbientTextureName.size())
-			_ambientTextureLoc = glGetUniformLocation(_program.Get(), desc.AmbientTextureName.c_str());
-		if (desc.EmissiveTextureName.size())
-			_emissiveTextureLoc = glGetUniformLocation(_program.Get(), desc.EmissiveTextureName.c_str());
-		if (desc.SpecularTextureName.size())
-			_specularTextureLoc = glGetUniformLocation(_program.Get(), desc.SpecularTextureName.c_str());
-		if (desc.SpecularPowerTextureName.size())
-			_specularPowerTextureLoc = glGetUniformLocation(_program.Get(), desc.SpecularPowerTextureName.c_str());
-		if (desc.NormalTextureName.size())
-			_normalTextureLoc = glGetUniformLocation(_program.Get(), desc.NormalTextureName.c_str());
-		if (desc.BumpTextureName.size())
-			_bumpTextureLoc = glGetUniformLocation(_program.Get(), desc.BumpTextureName.c_str());
-
 		GLuint matBuf = 0;
 		glGenBuffers(1, &matBuf);
 		_matBuffer.Reset(matBuf);
 
+		_matBufBinding = BindingManager::GetNext();
+
 		auto byteSize = _matDesc.CalculateMaterialByteSize();
 
-		std::vector<char> blankBuffer{ (size_t)byteSize, '0', std::allocator<char>()};
+		std::vector<char> blankBuffer{ (size_t)byteSize, (char)0, std::allocator<char>()};
 
-		glBindBuffer(GL_UNIFORM_BUFFER, matBuf);
+		glBindBufferBase(GL_UNIFORM_BUFFER, _matBufBinding, matBuf);
 		glBufferData(GL_UNIFORM_BUFFER, byteSize, (GLvoid*)blankBuffer.data(), GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 		/*GLint index = glGetUniformBlockIndex(_program.Get(), _desc.PerObjectBufferName.c_str());
-		glUniformBlockBinding(_program.Get(), index, DrawCallRenderer::PerObjectBufLoc);*/
+		glUniformBlockBinding(_program.Get(), index, DrawCallRenderer::PerObjectBufBinding);*/
 
-		CHECK_GL_ERR("Post-program initialization");
+		//Textures v
+		_textureMappings.reserve(desc.TextureMappings.size());
+		int textureBind = 0;
+		for (int i = 0; i < desc.TextureMappings.size(); ++i)
+		{
+			BoundTextureMapping mapping;
+			mapping.GLName = desc.TextureMappings[i].GLName;
+			mapping.MatName = desc.TextureMappings[i].MaterialName;
+			mapping.Binding = 0;
+			auto location = glGetUniformLocation(_program.Get(), mapping.GLName.c_str());
+			if (location != GL_INVALID_INDEX)
+			{
+				mapping.Binding = textureBind;
+				glUniform1i(location, textureBind);
+				++textureBind;
+			}
+			else
+			{
+				DWARNING("When creating program '" + _desc.ProgramName + "': could not find uniform sampler '" + mapping.GLName + "'!");
+			}
+			_textureMappings.emplace_back(std::move(mapping));
+		}
+
+		// Buffers v
 
 		if (_desc.LightBufferName.size())
 		{
 			GLint index = glGetUniformBlockIndex(_program.Get(), _desc.LightBufferName.c_str());
-			glUniformBlockBinding(_program.Get(), index, DrawCallRenderer::LightBufLoc);
+			if (index != GL_INVALID_INDEX)
+				glUniformBlockBinding(_program.Get(), index, DrawCallRenderer::GetLightBufBinding());
+			else
+				DERROR("Failed to find program '" + _desc.ProgramName + "'s Light Buffer UniformBlockIndex!");
 		}
+
+		GLint blockIndex = glGetUniformBlockIndex(_program.Get(), _desc.MaterialBufferName.c_str());
+		if (blockIndex != GL_INVALID_INDEX)
+			glUniformBlockBinding(_program.Get(), blockIndex, _matBufBinding);
+		else
+			DERROR("Failed to find program '" + _desc.ProgramName + "'s Material Buffer's UniformBlockIndex!");
+		CHECK_GL_ERR("Getting and binding uniform");
+
+		blockIndex = glGetUniformBlockIndex(_program.Get(), _desc.PerObjectBufferName.c_str());
+		if (blockIndex != GL_INVALID_INDEX)
+			glUniformBlockBinding(_program.Get(), blockIndex, DrawCallRenderer::GetPerObjectBufBinding());
+		else
+			DERROR("Failed to find program '" + _desc.ProgramName + "'s Per Object Buffer's UniformBlockIndex!");
+
+		CHECK_GL_ERR("Post-program initialization");
+		glUseProgram(0);
 	}
 
 	bool Program::CanBindTo(const VertexBuffer& buf) const

@@ -5,6 +5,8 @@
 
 #include "Drawing/Program.h"
 #include "Drawing/Material.h"
+#include "Drawing/VoxelStore.h"
+#include "Drawing/Texture.h"
 
 #include <iostream>
 
@@ -13,6 +15,8 @@ Engine::GameEngine::GameEngine() : IWindowEngine()
 	Drawing::VertexBuffer::InitializeStaticBuffer();
 	Drawing::MaterialStore::InitializeStore("Materials", std::vector<Drawing::SerializableMaterial>{ {Drawing::SerializableMaterial{ "Default3D", "Default3D", {}, { Drawing::MaterialProperty::from("diffuse", floaty4{ 0.5f, 0.5f, 0.5f, 1.f }, Drawing::MaterialSize::FOUR), Drawing::MaterialProperty::from("specular", floaty4{ 0.8f, 0.8f, 0.8f, 3.f }, Drawing::MaterialSize::FOUR) } }} });
 	Drawing::ProgramStore::InitializeStore("Programs");
+	Voxel::VoxelStore::InitializeVoxelStore("PreStitched not implemented", "Blocks", "Textures");
+	Drawing::TextureStore::InitializeStore("Textures");
 
 	SwitchScene(new Voxel::VoxelScene(&Resources)); 
 	Req.Add(this); 

@@ -114,7 +114,7 @@ namespace Particles
 		{
 			texture->LoadGL();
 			glActiveTexture(GL_TEXTURE0 + SamplerName);
-			glBindTexture(GL_TEXTURE_2D, texture->GetGLTexName());
+			glBindTexture(GL_TEXTURE_2D, texture->Get());
 			glUniform1i(m_SamplerLoc, SamplerName);
 			glUniform2f(m_TexScaleLoc, texture->GetWidthScale(), texture->GetHeightScale());
 		}
@@ -122,7 +122,7 @@ namespace Particles
 		{
 			m_DefaultTex->LoadGL();
 			glActiveTexture(GL_TEXTURE0 + SamplerName);
-			glBindTexture(GL_TEXTURE_2D, m_DefaultTex->GetGLTexName());
+			glBindTexture(GL_TEXTURE_2D, m_DefaultTex->Get());
 			glUniform1i(m_SamplerLoc, SamplerName);
 			glUniform2f(m_TexScaleLoc, m_DefaultTex->GetWidthScale(), m_DefaultTex->GetHeightScale());
 		}

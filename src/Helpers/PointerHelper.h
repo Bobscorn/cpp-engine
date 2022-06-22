@@ -64,6 +64,14 @@ namespace Pointer
 		~selfish_control_block();
 	};
 
+	/**
+	* Selfish Pointer is essentially a unique_ptr that can have weak_ptrs point to it.
+	* 
+	* It maintains a control block that it destroys when it goes out of scope.
+	* Only 1 Selfish pointer can own a single control block, selfish pointers can not be copied.
+	* When the selfish pointer is destroyed, it will destroy the control block, and any observing pointers (weak_ptr equivalents) will have their control block set to nullptr.
+	* 
+	*/
 	template<class T>
 	class selfish_ptr
 	{
@@ -146,6 +154,11 @@ namespace Pointer
 		inline void remove_observers() noexcept { if (control_block) delete control_block; if (ptr) { control_block = new selfish_control_block<T>(); } }
 	};
 
+	/**
+	* observing_ptr is essentially a weak_ptr for the selfish_ptr class.
+	* It can be copied, destroyed and moved, but will not destroy the original pointer or the owning selfish_ptr.
+	* When the owning selfish_ptr is destroyed, any observing_ptrs pointing to it will have their control blocks and internal pointers set to null.
+	*/
 	template<class T>
 	class observing_ptr : IObserver
 	{
@@ -274,6 +287,14 @@ namespace Pointer
 		}
 	};
 
+	/**
+	* The no_expire_obs_ptr is identical to the observing_ptr that maintains it's reference when the original is destroyed.
+	* In more detail, When a selfish_ptr is destroyed and resets all references, all no_expire_obs_ptr instances will still have their internal ptr with the original value.
+	* 
+	* The internal ptr will now now point to destroyed memory, and should only be used when you need the ptr's value for something *other* than accessing it.
+	* Examples of such uses are keying into an unordered_map that takes a pointer, even if the original object has been destroyed.
+	* This happens in this engine when looking 
+	*/
 	template<class T>
 	class no_expire_obs_ptr : IObserver
 	{
@@ -404,6 +425,12 @@ namespace Pointer
 		inline bool expired() { return !control_block; }
 	};
 
+	/**
+	* an f_ptr (short for flexible_ptr) is a type of observing_ptr that can point to types not of the owning selfish_ptr's type.
+	* Besides the original type, only types that are derivatives of the type can be pointed to.
+	* 
+	* Basically this is a method of pointing to a selfish_ptr that contains an interface type, and not having to dynamic_cast every time you access.
+	*/
 	template<class T>
 	class f_ptr : IObserver
 	{
@@ -616,6 +643,9 @@ namespace Pointer
 		}
 	};
 
+	/**
+	* a nef_ptr is both a no_expire_observing_ptr and an f_ptr
+	*/
 	template<class T>
 	class nef_ptr : IObserver
 	{

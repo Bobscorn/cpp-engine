@@ -98,7 +98,7 @@ struct TextureManager : Drawing::ITextureGuy
 		{
 			DINFO("Default Texture bound successfully");
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, m_DefaultTex->GetGLTexName());
+			glBindTexture(GL_TEXTURE_2D, m_DefaultTex->Get());
 			BlankifyTextues();
 		}
 		else
@@ -145,7 +145,7 @@ protected:
 	GLint BumpSamplerLoc = 0;
 	constexpr static GLuint BumpTexName = 8u;
 
-	constexpr static GLuint TexScaleLoc = 3u;
+	GLuint TexScaleLoc;
 	//GLint TexScaleLoc = 0;
 
 	GLProgram &m_Program;
@@ -243,7 +243,7 @@ protected:
 
 	GLProgram &m_Program;
 	std::array<Light, LightCount> Lights;
-	static constexpr GLint m_LightBufferLoc = 7;
+	GLuint m_LightBufferLoc;
 	GLBuffer LightBuffer;
 
 	constexpr static GLuint LightBufferLoc = 2u;
@@ -338,7 +338,7 @@ struct GLRen : IRen2D, IRen3D, Particles::IParticleDrawer, virtual FullResourceH
 	Drawing::DrawCall *IRen3D::GetDrawCall(size_t key) override;
 
 	void DrawCalls(Matrixy4x4 View, Matrixy4x4 Proj, Voxel::CameraFrustum frustum) override;
-	void ApplyMaterial(Material *mat);
+	void ApplyMaterial(::Material *mat);
 
 	//void SetMatrix(Matrixy4x4 *mat) override;
 	void Sort(std::vector<size_t> &keys, const std::unordered_map<size_t, Drawing::DrawCall> &calls);
@@ -457,6 +457,9 @@ protected:
 	GLBuffer DrawIBO;
 	GLuint DrawColorName;
 
+	GLuint TransMat2DLoc;
+	GLuint ProjMat2DBinding;
+
 	GLBuffer Proj2DBuffer;
 	GLBuffer Trans2DBuffer;
 
@@ -468,10 +471,10 @@ protected:
 	PerObjectDesc PerObject;
 
 	GLProgram Program3D; // Not done
-	constexpr static GLint m_PerObjectLoc = 2u;
+	GLuint PerObjectLoc;
 	GLBuffer PerObjectBuf;
 	GLBuffer m_MaterialBuf;
-	constexpr static unsigned int MaterialBufLoc = 1u;
+	unsigned int MaterialBufLoc;
 	GeometryManager GeoMan;
 	//MaterialManager MatMan;
 	LightManager Lights;

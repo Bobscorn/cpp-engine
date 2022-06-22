@@ -129,7 +129,7 @@ namespace Drawing
 	{
 		virtual ~IMaterialGuy() {}
 
-		virtual void ApplyMaterial(Material *mat) = 0;
+		virtual void ApplyMaterial(::Material *mat) = 0;
 	};
 
 	struct ISorterGuy

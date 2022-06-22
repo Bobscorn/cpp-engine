@@ -142,12 +142,25 @@ namespace Drawing
 
 				mat.ProgramName = yaml["program"].as<std::string>();
 
-				if (yaml["textures"] && yaml["textures"].IsMap())
+				auto texNode = yaml["textures"];
+				if (texNode)
 				{
-					auto tex = yaml["textures"];
-					for (auto it = tex.begin(); it != tex.end(); ++it)
+					if (texNode.IsMap())
 					{
-						mat.Textures.emplace_back(std::make_pair(it->first.as<std::string>(), it->second.as<std::string>()));
+						auto& tex = texNode;
+						for (auto it = tex.begin(); it != tex.end(); ++it)
+						{
+							if (!it->second.IsScalar())
+							{
+								DWARNING("File '" + fileName + "' being parsed as a material, invalid texture entry found in 'textures' tag! (at line: " + std::to_string(it->second.Mark().line) + ")");
+								continue;
+							}
+							mat.Textures.emplace_back(std::make_pair(it->first.as<std::string>(), it->second.as<std::string>()));
+						}
+					}
+					else
+					{
+						DWARNING("File '" + fileName + "' being parsed as a material, 'textures' tag exists but isn't a map!");
 					}
 				}
 

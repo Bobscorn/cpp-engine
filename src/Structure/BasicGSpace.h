@@ -20,6 +20,7 @@ namespace G1I
 		GLBuffer VertexBuffer;
 		GLBuffer MatrixBuffer;
 		GLVertexArray VAO;
+		GLuint MatBufBinding;
 		
 		struct Line
 		{

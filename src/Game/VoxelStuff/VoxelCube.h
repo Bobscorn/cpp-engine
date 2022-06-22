@@ -7,6 +7,8 @@
 
 #include "Helpers/BulletHelper.h"
 
+#include <memory>
+
 namespace Voxel
 {
 	struct CubeID
@@ -28,7 +30,7 @@ namespace Voxel
 
 	struct ICube : virtual G1::IShape
 	{
-		ICube(VoxelWorld *world) : m_World(world) {}
+		ICube(VoxelWorld *world, std::string name) : m_World(world), m_Name(name) {}
 
 		// Position in displaced physics space
 		virtual void BecomeDynamic(floaty3 pos) {};
@@ -39,9 +41,14 @@ namespace Voxel
 		virtual void UpdatePosition(floaty3 new_position, size_t new_x, size_t new_y, size_t new_z, ChunkyFrustumCuller *new_culler) = 0;
 
 		inline VoxelWorld *GetWorld() const { return m_World; }
+		inline const std::string& GetBlockName() const { return m_Name; }
+
+		virtual std::unique_ptr<ICube> Clone() const = 0;
+		inline virtual bool WantsUpdate() const { return false; }
 
 	protected:
 		VoxelWorld *m_World = nullptr;
+		std::string m_Name = "unnamed";
 	};
 
 	struct VoxelCube : ICube, virtual G1::IShape, BulletHelp::INothingInterface
@@ -58,6 +65,7 @@ namespace Voxel
 		void SetChunkPosition(size_t x, size_t y, size_t z);
 
 		virtual void UpdatePosition(floaty3 new_position, size_t new_x, size_t new_y, size_t new_z, ChunkyFrustumCuller *new_culler) override;
+		virtual std::unique_ptr<ICube> Clone() const override;
 
 	protected:
 
@@ -69,10 +77,10 @@ namespace Voxel
 		Matrixy4x4 m_Trans;
 		size_t m_X = 0, m_Y = 0, m_Z = 0;
 
-		std::shared_ptr<btBoxShape> m_Shape;
-		static std::weak_ptr<btBoxShape> s_Shape;
+		//std::shared_ptr<btBoxShape> m_Shape;
+		//static std::weak_ptr<btBoxShape> s_Shape;
 
-		std::shared_ptr<btCollisionObject> m_Body;
+		//std::shared_ptr<btCollisionObject> m_Body;
 	};
 
 	/*struct VoxelCubeKeptForTemplate : ICube, virtual G1::IShape, BulletHelp::INothingInterface

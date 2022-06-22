@@ -6,8 +6,25 @@
 #include "Systems/Events/PhysicsEvent.h"
 
 #include "VoxelAbility.h"
+#include "Drawing/VoxelStore.h"
 
-Voxel::VoxelWorld::VoxelWorld(G1::IGSpace *container, CommonResources *resources, WorldStuff stuff) : IShape(container, "Voxel World"), FullResourceHolder(resources), m_Stuff(stuff)
+#include <vector>
+#include <algorithm>
+#include <cstdlib>
+#include <execution>
+
+size_t GetBlockIdInWorld(const Voxel::VoxelWorld* world, Voxel::BlockCoord coord)
+{
+	return world->GetCubeIdAt(coord);
+}
+
+Voxel::VoxelWorld::VoxelWorld(G1::IGSpace* container, CommonResources* resources, WorldStuff stuff)
+	: IShape(container, "Voxel World")
+	, FullResourceHolder(resources)
+	, m_Stuff(stuff)
+	, m_LoadingStuff(std::make_shared<LoadingStuff>())
+	, m_LoadingThread()
+	, m_Offsets(CalculateOffsets(stuff.HalfBonusWidth, stuff.HalfBonusHeight, stuff.HalfBonusDepth))
 {
 	m_Stuff.ChunkLeniance = Math::min<size_t>()(m_Stuff.ChunkLeniance, m_Stuff.HalfBonusWidth);
 	m_Stuff.ChunkLeniance = Math::min<size_t>()(m_Stuff.ChunkLeniance, m_Stuff.HalfBonusHeight);
@@ -15,306 +32,357 @@ Voxel::VoxelWorld::VoxelWorld(G1::IGSpace *container, CommonResources *resources
 
 	if (m_Stuff.ChunkLeniance < 1)
 		m_Stuff.ChunkLeniance = 1;
+
+	LoadingOtherStuff funcs;
+	funcs.GetBlockIdFunc = [this](BlockCoord coord) { return GetBlockIdInWorld(this, coord); };
+	funcs.GetChunkDataFunc = [gen = m_Stuff.m_ChunkLoader](ChunkCoord coord) { return ConvertMapToData(gen->LoadChunk(coord.X, coord.Y, coord.Z)); };
+	m_LoadingThread = std::thread(DoChunkLoading, m_LoadingStuff, std::move(funcs));
 }
 
 Voxel::VoxelWorld::~VoxelWorld()
 {
+	m_LoadingStuff->QuitVal.store(true);
+	m_LoadingThread.join();
+}
+
+std::vector<Voxel::ChunkCoord> Voxel::CalculateOffsets(int64_t xHalfBound, int64_t yHalfBound, int64_t zHalfBound)
+{
+	auto numPoints = (xHalfBound * 2 + 1) * (yHalfBound * 2 + 1) * (zHalfBound * 2 + 1);
+	std::vector<Voxel::ChunkCoord> coords{};
+	coords.reserve((size_t)numPoints);
+
+	for (int64_t x = -xHalfBound; x <= xHalfBound; ++x)
+	{
+		for (int64_t y = -yHalfBound; y <= yHalfBound; ++y)
+		{
+			for (int64_t z = -zHalfBound; z <= zHalfBound; ++z)
+			{
+				coords.emplace_back(ChunkCoord{ x, y, z });
+			}
+		}
+	}
+
+	auto lessThan = [](Voxel::ChunkCoord a, Voxel::ChunkCoord b) { return (std::abs(a.X) + std::abs(a.Y) + std::abs(a.Z)) < (std::abs(b.X) + std::abs(b.Y) + std::abs(b.Z)); };
+
+	std::sort(std::execution::par_unseq, coords.begin(), coords.end(), lessThan);
+
+	return coords;
 }
 
 floaty3 Voxel::VoxelWorld::Update(floaty3 New_Centre)
 {
-	PROFILE_PUSH("VoxelWorld Update");
-	// What to do:
-	// check if player if ChunkLeniance chunks away from the centre
+	//PROFILE_PUSH("VoxelWorld Update");
+	//// What to do:
+	//// check if player if ChunkLeniance chunks away from the centre
 
-	// Convert New_Centre to World space
-	DOUBLE3 centre = (DOUBLE3)New_Centre + m_PhysicsDisplacement;
+	//// Convert New_Centre to World space
+	//DOUBLE3 centre = (DOUBLE3)New_Centre + m_PhysicsDisplacement;
 
-	// Convert World space to chunk space
-	centre = { centre.x / Chunk_Width_Double, centre.y / Chunk_Tallness_Double, centre.z / Chunk_Width_Double };
+	//// Convert World space to chunk space
+	//centre = { centre.x / Chunk_Width_Double, centre.y / Chunk_Tallness_Double, centre.z / Chunk_Width_Double };
 
-	// centre is now in world chunk space
-	ChunkCoord chunk_centre = GetChunkCoordFromPhys(New_Centre);
+	//// centre is now in world chunk space
+	//ChunkCoord chunk_centre = GetChunkCoordFromPhys(New_Centre);
 
 
-	// Now create the desired cube of chunks around the centre
+	//// Now create the desired cube of chunks around the centre
 
-	int64_t lower_x = (chunk_centre.X - (int64_t)m_Stuff.HalfBonusWidth), upper_x = (chunk_centre.X + (int64_t)m_Stuff.HalfBonusWidth);
-	int64_t lower_y = (chunk_centre.Y - (int64_t)m_Stuff.HalfBonusHeight), upper_y = (chunk_centre.Y + (int64_t)m_Stuff.HalfBonusHeight);
-	int64_t lower_z = (chunk_centre.Z - (int64_t)m_Stuff.HalfBonusDepth), upper_z = (chunk_centre.Z + (int64_t)m_Stuff.HalfBonusDepth);
+	//int64_t lower_x = (chunk_centre.X - (int64_t)m_Stuff.HalfBonusWidth), upper_x = (chunk_centre.X + (int64_t)m_Stuff.HalfBonusWidth);
+	//int64_t lower_y = (chunk_centre.Y - (int64_t)m_Stuff.HalfBonusHeight), upper_y = (chunk_centre.Y + (int64_t)m_Stuff.HalfBonusHeight);
+	//int64_t lower_z = (chunk_centre.Z - (int64_t)m_Stuff.HalfBonusDepth), upper_z = (chunk_centre.Z + (int64_t)m_Stuff.HalfBonusDepth);
 
-	// Unload Chunks
-	std::vector<ChunkCoord> to_unload;
+	//// Unload Chunks
+	//PROFILE_PUSH("Unloading Chunks");
+	//std::vector<ChunkCoord> to_unload;
 
-	for (auto &chunk : m_Chunks)
+	//for (auto &chunk : m_Chunks)
+	//{
+	//	if (chunk.first.X < lower_x || chunk.first.X > upper_x ||
+	//		chunk.first.Y < lower_y || chunk.first.Y > upper_y ||
+	//		chunk.first.Z < lower_z || chunk.first.Z > upper_z)
+	//	{
+	//		to_unload.emplace_back(chunk.first);
+	//	}
+	//}
+
+	//for (auto &chunkIndex : to_unload)
+	//{
+	//	std::unique_ptr<ChunkyBoi> ptr = std::move(m_Chunks[chunkIndex]);
+	//	m_Stuff.m_ChunkUnloader->UnloadChunk(std::move(ptr));
+	//	m_Chunks.erase(chunkIndex);
+	//}
+	//PROFILE_POP();
+
+	//// Load new chunks
+	//m_Chunks.reserve(m_Stuff.HalfBonusWidth * 2 * m_Stuff.HalfBonusHeight * 2 * m_Stuff.HalfBonusHeight * 2);
+
+	//// Convert to centre + half extents
+	//const int64_t &centre_x = chunk_centre.X;
+	//const int64_t &centre_y = chunk_centre.Y;
+	//const int64_t &centre_z = chunk_centre.Z;
+
+	///*for (int64_t i = 0; i <= (int64_t)m_Stuff.HalfBonusWidth; ++i)
+	//{
+	//	for (int64_t j = 0; j <= (int64_t)m_Stuff.HalfBonusHeight; ++j)
+	//	{
+	//		for (int64_t n = 0; n <= (int64_t)m_Stuff.HalfBonusDepth; ++n)
+	//		{
+	//			ChunkCoord point1 = { centre_x + i, centre_y + j, centre_z + n };
+	//			ChunkCoord point2 = { centre_x - i, centre_y - j, centre_z - n };
+	//			Load(point1);
+	//			Load(point2);
+	//		}
+	//	}
+	//}*/
+
+	//int64_t x = 0, y = 0, z = 0;
+
+	//bool go = true, do_x = false, do_y = false, do_z = false;
+
+	//PROFILE_PUSH("Loading Chunks");
+	//Load({ centre_x, centre_y, centre_z });
+
+	//while (true)
+	//{
+	//	go = false;
+	//	if (x < static_cast<int64_t>(m_Stuff.HalfBonusWidth))
+	//	{
+	//		++x;
+	//		do_x = go = true;
+	//	}
+	//	if (y < static_cast<int64_t>(m_Stuff.HalfBonusHeight))
+	//	{
+	//		++y;
+	//		do_y = go = true;
+	//	}
+	//	if (z < static_cast<int64_t>(m_Stuff.HalfBonusDepth))
+	//	{
+	//		++z;
+	//		do_z = go = true;
+	//	}
+	//	if (!go)
+	//		break;
+	//	
+
+	//	// X ---------------------------------------------------------------------
+	//	if (do_x)
+	//	{
+	//		// Load positive and negative versions at the same time
+	//		int x_y = 0, x_z = 0;
+	//		int y_extent = (int)(x < static_cast<int64_t>(m_Stuff.HalfBonusHeight) ? x : m_Stuff.HalfBonusHeight);
+	//		int z_extent = (int)(x < static_cast<int64_t>(m_Stuff.HalfBonusDepth) ? x : m_Stuff.HalfBonusDepth);
+	//		bool x_do_y = false, x_do_z = false, x_go = false;
+
+	//		Load({ centre_x + x, centre_y, centre_z });
+	//		Load({ centre_x - x, centre_y, centre_z });
+
+	//		while (true)
+	//		{
+	//			x_go = false;
+	//			if (x_y < y_extent)
+	//			{
+	//				++x_y;
+	//				x_do_y = true;
+	//				x_go = true;
+	//			}
+	//			if (x_z < z_extent)
+	//			{
+	//				++x_z;
+	//				x_do_z = true;
+	//				x_go = true;
+	//			}
+
+	//			if (!x_go)
+	//				break;
+
+	//			// Now we have a x, and a z value to work with,
+	//			// Now 'draw' the vertical lines
+	//			// Z first just because chunks are taller than wide
+	//			if (x_do_z)
+	//			{
+	//				for (int i = 0; i <= x_y; ++i)
+	//				{
+	//					Load({ centre_x + x, centre_y + i, centre_z + x_z });
+	//					Load({ centre_x + x, centre_y + i, centre_z - x_z });
+	//					Load({ centre_x + x, centre_y - i, centre_z + x_z });
+	//					Load({ centre_x + x, centre_y - i, centre_z - x_z });
+	//					Load({ centre_x - x, centre_y + i, centre_z + x_z });
+	//					Load({ centre_x - x, centre_y + i, centre_z - x_z });
+	//					Load({ centre_x - x, centre_y - i, centre_z + x_z });
+	//					Load({ centre_x - x, centre_y - i, centre_z - x_z });
+	//				}
+	//			}
+
+	//			// Now with the x and y values 'draw' the horizontal lines
+	//			if (x_do_y)
+	//			{
+	//				for (int i = 0; i <= x_z; ++i)
+	//				{
+	//					Load({ centre_x + x, centre_y + x_y, centre_z + i });
+	//					Load({ centre_x + x, centre_y + x_y, centre_z - i });
+	//					Load({ centre_x + x, centre_y - x_y, centre_z + i });
+	//					Load({ centre_x + x, centre_y - x_y, centre_z - i });
+	//					Load({ centre_x - x, centre_y + x_y, centre_z + i });
+	//					Load({ centre_x - x, centre_y + x_y, centre_z - i });
+	//					Load({ centre_x - x, centre_y - x_y, centre_z + i });
+	//					Load({ centre_x - x, centre_y - x_y, centre_z - i });
+	//				}
+	//			}
+	//		}
+
+	//		
+
+	//	}
+
+	//	// Y----------------------------------------------------------------------
+	//	if (do_y)
+	//	{
+	//		// Load positive and negative versions at the same time
+	//		int y_x = 0, y_z = 0;
+	//		int x_extent = (int)(y < (int64_t)m_Stuff.HalfBonusWidth ? y : m_Stuff.HalfBonusWidth);
+	//		int z_extent = (int)(y < (int64_t)m_Stuff.HalfBonusDepth ? y : m_Stuff.HalfBonusDepth);
+	//		bool y_do_x = false, y_do_z = false, y_go = false;
+
+	//		Load({ centre_x , centre_y + y, centre_z });
+	//		Load({ centre_x , centre_y - y, centre_z });
+
+	//		while (true)
+	//		{
+	//			y_go = false;
+	//			if (y_x < x_extent)
+	//			{
+	//				++y_x;
+	//				y_do_x = true;
+	//				y_go = true;
+	//			}
+	//			if (y_z < z_extent)
+	//			{
+	//				++y_z;
+	//				y_do_z = true;
+	//				y_go = true;
+	//			}
+
+	//			if (!y_go)
+	//				break;
+
+	//			// 'Drawing' the lines with the established 2 variables
+	//			if (y_do_z)
+	//			{
+	//				for (int i = 0; i <= y_z; ++i)
+	//				{
+	//					Load({ centre_x + y_x, centre_y + y, centre_z + i });
+	//					Load({ centre_x + y_x, centre_y + y, centre_z - i });
+	//					Load({ centre_x + y_x, centre_y - y, centre_z + i });
+	//					Load({ centre_x + y_x, centre_y - y, centre_z - i });
+	//					Load({ centre_x - y_x, centre_y + y, centre_z + i });
+	//					Load({ centre_x - y_x, centre_y + y, centre_z - i });
+	//					Load({ centre_x - y_x, centre_y - y, centre_z + i });
+	//					Load({ centre_x - y_x, centre_y - y, centre_z - i });
+	//				}
+	//			}
+
+	//			if (y_do_z)
+	//			{
+	//				for (int i = 0; i <= y_x; ++i)
+	//				{
+	//					Load({ centre_x + i, centre_y + y, centre_z + y_z });
+	//					Load({ centre_x + i, centre_y + y, centre_z - y_z });
+	//					Load({ centre_x + i, centre_y - y, centre_z + y_z });
+	//					Load({ centre_x + i, centre_y - y, centre_z - y_z });
+	//					Load({ centre_x - i, centre_y + y, centre_z + y_z });
+	//					Load({ centre_x - i, centre_y + y, centre_z - y_z });
+	//					Load({ centre_x - i, centre_y - y, centre_z + y_z });
+	//					Load({ centre_x - i, centre_y - y, centre_z - y_z });
+	//				}
+	//			}
+	//		}
+	//	}
+
+	//	// Z--------------------------------------------------------------
+	//	if (do_z)
+	//	{
+	//		// Load positive and negative versions at the same time
+	//		int z_x = 0, z_y = 0;
+	//		int x_extent = (int)(z < m_Stuff.HalfBonusWidth ? z : m_Stuff.HalfBonusWidth);
+	//		int y_extent = (int)(z < m_Stuff.HalfBonusHeight ? z : m_Stuff.HalfBonusHeight);
+	//		bool z_do_x = false, z_do_y = false, z_go = false;
+
+	//		Load({ centre_x , centre_y, centre_z + z });
+	//		Load({ centre_x , centre_y, centre_z - z });
+
+	//		while (true)
+	//		{
+	//			z_go = false;
+	//			if (z_x < x_extent)
+	//			{
+	//				++z_x;
+	//				z_do_x = true;
+	//				z_go = true;
+	//			}
+	//			if (z_y < y_extent)
+	//			{
+	//				++z_y;
+	//				z_do_y = true;
+	//				z_go = true;
+	//			}
+
+	//			if (!z_go)
+	//				break;
+
+	//			// 'Draw' the lines
+	//			if (z_do_x)
+	//			{
+	//				for (int i = 0; i <= z_y; ++i)
+	//				{
+	//					Load({ centre_x + z_x, centre_y + i, centre_z + z });
+	//					Load({ centre_x + z_x, centre_y + i, centre_z - z });
+	//					Load({ centre_x + z_x, centre_y - i, centre_z + z });
+	//					Load({ centre_x + z_x, centre_y - i, centre_z - z });
+	//					Load({ centre_x - z_x, centre_y + i, centre_z + z });
+	//					Load({ centre_x - z_x, centre_y + i, centre_z - z });
+	//					Load({ centre_x - z_x, centre_y - i, centre_z + z });
+	//					Load({ centre_x - z_x, centre_y - i, centre_z - z });
+	//				}
+	//			}
+
+	//			if (z_do_y)
+	//			{
+	//				for (int i = 0; i <= z_x; ++i)
+	//				{
+	//					Load({ centre_x + i, centre_y + z_y, centre_z + z });
+	//					Load({ centre_x + i, centre_y + z_y, centre_z - z });
+	//					Load({ centre_x + i, centre_y - z_y, centre_z + z });
+	//					Load({ centre_x + i, centre_y - z_y, centre_z - z });
+	//					Load({ centre_x - i, centre_y + z_y, centre_z + z });
+	//					Load({ centre_x - i, centre_y + z_y, centre_z - z });
+	//					Load({ centre_x - i, centre_y - z_y, centre_z + z });
+	//					Load({ centre_x - i, centre_y - z_y, centre_z - z });
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
+
+	//PROFILE_POP();
+
+	//PROFILE_POP();
+
+	PROFILE_PUSH("New Chunk Loading");
+
+	auto centre = GetChunkCoordFromPhys(New_Centre);
+
+	int64_t centre_x = centre.X;
+	int64_t centre_y = centre.Y;
+	int64_t centre_z = centre.Z;
+
+	Load(centre);
+	for (auto& offset : m_Offsets)
 	{
-		if (chunk.first.X < lower_x || chunk.first.X > upper_x ||
-			chunk.first.Y < lower_y || chunk.first.Y > upper_y ||
-			chunk.first.Z < lower_z || chunk.first.Z > upper_z)
-		{
-			to_unload.emplace_back(chunk.first);
-		}
-	}
-
-	for (auto &chunk : to_unload)
-	{
-		std::unique_ptr<ChunkyBoi> ptr = std::move(m_Chunks[chunk]);
-		m_Stuff.m_ChunkUnloader->UnloadChunk(std::move(ptr));
-		m_Chunks.erase(chunk);
-	}
-
-	// Load new chunks
-
-	// Convert to centre + half extents
-	const int64_t &centre_x = chunk_centre.X;
-	const int64_t &centre_y = chunk_centre.Y;
-	const int64_t &centre_z = chunk_centre.Z;
-
-	/*for (int64_t i = 0; i <= (int64_t)m_Stuff.HalfBonusWidth; ++i)
-	{
-		for (int64_t j = 0; j <= (int64_t)m_Stuff.HalfBonusHeight; ++j)
-		{
-			for (int64_t n = 0; n <= (int64_t)m_Stuff.HalfBonusDepth; ++n)
-			{
-				ChunkCoord point1 = { centre_x + i, centre_y + j, centre_z + n };
-				ChunkCoord point2 = { centre_x - i, centre_y - j, centre_z - n };
-				Load(point1);
-				Load(point2);
-			}
-		}
-	}*/
-
-	int64_t x = 0, y = 0, z = 0;
-
-	bool go = true, do_x = false, do_y = false, do_z = false;
-
-	PROFILE_PUSH("Loading Chunks");
-	Load({ centre_x, centre_y, centre_z });
-
-	while (true)
-	{
-		go = false;
-		if (x < static_cast<int64_t>(m_Stuff.HalfBonusWidth))
-		{
-			++x;
-			do_x = go = true;
-		}
-		if (y < static_cast<int64_t>(m_Stuff.HalfBonusHeight))
-		{
-			++y;
-			do_y = go = true;
-		}
-		if (z < static_cast<int64_t>(m_Stuff.HalfBonusDepth))
-		{
-			++z;
-			do_z = go = true;
-		}
-		if (!go)
-			break;
-		
-
-		// X ---------------------------------------------------------------------
-		if (do_x)
-		{
-			// Load positive and negative versions at the same time
-			int x_y = 0, x_z = 0;
-			int y_extent = (int)(x < static_cast<int64_t>(m_Stuff.HalfBonusHeight) ? x : m_Stuff.HalfBonusHeight);
-			int z_extent = (int)(x < static_cast<int64_t>(m_Stuff.HalfBonusDepth) ? x : m_Stuff.HalfBonusDepth);
-			bool x_do_y = false, x_do_z = false, x_go = false;
-
-			Load({ centre_x + x, centre_y, centre_z });
-			Load({ centre_x - x, centre_y, centre_z });
-
-			while (true)
-			{
-				x_go = false;
-				if (x_y < y_extent)
-				{
-					++x_y;
-					x_do_y = true;
-					x_go = true;
-				}
-				if (x_z < z_extent)
-				{
-					++x_z;
-					x_do_z = true;
-					x_go = true;
-				}
-
-				if (!x_go)
-					break;
-
-				// Now we have a x, and a z value to work with,
-				// Now 'draw' the vertical lines
-				// Z first just because chunks are taller than wide
-				if (x_do_z)
-				{
-					for (int i = 0; i <= x_y; ++i)
-					{
-						Load({ centre_x + x, centre_y + i, centre_z + x_z });
-						Load({ centre_x + x, centre_y + i, centre_z - x_z });
-						Load({ centre_x + x, centre_y - i, centre_z + x_z });
-						Load({ centre_x + x, centre_y - i, centre_z - x_z });
-						Load({ centre_x - x, centre_y + i, centre_z + x_z });
-						Load({ centre_x - x, centre_y + i, centre_z - x_z });
-						Load({ centre_x - x, centre_y - i, centre_z + x_z });
-						Load({ centre_x - x, centre_y - i, centre_z - x_z });
-					}
-				}
-
-				// Now with the x and y values 'draw' the horizontal lines
-				if (x_do_y)
-				{
-					for (int i = 0; i <= x_z; ++i)
-					{
-						Load({ centre_x + x, centre_y + x_y, centre_z + i });
-						Load({ centre_x + x, centre_y + x_y, centre_z - i });
-						Load({ centre_x + x, centre_y - x_y, centre_z + i });
-						Load({ centre_x + x, centre_y - x_y, centre_z - i });
-						Load({ centre_x - x, centre_y + x_y, centre_z + i });
-						Load({ centre_x - x, centre_y + x_y, centre_z - i });
-						Load({ centre_x - x, centre_y - x_y, centre_z + i });
-						Load({ centre_x - x, centre_y - x_y, centre_z - i });
-					}
-				}
-			}
-
-			
-
-		}
-
-		// Y----------------------------------------------------------------------
-		if (do_y)
-		{
-			// Load positive and negative versions at the same time
-			int y_x = 0, y_z = 0;
-			int x_extent = (int)(y < (int64_t)m_Stuff.HalfBonusWidth ? y : m_Stuff.HalfBonusWidth);
-			int z_extent = (int)(y < (int64_t)m_Stuff.HalfBonusDepth ? y : m_Stuff.HalfBonusDepth);
-			bool y_do_x = false, y_do_z = false, y_go = false;
-
-			Load({ centre_x , centre_y + y, centre_z });
-			Load({ centre_x , centre_y - y, centre_z });
-
-			while (true)
-			{
-				y_go = false;
-				if (y_x < x_extent)
-				{
-					++y_x;
-					y_do_x = true;
-					y_go = true;
-				}
-				if (y_z < z_extent)
-				{
-					++y_z;
-					y_do_z = true;
-					y_go = true;
-				}
-
-				if (!y_go)
-					break;
-
-				// 'Drawing' the lines with the established 2 variables
-				if (y_do_z)
-				{
-					for (int i = 0; i <= y_z; ++i)
-					{
-						Load({ centre_x + y_x, centre_y + y, centre_z + i });
-						Load({ centre_x + y_x, centre_y + y, centre_z - i });
-						Load({ centre_x + y_x, centre_y - y, centre_z + i });
-						Load({ centre_x + y_x, centre_y - y, centre_z - i });
-						Load({ centre_x - y_x, centre_y + y, centre_z + i });
-						Load({ centre_x - y_x, centre_y + y, centre_z - i });
-						Load({ centre_x - y_x, centre_y - y, centre_z + i });
-						Load({ centre_x - y_x, centre_y - y, centre_z - i });
-					}
-				}
-
-				if (y_do_z)
-				{
-					for (int i = 0; i <= y_x; ++i)
-					{
-						Load({ centre_x + i, centre_y + y, centre_z + y_z });
-						Load({ centre_x + i, centre_y + y, centre_z - y_z });
-						Load({ centre_x + i, centre_y - y, centre_z + y_z });
-						Load({ centre_x + i, centre_y - y, centre_z - y_z });
-						Load({ centre_x - i, centre_y + y, centre_z + y_z });
-						Load({ centre_x - i, centre_y + y, centre_z - y_z });
-						Load({ centre_x - i, centre_y - y, centre_z + y_z });
-						Load({ centre_x - i, centre_y - y, centre_z - y_z });
-					}
-				}
-			}
-		}
-
-		// Z--------------------------------------------------------------
-		if (do_z)
-		{
-			// Load positive and negative versions at the same time
-			int z_x = 0, z_y = 0;
-			int x_extent = (int)(z < m_Stuff.HalfBonusWidth ? z : m_Stuff.HalfBonusWidth);
-			int y_extent = (int)(z < m_Stuff.HalfBonusHeight ? z : m_Stuff.HalfBonusHeight);
-			bool z_do_x = false, z_do_y = false, z_go = false;
-
-			Load({ centre_x , centre_y, centre_z + z });
-			Load({ centre_x , centre_y, centre_z - z });
-
-			while (true)
-			{
-				z_go = false;
-				if (z_x < x_extent)
-				{
-					++z_x;
-					z_do_x = true;
-					z_go = true;
-				}
-				if (z_y < y_extent)
-				{
-					++z_y;
-					z_do_y = true;
-					z_go = true;
-				}
-
-				if (!z_go)
-					break;
-
-				// 'Draw' the lines
-				if (z_do_x)
-				{
-					for (int i = 0; i <= z_y; ++i)
-					{
-						Load({ centre_x + z_x, centre_y + i, centre_z + z });
-						Load({ centre_x + z_x, centre_y + i, centre_z - z });
-						Load({ centre_x + z_x, centre_y - i, centre_z + z });
-						Load({ centre_x + z_x, centre_y - i, centre_z - z });
-						Load({ centre_x - z_x, centre_y + i, centre_z + z });
-						Load({ centre_x - z_x, centre_y + i, centre_z - z });
-						Load({ centre_x - z_x, centre_y - i, centre_z + z });
-						Load({ centre_x - z_x, centre_y - i, centre_z - z });
-					}
-				}
-
-				if (z_do_y)
-				{
-					for (int i = 0; i <= z_x; ++i)
-					{
-						Load({ centre_x + i, centre_y + z_y, centre_z + z });
-						Load({ centre_x + i, centre_y + z_y, centre_z - z });
-						Load({ centre_x + i, centre_y - z_y, centre_z + z });
-						Load({ centre_x + i, centre_y - z_y, centre_z - z });
-						Load({ centre_x - i, centre_y + z_y, centre_z + z });
-						Load({ centre_x - i, centre_y + z_y, centre_z - z });
-						Load({ centre_x - i, centre_y - z_y, centre_z + z });
-						Load({ centre_x - i, centre_y - z_y, centre_z - z });
-					}
-				}
-			}
-		}
+		Load({ centre_x + offset.X, centre_y + offset.Y, centre_z + offset.Z });
 	}
 
 	PROFILE_POP();
 
-	PROFILE_POP();
 	return { 0.f, 0.f, 0.f };
 }
 
@@ -323,7 +391,8 @@ void Voxel::VoxelWorld::BeforeDraw()
 	PROFILE_PUSH("VoxelWorld BeforeDraw");
 	PROFILE_PUSH("Chunks");
 	for (auto &chunk : m_Chunks)
-		chunk.second->BeforeDraw();
+		if (chunk.second)
+			chunk.second->BeforeDraw();
 	PROFILE_POP();
 	PROFILE_PUSH("Entities");
 	for (auto &entity : m_DynamicEntities)
@@ -357,17 +426,23 @@ void Voxel::VoxelWorld::Draw()
 void Voxel::VoxelWorld::AfterDraw()
 {
 	PROFILE_PUSH("VoxelWorld AfterDraw");
-	PROFILE_PUSH("Chunks");
 	for (auto &chunk : m_Chunks)
-		chunk.second->AfterDraw();
-	PROFILE_POP();
+		if (chunk.second)
+		{
+			PROFILE_PUSH_AGG("Chunk");
+			chunk.second->AfterDraw();
+			PROFILE_POP();
+		}
 	PROFILE_PUSH("Entities");
 	for (auto &entity : m_DynamicEntities)
 		entity.second->AfterDraw();
 	PROFILE_POP();
-	PROFILE_POP();
 
 	DoRemoveEntities();
+	PROFILE_PUSH("Check Loading Thread");
+	CheckLoadingThread();
+	PROFILE_POP();
+	PROFILE_POP();
 }
 
 bool Voxel::VoxelWorld::Receive(Events::IEvent *e)
@@ -401,7 +476,7 @@ bool Voxel::VoxelWorld::Receive(Event::AfterPhysicsEvent *event)
 void Voxel::VoxelWorld::ReplaceStaticCube(BlockCoord coords, std::unique_ptr<ICube> cube)
 {
 	auto it = m_Chunks.find(coords.Chunk);
-	if (it != m_Chunks.end())
+	if (it != m_Chunks.end() && it->second)
 	{
 		it->second->set(coords.X, coords.Y, coords.Z, std::move(cube));
 	}
@@ -410,7 +485,7 @@ void Voxel::VoxelWorld::ReplaceStaticCube(BlockCoord coords, std::unique_ptr<ICu
 void Voxel::VoxelWorld::SetStaticCube(BlockCoord coord)
 {
 	auto it = m_Chunks.find(coord.Chunk);
-	if (it != m_Chunks.end())
+	if (it != m_Chunks.end() && it->second)
 	{
 		it->second->create(coord.X, coord.Y, coord.Z);
 	}
@@ -419,11 +494,27 @@ void Voxel::VoxelWorld::SetStaticCube(BlockCoord coord)
 Voxel::ICube* Voxel::VoxelWorld::GetCubeAt(BlockCoord coord)
 {
 	auto it = m_Chunks.find(coord.Chunk);
-	if (it != m_Chunks.end())
+	if (it != m_Chunks.end() && it->second)
 	{
 		return it->second->get(coord.X, coord.Y, coord.Z);
 	}
 	return nullptr;
+}
+
+const Voxel::ICube* Voxel::VoxelWorld::GetCubeAt(BlockCoord coord) const
+{
+	auto it = m_Chunks.find(coord.Chunk);
+	if (it != m_Chunks.end() && it->second)
+		return it->second->get(coord.X, coord.Y, coord.Z);
+	return nullptr;
+}
+
+size_t Voxel::VoxelWorld::GetCubeIdAt(BlockCoord coord) const
+{
+	auto ptr = GetCubeAt(coord);
+	if (!ptr)
+		return 0;
+	return Voxel::VoxelStore::Instance().GetIDFor(ptr->GetBlockName());
 }
 
 bool Voxel::VoxelWorld::IsCubeAt(BlockCoord coord)
@@ -554,13 +645,42 @@ void Voxel::VoxelWorld::UpdateInstanceStuff(const std::vector<ProjInstanceData> 
 	CHECK_GL_ERR("Done Instance Buffer Updating");
 }
 
+void Voxel::VoxelWorld::CheckLoadingThread()
+{
+	Voxel::LoadedChunk chunk;
+	while (m_LoadingStuff->Loaded.try_pop(chunk))
+	{
+		auto it = m_Chunks.find(chunk.Coord);
+
+		// Skip if not an expected chunk (expected chunks are put into m_Chunks as nullptrs)
+		if (it == m_Chunks.end())
+			continue;
+
+		// Skip if there's already a chunk there
+		if (it->second)
+			continue;
+
+		m_Chunks[chunk.Coord] = std::make_unique<ChunkyBoi>(GetContainer(), mResources, this, ChunkOrigin(chunk.Coord), std::move(chunk));
+	}
+}
+
 void Voxel::VoxelWorld::Load(ChunkCoord at)
 {
+	PROFILE_PUSH_AGG("Load Chunk");
+	PROFILE_PUSH("Chunk Find");
 	auto it = m_Chunks.find(at);
+	PROFILE_POP();
 	if (it == m_Chunks.end())
 	{
-		m_Chunks.emplace(at, std::make_unique<ChunkyBoi>(GetContainer(), GetResources(), this, ChunkOrigin(at), m_Stuff.m_ChunkLoader->LoadChunk(at.X, at.Y, at.Z), at));
+		// Multi threaded:
+		// TODO: Add a chunk to loading thread's queue and mark it as 'being loaded' so it isn't re-added
+		//m_Chunks.emplace(std::make_pair(at, nullptr));
+		//m_LoadingStuff->ToLoad.push(at);
+		PROFILE_PUSH("Chunk Emplace");
+		m_Chunks.emplace(at, std::make_unique<ChunkyBoi>(GetContainer(), GetResources(), this, ChunkOrigin(at), m_Stuff.m_ChunkLoader->LoadChunk(at.X, at.Y, at.Z), at)); // Single threaded
+		PROFILE_POP();
 	}
+	PROFILE_POP();
 }
 
 floaty3 Voxel::VoxelWorld::ChunkOrigin(ChunkCoord of)
@@ -597,4 +717,21 @@ template<>
 void Voxel::VoxelWorld::AddProjectile<Voxel::HitScanProjectile, floaty3, floaty3, Voxel::Entity *, Voxel::DamageDescription>(floaty3 direction, floaty3 start, Voxel::Entity *source, Voxel::DamageDescription dam)
 {
 	m_HitscanProjectiles.emplace_back(direction, start, source, dam);
+}
+
+void Voxel::DoChunkLoading(std::shared_ptr<LoadingStuff> stuff, LoadingOtherStuff other)
+{
+	using namespace std::chrono;
+	while (!stuff->QuitVal.load())
+	{
+		Voxel::ChunkCoord toLoad;
+		if (stuff->ToLoad.try_pop(toLoad, 10ms))
+		{
+			auto data = other.GetChunkDataFunc(toLoad);
+
+			auto loaded = Voxel::GenerateChunkMesh(data, toLoad, other.GetBlockIdFunc);
+
+			stuff->Loaded.push(std::move(loaded));
+		}
+	}
 }

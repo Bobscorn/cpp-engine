@@ -3,6 +3,7 @@
 #include "Helpers/GLHelper.h"
 
 #include "Systems/Events/EventsBase.h"
+#include "Systems/Threading/ThreadedQueue.h"
 
 #include "VoxelChunk.h"
 #include "Entities/VoxelProjectiles.h"
@@ -10,6 +11,10 @@
 #include <unordered_set>
 #include <climits>
 #include <type_traits>
+#include <thread>
+#include <functional>
+#include <memory>
+#include <atomic>
 
 
 namespace Voxel
@@ -23,13 +28,30 @@ namespace Voxel
 
 	struct IChunkLoader
 	{
-		virtual ChunkyBoi::RawChunkDataMap LoadChunk(int64_t x, int64_t y, int64_t z) = 0;
+		virtual RawChunkDataMap LoadChunk(int64_t x, int64_t y, int64_t z) = 0;
 	};
 
 	struct IChunkUnloader
 	{
 		virtual void UnloadChunk(std::unique_ptr<ChunkyBoi> &&chunk) = 0;
 	};
+
+	struct LoadingStuff
+	{
+		Threading::ThreadedQueue<ChunkCoord> ToLoad;
+		Threading::ThreadedQueue<LoadedChunk> Loaded;
+		std::atomic<bool> QuitVal;
+	};
+
+	struct LoadingOtherStuff
+	{
+		// Must be a thread-safe function that determines whether there is a block at specified position
+		std::function<size_t(BlockCoord coord)> GetBlockIdFunc;
+		std::function<RawChunkData(ChunkCoord coord)> GetChunkDataFunc;
+	};
+
+	void DoChunkLoading(std::shared_ptr<LoadingStuff> stuff, LoadingOtherStuff other);
+	std::vector<ChunkCoord> CalculateOffsets(int64_t xHalfBound, int64_t yHalfBound, int64_t zHalfBound);
 
 	struct WorldStuff
 	{
@@ -68,6 +90,8 @@ namespace Voxel
 		void SetStaticCube(BlockCoord coord);
 
 		ICube* GetCubeAt(BlockCoord coord);
+		const ICube* GetCubeAt(BlockCoord coord) const;
+		size_t GetCubeIdAt(BlockCoord coord) const;
 		bool IsCubeAt(BlockCoord coord);
 
 		// Get the coords of a block/chunk given by position, in Displaced Physics space
@@ -89,7 +113,10 @@ namespace Voxel
 	protected:
 
 		WorldStuff m_Stuff;
+		std::shared_ptr<LoadingStuff> m_LoadingStuff;
+		std::thread m_LoadingThread;
 
+		std::vector<ChunkCoord> m_Offsets;
 
 		std::unordered_map<ChunkCoord, std::unique_ptr<ChunkyBoi>> m_Chunks;
 
@@ -124,8 +151,9 @@ namespace Voxel
 		void UpdateInstanceStuff(const std::vector<ProjInstanceData> &data);
 
 
+		void CheckLoadingThread();
 
-
+		// Begins loading chunk at specific coord
 		void Load(ChunkCoord at);
 
 		floaty3 ChunkOrigin(ChunkCoord of);

@@ -5,11 +5,12 @@
 Voxel::VoxelScene::VoxelScene(CommonResources *resources) 
 	: FullResourceHolder(resources)
 	, m_GSpace(resources)
-	, m_World(m_GSpace.FindShapeyRaw("")->AddChild<Voxel::VoxelWorld>(WorldStuff{ &m_Boi, &m_Boi, &m_Boi }))
+	, m_World(m_GSpace.FindShapeyRaw("")->AddChild<Voxel::VoxelWorld>(WorldStuff{ &m_Boi, &m_Boi, &m_Boi, 2, 1, 2 }))
 	, m_Ass(m_GSpace.FindShapeyRaw("")->AddChild<Voxel::VoxelPlayer>(m_World.get(), VoxelPlayerStuff{ {0.f, 10.f, 0.f}, {0.f, 0.f, -1.f} }))
 	, m_UI(resources)
 {
 	(void)m_GSpace.FindShapeyRaw("")->AddChild((G1::IShape *)new G1I::LightShape({ &m_GSpace, resources, "Rando Light" }, Light{ {10.f, 10.f, 0.f, 0.f}, {-0.7f, -0.7f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {1.f, 1.f, 1.f}, 0.f, {1.f, 1.f, 1.f}, 35.f, 1, LIGHT_DIRECTION, {0.f, 0.f} }));
+	(void)m_GSpace.FindShapeyRaw("")->AddChild((G1::IShape *)new G1I::LightShape({ &m_GSpace, resources, "Rando Point Light" }, Light{ {0.f, 0.5f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {1.f, 1.f, 1.f}, 0.f, {0.f, 0.5f, 0.f}, 35.f, 1, LIGHT_POINT, {0.f, 0.f} }));
 
 	(void)m_GSpace.FindShapeyRaw("")->AddChild(new G1I::ProfilerShape({ &m_GSpace, resources, "Profiler McGee" }, { 10.0, false }));
 
@@ -71,21 +72,19 @@ void Voxel::TheBoi::DisplaceWorld(floaty3 by)
 	// TODO: this shit
 }
 
-Voxel::ChunkyBoi::RawChunkDataMap Voxel::TheBoi::LoadChunk(int64_t x, int64_t y, int64_t z)
+Voxel::RawChunkDataMap Voxel::TheBoi::LoadChunk(int64_t x, int64_t y, int64_t z)
 {
 	if (y == 0)
 	{
-		return
+		Voxel::RawChunkDataMap map;
+		for (int x = 0; x < Chunk_Size; ++x)
 		{
-			{ { 0, 0, 0}, { 1 } }, { { 0, 0, 1}, { 1 } }, { { 0, 0, 2}, { 1 } }, { { 0, 0, 3}, { 1 } }, { { 0, 0, 4}, { 1 } }, { { 0, 0, 5}, { 1 } }, { { 0, 0, 6}, { 1 } }, { { 0, 0, 7}, { 1 } },
-			{ { 1, 0, 0}, { 1 } }, { { 1, 0, 1}, { 1 } }, { { 1, 0, 2}, { 1 } }, { { 1, 0, 3}, { 1 } }, { { 1, 0, 4}, { 1 } }, { { 1, 0, 5}, { 1 } }, { { 1, 0, 6}, { 1 } }, { { 1, 0, 7}, { 1 } },
-			{ { 2, 0, 0}, { 1 } }, { { 2, 0, 1}, { 1 } }, { { 2, 0, 2}, { 1 } }, { { 2, 0, 3}, { 1 } }, { { 2, 0, 4}, { 1 } }, { { 2, 0, 5}, { 1 } }, { { 2, 0, 6}, { 1 } }, { { 2, 0, 7}, { 1 } },
-			{ { 3, 0, 0}, { 1 } }, { { 3, 0, 1}, { 1 } }, { { 3, 0, 2}, { 1 } }, { { 3, 0, 3}, { 1 } }, { { 3, 0, 4}, { 1 } }, { { 3, 0, 5}, { 1 } }, { { 3, 0, 6}, { 1 } }, { { 3, 0, 7}, { 1 } },
-			{ { 4, 0, 0}, { 1 } }, { { 4, 0, 1}, { 1 } }, { { 4, 0, 2}, { 1 } }, { { 4, 0, 3}, { 1 } }, { { 4, 0, 4}, { 1 } }, { { 4, 0, 5}, { 1 } }, { { 4, 0, 6}, { 1 } }, { { 4, 0, 7}, { 1 } },
-			{ { 5, 0, 0}, { 1 } }, { { 5, 0, 1}, { 1 } }, { { 5, 0, 2}, { 1 } }, { { 5, 0, 3}, { 1 } }, { { 5, 0, 4}, { 1 } }, { { 5, 0, 5}, { 1 } }, { { 5, 0, 6}, { 1 } }, { { 5, 0, 7}, { 1 } },
-			{ { 6, 0, 0}, { 1 } }, { { 6, 0, 1}, { 1 } }, { { 6, 0, 2}, { 1 } }, { { 6, 0, 3}, { 1 } }, { { 6, 0, 4}, { 1 } }, { { 6, 0, 5}, { 1 } }, { { 6, 0, 6}, { 1 } }, { { 6, 0, 7}, { 1 } },
-			{ { 7, 0, 0}, { 1 } }, { { 7, 0, 1}, { 1 } }, { { 7, 0, 2}, { 1 } }, { { 7, 0, 3}, { 1 } }, { { 7, 0, 4}, { 1 } }, { { 7, 0, 5}, { 1 } }, { { 7, 0, 6}, { 1 } }, { { 7, 0, 7}, { 1 } },
-		};
+			for (int z = 0; z < Chunk_Size; ++z)
+			{
+				map[{x, 0, z}] = (x == z) ? BlockData{ 2 } : BlockData{ 1 };
+			}
+		}
+		return map;
 	}
 
 	return {};

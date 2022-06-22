@@ -6,10 +6,24 @@
 #ifdef _DEBUG
 #include "DebugHelper.h"
 #define PROFILE_PUSH(x) mResources->Profile->Push(x, __FUNCTION_NAME__, __LINE__)
+#define PROFILE_PUSH_WITH(prof, x) prof->Push(x, __FUNCTION_NAME__, __LINE__)
+#define PROFILE_PUSH_AGG(x) mResources->Profile->PushAggregate(x, __FUNCTION_NAME__, __LINE__)
+#define PROFILE_PUSH_AGG_WITH(prof, x) prof->PushAggregate(x, __FUNCTION_NAME__, __LINE__)
 #define PROFILE_POP() mResources->Profile->Pop(__FUNCTION_NAME__, __LINE__)
+#define PROFILE_POP_WITH(prof) prof->Pop(__FUNCTION_NAME__, __LINE__)
+
+#define PROFILE_EVENT(x, agg) ProfileEvent{ mResources->Profile, x, agg, __FUNCTION_NAME__, __LINE__ }
+#define PROFILE_EVENT_WITH(prof, x, agg) ProfileEvent{ prof, x, agg, __FUNCTION_NAME__, __LINE__ }
 #else
 #define PROFILE_PUSH(x) mResources->Profile->Push(x)
+#define PROFILE_PUSH_WITH(prof, x) prof->Push(x)
+#define PROFILE_PUSH_AGG(x) mResources->Profile->PushAggregate(x)
+#define PROFILE_PUSH_AGG_WITH(prof, x) prof->PushAggregate(x)
 #define PROFILE_POP() mResources->Profile->Pop()
+#define PROFILE_POP_WITH(prof) prof->Pop()
+
+#define PROFILE_EVENT(x, agg) ProfileEvent{ mResources->Profile, x, agg }
+#define PROFILE_EVENT_WITH(prof, x, agg) ProfileEvent{ prof, x, agg }
 #endif // _DEBUG
 #else
 #define PROFILE_PUSH(x) 
@@ -25,11 +39,10 @@
 struct TimedEvent
 {
 #ifdef _DEBUG
-	TimedEvent(std::string name = "", double starttime = 0.0, TimedEvent *parent = nullptr, const char * signature = "", size_t line = 0) : Name(name), StartTime(starttime), Parent(parent), Signature(signature), Line(line) {}
+	TimedEvent(std::string name = "", double starttime = 0.0, TimedEvent *parent = nullptr, const char * signature = "", size_t line = 0, bool aggregate = false) : Name(name), StartTime(starttime), Parent(parent), Signature(signature), Line(line), Aggregate(aggregate ? aggregate : (Parent ? Parent->Aggregate : false)) {}
 #else
-	TimedEvent(std::string name = "", double starttime = 0.0, TimedEvent *parent = nullptr) : Name(name), StartTime(starttime), Parent(parent) {}
+	TimedEvent(std::string name = "", double starttime = 0.0, TimedEvent *parent = nullptr, bool aggregate = false) : Name(name), StartTime(starttime), Parent(parent), Aggregate(aggregate ? aggregate : (Parent ? Parent->Aggregate : false)) {}
 #endif // _DEBUG
-#ifdef _DEBUG
 	std::string Name;
 
 	double PercentOfFrame = 0.0;
@@ -41,21 +54,16 @@ struct TimedEvent
 	double EndTime = 0.0;
 	std::vector<TimedEvent> ChildEvents;
 
+#ifdef _DEBUG
 	const char *Signature;
 	size_t Line;
 
-#else
-	std::string Name;
-	double StartTime = 0.0;
-	TimedEvent *Parent = nullptr;
-	double EndTime = 0.0;
-	double Time = 0.0;
-	std::vector<TimedEvent> ChildEvents;
-	
-	// Stats only filled in when stats are being queried (currently never filled out)
-	double PercentOfParent = 0.0;
-	double PercentOfFrame = 0.0;
 #endif
+	bool Aggregate = false;
+	size_t Aggregations = 0;
+
+	bool operator==(const TimedEvent& other) const;
+	inline bool operator!=(const TimedEvent& other) const { return !(*this == other); }
 
 	inline std::string TimeString() const
 	{
@@ -63,6 +71,9 @@ struct TimedEvent
 		auto buf_len = snprintf(info_buffer, sizeof(info_buffer), "%4.2fms - %4.2f%% of Frame - %4.2f%% of Parent", Time * 1000.0, PercentOfFrame * 100.0, PercentOfParent * 100.0);
 		return std::string(info_buffer, info_buffer + buf_len);
 	}
+
+	void AggregateChildren();
+	void AggregateOntoThis(TimedEvent& other, TimedEvent& parent);
 };
 
 struct BigBoiStats
@@ -90,10 +101,12 @@ struct ProfileMcGee
 	ProfileMcGee(ProfileOptions options);
 
 #ifdef _DEBUG
-	void Push(std::string, const char *func, size_t line);
+	void Push(std::string name, const char *func, size_t line);
+	void PushAggregate(std::string name, const char* func, size_t line);
 	void Pop(const char *func, size_t line);
 #else
 	void Push(std::string name);
+	void PushAggregate(std::string name);
 	void Pop();
 #endif
 
@@ -115,5 +128,21 @@ protected:
 	TimedEvent *m_CurrentFrame = nullptr;
 	TimedEvent *m_CurrentChild = nullptr;
 	bool m_Running = false;
+};
+
+struct ProfileEvent
+{
+	ProfileMcGee* Profiler;
+
+#ifdef _DEBUG
+	const char* func;
+	int line;
+
+	ProfileEvent(ProfileMcGee* p, std::string eventName, bool agg, const char* func, int line) : Profiler(p), func(func), line(line) { if (agg) p->PushAggregate(eventName, func, line); else p->Push(eventName, func, line); }
+	~ProfileEvent() { Profiler->Pop(func, line); }
+#else
+	ProfileEvent(ProfileMcGee* p, std::string eventName, bool agg) : Profiler(p) { if (agg) p->PushAggregate(eventName); else p->Push(eventName); }
+	~ProfileEvent() { Profiler->Pop(); }
+#endif
 };
 #endif

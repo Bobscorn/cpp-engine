@@ -6,9 +6,12 @@
 #include "Helpers/ProfileHelper.h"
 
 #include "Drawing/Graphics3D.h"
+#include "Drawing/BindingManager.h"
 #include "Drawing/IRen3D.h"
 #include "Systems/Events/PhysicsEvent.h"
 #include "Systems/Events/Events.h"
+
+#include <stdexcept>
 
 G1I::BasicGSpace::BasicGSpace(CommonResources *resources, std::string FileName) : IGSpace(resources), FullResourceHolder(resources), debugdrawer(resources)
 {
@@ -136,7 +139,7 @@ void G1I::BasicGSpace::RequestGeometryCall(const std::vector<Geometry::Vertex>& 
 
 Debug::DebugReturn G1I::BasicGSpace::Request(Requests::Request& action)
 {
-	if (action.Name == "ToggleDebugDraw")
+	if (action.Name == "UI" && action.Params.size() && action.Params[0] == "ToggleDebugDrawing")
 	{
 		DebugDrawing = !DebugDrawing;
 		DINFO("Debug Drawing has been toggled");
@@ -158,13 +161,28 @@ G1I::BasicDebugDrawer::BasicDebugDrawer(CommonResources *resources)
 {
 	Program = GLProgram({ {"Shaders/bulletdebug.glvs", GL_VERTEX_SHADER} , {"Shaders/bulletdebug.glfs", GL_FRAGMENT_SHADER} });
 
+	MatBufBinding = Drawing::BindingManager::GetNext();
+
+	CHECK_GL_ERR("Creating Bullet Debug Program");
+
+	GLint index = glGetUniformBlockIndex(Program.Get(), "MatrixBuffer");
+	if (index == GL_INVALID_INDEX)
+	{
+		DERROR("Could not find GL Uniform!");
+		throw std::runtime_error("Failed to find GL Uniform!");
+	}
+	glUniformBlockBinding(Program.Get(), index, MatBufBinding);
+
+	CHECK_GL_ERR("BulletDebug MatrixBuffer Binding");
 	GLuint matbuf = 0;
 	glGenBuffers(1, &matbuf);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, matbuf);
+	glBindBufferBase(GL_UNIFORM_BUFFER, MatBufBinding, matbuf);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(Matrixy4x4), 0, GL_STREAM_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	MatrixBuffer = matbuf;
+
+	CHECK_GL_ERR("BulletDebug MatrixBuffer Creation");
 
 	// Vertex buffer created in Draw method
 
@@ -215,10 +233,7 @@ bool G1I::BasicDebugDrawer::Draw(Matrixy4x4 ViewProj)
 			}
 			else
 			{
-				glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer.Get());
-				void *dat = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-				memcpy(dat, OldBuffer.data(), sizeof(Line) * OldBuffer.size());
-				glUnmapBuffer(GL_ARRAY_BUFFER);
+				glNamedBufferSubData(VertexBuffer.Get(), 0, sizeof(Line) * OldBuffer.size(), OldBuffer.data());
 			}
 
 			CurrentBuffer = std::move(OldBuffer);
@@ -229,18 +244,14 @@ bool G1I::BasicDebugDrawer::Draw(Matrixy4x4 ViewProj)
 	if (CurrentBuffer.empty())
 		return true;
 
-	glBindBuffer(GL_UNIFORM_BUFFER, MatrixBuffer.Get());
-	void *dat = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-	memcpy(dat, &ViewProj, sizeof(Matrixy4x4));
-	glUnmapBuffer(GL_UNIFORM_BUFFER);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glNamedBufferSubData(MatrixBuffer.Get(), 0, sizeof(Matrixy4x4), (GLvoid*)&ViewProj);
 
 	glBindVertexArray(VAO.Get());
 	glUseProgram(Program.Get());
 
 	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer.Get());
 
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, MatrixBuffer.Get());
+	glBindBufferBase(GL_UNIFORM_BUFFER, MatBufBinding, MatrixBuffer.Get());
 
 	glDrawArrays(GL_LINES, 0, (GLsizei)CurrentBuffer.size() * 2);
 

@@ -16,7 +16,7 @@
 #endif
 
 #include "VoxelInteractable.h"
-#include "VoxelCube.h"
+#include "VoxelChunk.h"
 #include "VoxelWorld.h"
 
 std::unique_ptr<btCapsuleShape> Voxel::VoxelPlayer::SweepCapsule = nullptr;
@@ -451,7 +451,7 @@ void Voxel::VoxelPlayer::TmpRayThing(bool destroy)
 			TmpEntityThing(ray, entity_ptr);
 		}
 
-		auto cube_ptr = dynamic_cast<VoxelCube *>(ray.hold->Pointy);
+		auto cube_ptr = dynamic_cast<ChunkyBoi *>(ray.hold->Pointy);
 		if (cube_ptr)
 		{
 			if (destroy)
@@ -474,17 +474,18 @@ void Voxel::VoxelPlayer::TmpEntityThing(RayReturn ray, Entity *entity)
 
 void Voxel::VoxelPlayer::BreakBlock(RayReturn ray)
 {
-	auto thing = static_cast<Voxel::VoxelCube*>(ray.hold->Pointy);
-	auto coord = thing->GetWorld()->GetBlockCoordFromPhys(thing->GetPosition());
-	thing->GetWorld()->ReplaceStaticCube(coord, nullptr);
+	floaty3 pos{ ray.hitPoint - ray.normal * 0.25f };
+	auto coord = m_World->GetBlockCoordFromPhys(pos);
+	m_World->ReplaceStaticCube(coord, nullptr);
 }
 
 void Voxel::VoxelPlayer::PlaceBlock(RayReturn ray)
 {
 	floaty3 pos{ ray.hitPoint + ray.normal * 0.25f };
 	auto thing = static_cast<Voxel::VoxelCube *>(ray.hold->Pointy);
-	auto coord = thing->GetWorld()->GetBlockCoordFromPhys(pos);
-	thing->GetWorld()->SetStaticCube(coord);
+	auto coord = m_World->GetBlockCoordFromPhys(pos);
+	m_World->SetStaticCube(coord);
+	
 }
 
 void Voxel::VoxelPlayer::SetCrouchState(bool state)

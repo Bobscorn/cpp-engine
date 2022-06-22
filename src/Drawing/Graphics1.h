@@ -160,7 +160,7 @@ namespace G1
 
 		IShape(std::string name = "") : Name(name) {};
 		IShape(IGSpace *container, std::string name = "") : Container(container), Name(name) {};
-		IShape(IShapeThings things) : Container(things.Container), Name(things.Name) {}
+		IShape(IShapeThings things) : Container(things.Container), Name(std::move(things.Name)) {}
 		virtual ~IShape() {};
 
 

@@ -57,12 +57,14 @@ namespace Drawing
 
 	size_t VertexData::NumVertices() const
 	{
-		size_t size = VertexSize();
+		size_t size = Description.GetVertexByteSize();
 
-		return Vertices.size() / size;
+		if (size)
+			return Vertices.size() / size;
+		return 0;
 	}
 
-	size_t VertexData::VertexSize() const
+	size_t VertexData::VertexFloatCount() const
 	{
 		size_t size = 0;
 		size += Description.PositionSize;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <stdexcept>
 
 #include "Helpers/VectorHelper.h"
 #include "Helpers/GLHelper.h"
@@ -133,6 +134,44 @@ namespace Drawing
 		floaty3 Binormal;
 		floaty3 Tangent;
 		floaty2 TexCoord;
+
+		inline bool operator==(const Full3DVertex& other) const
+		{
+			return Position	== other.Position
+				&& Normal	== other.Normal
+				&& Binormal == other.Binormal
+				&& Tangent	== other.Tangent
+				&& TexCoord == other.TexCoord;
+		}
+
+		inline bool operator!=(const Full3DVertex& other) const
+		{
+			return !(*this == other);
+		}
+	};
+
+	struct VoxelVertex
+	{
+		floaty3 Position;
+		floaty3 Normal;
+		floaty3 Binormal;
+		floaty3 Tangent;
+		floaty3 TexCoord;
+
+		inline bool operator==(const VoxelVertex& other) const
+		{
+			return Position	== other.Position
+				&& Normal	== other.Normal
+				&& Binormal == other.Binormal
+				&& Tangent	== other.Tangent
+				&& TexCoord == other.TexCoord;
+		}
+
+		inline bool operator!=(const VoxelVertex& other) const
+		{
+			return !(*this == other);
+		}
+
 	};
 
 	struct Regular2DVertex
@@ -142,6 +181,7 @@ namespace Drawing
 	};
 
 	constexpr GeometryDescription Full3DVertexDesc{ 3, 1, 3, 2, 3, 4, 3, 3, 2, 5 };
+	constexpr GeometryDescription VoxelVertexDesc{ 3, 1, 3, 2, 3, 4, 3, 3, 3, 5 };
 	constexpr GeometryDescription Regular2DVertexDesc{ 2, 1, 0, 0, 0, 0, 0, 0, 2, 2 };
 
 	struct VertexData
@@ -169,8 +209,47 @@ namespace Drawing
 		}
 		static VertexData FromRegular2DVertices(const std::vector<Regular2DVertex>& vertices);
 
+		template<class T>
+		static VertexData FromDescription(const std::vector<T>& vertices, GeometryDescription desc)
+		{
+			VertexData data;
+			data.Description = desc;
+			data.Vertices = std::vector<char>(vertices.size() * sizeof(T), (char)0, std::allocator<char>());
+
+			for (int i = 0; i < vertices.size(); ++i)
+			{
+				std::memcpy(&data.Vertices[i * sizeof(T)], &vertices[i], sizeof(T));
+			}
+
+			return data;
+		}
+
+		template<class Iter, class Type = Iter::value_type>
+		static VertexData FromGeneric(const GeometryDescription& geoDesc, Iter begin, Iter end)
+		{
+			if (geoDesc.GetVertexByteSize() != sizeof(Type))
+				throw std::runtime_error("Exception when producing VertexData: GeometryDescription does not give the same size as the Type's size!");
+
+			auto size = sizeof(Type);
+
+			VertexData desc;
+			desc.Description = geoDesc;
+			desc.Vertices = std::vector<char>();
+			desc.Vertices.reserve(std::distance(begin, end) * size);
+
+			for (Iter it = begin; it != end; ++it)
+			{
+				desc.Vertices.insert(desc.Vertices.end(), size, (char)0);
+				Type* vert = (reinterpret_cast<Type*>(&desc.Vertices.back() + 1) - 1);
+				*vert = *it;
+			}
+
+			return desc;
+		}
+
 		size_t NumVertices() const;
-		size_t VertexSize() const;
+		size_t VertexFloatCount() const;
+		inline constexpr size_t VertexByteSize() const { return Description.GetVertexByteSize(); }
 	};
 
 	struct RawMesh

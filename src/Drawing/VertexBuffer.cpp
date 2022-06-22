@@ -123,7 +123,7 @@ namespace Drawing
             it->Data.IndexStart -= desc.Data.IndicesCount;
         }
 
-        size_t size = _vertices.VertexSize();
+        size_t size = _vertices.VertexByteSize();
 
         _vertices.Vertices.erase(_vertices.Vertices.begin() + desc.Data.IndexOffset * size, _vertices.Vertices.begin() + ((size_t)desc.Data.IndexOffset + desc.VertexCount) * size);
         _indices.erase(_indices.begin() + desc.Data.IndexStart, _indices.begin() + desc.Data.IndexStart + desc.Data.IndicesCount);

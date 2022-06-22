@@ -1,5 +1,7 @@
 #include "Texture.h"
 
+#include "Drawing/VoxelStore.h"
+
 #include <filesystem>
 #include <string>
 #include <array>
@@ -42,8 +44,15 @@ namespace Drawing
 		LoadImageDirectory(textureDirectory);
 	}
 
-	std::shared_ptr<SDLImage> TextureStore::GetTexture(std::string name)
+	std::shared_ptr<GLImage> TextureStore::GetTexture(std::string name)
 	{
+		if (name.size() > 6 && name.rfind("atlas-", 0) == 0)
+		{
+			auto atlas = Voxel::VoxelStore::Instance().GetAtlas(name.substr(6));
+			if (atlas)
+				return atlas->Image;
+		}
+
 		auto it = _store.find(name);
 		if (it == _store.end())
 			return nullptr;
@@ -104,11 +113,19 @@ namespace Drawing
 		_textureName.clear();
 	}
 
-	std::shared_ptr<SDLImage> TextureReference::GetTexture()
+	std::shared_ptr<GLImage> TextureReference::GetTexture()
 	{
 		if (!_texture)
 			_texture = TextureStore::Instance().GetTexture(_textureName);
 
 		return _texture;
+	}
+
+	std::shared_ptr<GLImage> TextureReference::GetTexture() const
+	{
+		if (_texture)
+			return _texture;
+
+		return TextureStore::Instance().GetTexture(_textureName);
 	}
 }

@@ -960,7 +960,7 @@ void G1I::LightShape::AfterDraw()
 
 Light *G1I::LightShape::GetLight()
 {
-	return mResources->Ren3->GetLight((unsigned int)m_LightIndex);
+	return mResources->Ren3v2->GetLight(m_LightIndex);
 }
 
 size_t G1I::LightShape::GetFreeIndex()
@@ -1088,5 +1088,5 @@ G1I::GLRen2TestShape::GLRen2TestShape(G1::IShapeThings tings)
 
 	std::shared_ptr<Drawing::Material> epico_mat = Drawing::MaterialStore::Instance().GetMaterial("example-material");
 
-	m_DrawCallKey = tings.Resources->Ren3v2->SubmitDrawCall(Drawing::DrawCallv2{ std::move(epico_mesh), std::move(epico_mat), std::make_shared<Matrixy4x4>(Matrixy4x4::Translate(0.f, 5.f, 1.f)), "GLren2 Test" });
+	m_DrawCallKey = tings.Resources->Ren3v2->SubmitDrawCall(Drawing::DrawCallv2{ std::move(epico_mesh), std::move(epico_mat), std::make_shared<Matrixy4x4>(Matrixy4x4::Translate(0.f, 5.f, 1.f)), "GLren2 Test", true });
 }

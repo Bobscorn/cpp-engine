@@ -5,6 +5,8 @@
 
 #include <algorithm>
 
+#include "BindingManager.h"
+
 void GLRen::DrawImage(Drawing::SDLImage * im, PointRect target)
 {
 	DidWork = true;
@@ -19,7 +21,7 @@ void GLRen::DrawImage(Drawing::SDLImage * im, PointRect target)
 
 	// Setup
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, im->GetGLTexName());
+	glBindTexture(GL_TEXTURE_2D, im->Get());
 	glUniform1i(ImageSamplerLoc, 0);
 
 	std::array<const floaty2, 4u> vertices =
@@ -569,15 +571,17 @@ GLuint GLRen::InitDrawColor()
 
 GLuint GLRen::InitProjMatrix()
 {
+	ProjMat2DBinding = Drawing::BindingManager::GetNext();
+
 	GLint index1 = glGetUniformBlockIndex(Program2D.Get(), "SharedProjData");
 	GLint index2 = glGetUniformBlockIndex(this->ImageProgram.Get(), "SharedProjData");
-	glUniformBlockBinding(Program2D.Get(), index1, 5);
-	glUniformBlockBinding(ImageProgram.Get(), index2, 5);
+	glUniformBlockBinding(Program2D.Get(), index1, ProjMat2DBinding);
+	glUniformBlockBinding(ImageProgram.Get(), index2, ProjMat2DBinding);
 	CHECK_GL_ERR("Binding Projection Matrix Buffer");
 
 	GLuint out = 0;
 	glGenBuffers(1, &out);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 5, out);
+	glBindBufferBase(GL_UNIFORM_BUFFER, ProjMat2DBinding, out);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(Matrixy4x4), ProjectionMatrix.ma, GL_STREAM_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	CHECK_GL_ERR("Initializing Projection Matrix Buffer");
@@ -587,15 +591,17 @@ GLuint GLRen::InitProjMatrix()
 
 GLuint GLRen::InitTransMatrix()
 {
+	TransMat2DLoc = Drawing::BindingManager::GetNext();
+
 	GLint index1 = glGetUniformBlockIndex(Program2D.Get(), "SharedTransformData");
 	GLint index2 = glGetUniformBlockIndex(this->ImageProgram.Get(), "SharedTransformData");
-	glUniformBlockBinding(Program2D.Get(), index1, 4);
-	glUniformBlockBinding(ImageProgram.Get(), index2, 4);
+	glUniformBlockBinding(Program2D.Get(), index1, TransMat2DLoc);
+	glUniformBlockBinding(ImageProgram.Get(), index2, TransMat2DLoc);
 	CHECK_GL_ERR("Binding Object Transform Buffer");
 
 	GLuint out = 0;
 	glGenBuffers(1, &out);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 4, out);
+	glBindBufferBase(GL_UNIFORM_BUFFER, TransMat2DLoc, out);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(Matrixy4x4), TransformMatrix.ma, GL_STREAM_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	CHECK_GL_ERR("Initializing Object Transform Buffer");
@@ -615,13 +621,15 @@ GLProgram GLRen::Init3D()
 
 GLuint GLRen::InitPerObjectBuffer()
 {
+	PerObjectLoc = Drawing::BindingManager::GetNext();
+
 	GLint index = glGetUniformBlockIndex(Program3D.Get(), "PerObject");
-	glUniformBlockBinding(Program3D.Get(), index, m_PerObjectLoc);
+	glUniformBlockBinding(Program3D.Get(), index, PerObjectLoc);
 	CHECK_GL_ERR("Binding Buffer");
 
 	GLuint out = 0;
 	glGenBuffers(1, &out);
-	glBindBufferBase(GL_UNIFORM_BUFFER, m_PerObjectLoc, out);
+	glBindBufferBase(GL_UNIFORM_BUFFER, PerObjectLoc, out);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(PerObjectDesc), NULL, GL_STREAM_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	CHECK_GL_ERR("Initializing Per Object Buffer");
@@ -631,25 +639,18 @@ GLuint GLRen::InitPerObjectBuffer()
 
 GLuint GLRen::InitMaterialBuffer()
 {
-	if (MaterialBufLoc != -1)
-	{
-		GLint index = glGetUniformBlockIndex(Program3D.Get(), "MaterialBuffer");
-		glUniformBlockBinding(Program3D.Get(), index, MaterialBufLoc);
+	MaterialBufLoc = Drawing::BindingManager::GetNext();
 
-		GLuint out = 0;
-		glGenBuffers(1, &out);
-		glBindBufferBase(GL_UNIFORM_BUFFER, (GLuint)MaterialBufLoc, out);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(Material), nullptr, GL_STREAM_DRAW);
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	GLint index = glGetUniformBlockIndex(Program3D.Get(), "MaterialBuffer");
+	glUniformBlockBinding(Program3D.Get(), index, MaterialBufLoc);
 
-		return out;
-	}
-	else
-	{
-		DERROR("Failed to get Uniform Location of Material Buffer");
-	}
+	GLuint out = 0;
+	glGenBuffers(1, &out);
+	glBindBufferBase(GL_UNIFORM_BUFFER, (GLuint)MaterialBufLoc, out);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(Material), nullptr, GL_STREAM_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	return 0;
+	return out;
 }
 
 void GLRen::UpdateImageVertices(std::array<const floaty2, 4u> vertices)
@@ -1295,6 +1296,8 @@ GLuint LightManager::InitLightBuffer()
 {
 	memset(Lights.data(), 0, sizeof(Lights));
 
+	m_LightBufferLoc = Drawing::BindingManager::GetNext();
+
 	GLint index = glGetUniformBlockIndex(m_Program.Get(), "Lights");
 	glUniformBlockBinding(m_Program.Get(), index, m_LightBufferLoc);
 
@@ -1320,7 +1323,7 @@ void TextureManager::ApplyTextures(Textures *textures)
 	{
 		tex.DiffuseTexture->LoadGL();
 		glActiveTexture(GL_TEXTURE0 + DiffuseTexName);
-		glBindTexture(GL_TEXTURE_2D, tex.DiffuseTexture->GetGLTexName());
+		glBindTexture(GL_TEXTURE_2D, tex.DiffuseTexture->Get());
 		glUniform1i(DiffuseSamplerLoc, DiffuseTexName);
 		scaling.DiffuseScale.x = tex.DiffuseTexture->GetWidthScale();
 		scaling.DiffuseScale.y = tex.DiffuseTexture->GetHeightScale();
@@ -1335,7 +1338,7 @@ void TextureManager::ApplyTextures(Textures *textures)
 	{
 		tex.OpacityTexture->LoadGL();
 		glActiveTexture(GL_TEXTURE0 + OpacityTexName);
-		glBindTexture(GL_TEXTURE_2D, tex.OpacityTexture->GetGLTexName());
+		glBindTexture(GL_TEXTURE_2D, tex.OpacityTexture->Get());
 		glUniform1i(OpacitySamplerLoc, OpacityTexName);
 		scaling.OpacityScale.x = tex.OpacityTexture->GetWidthScale();
 		scaling.OpacityScale.y = tex.OpacityTexture->GetHeightScale();
@@ -1350,7 +1353,7 @@ void TextureManager::ApplyTextures(Textures *textures)
 	{
 		tex.AmbientTexture->LoadGL();
 		glActiveTexture(GL_TEXTURE0 + AmbientTexName);
-		glBindTexture(GL_TEXTURE_2D, tex.AmbientTexture->GetGLTexName());
+		glBindTexture(GL_TEXTURE_2D, tex.AmbientTexture->Get());
 		glUniform1i(AmbientSamplerLoc, AmbientTexName);
 		scaling.AmbientScale.x = tex.AmbientTexture->GetWidthScale();
 		scaling.AmbientScale.y = tex.AmbientTexture->GetHeightScale();
@@ -1365,7 +1368,7 @@ void TextureManager::ApplyTextures(Textures *textures)
 	{
 		tex.EmissiveTexture->LoadGL();
 		glActiveTexture(GL_TEXTURE0 + EmissiveTexName);
-		glBindTexture(GL_TEXTURE_2D, tex.EmissiveTexture->GetGLTexName());
+		glBindTexture(GL_TEXTURE_2D, tex.EmissiveTexture->Get());
 		glUniform1i(EmissiveSamplerLoc, EmissiveTexName);
 		scaling.EmissiveScale.x = tex.EmissiveTexture->GetWidthScale();
 		scaling.EmissiveScale.y = tex.EmissiveTexture->GetHeightScale();
@@ -1380,7 +1383,7 @@ void TextureManager::ApplyTextures(Textures *textures)
 	{
 		tex.SpecularTexture->LoadGL();
 		glActiveTexture(GL_TEXTURE0 + SpecularTexName);
-		glBindTexture(GL_TEXTURE_2D, tex.SpecularTexture->GetGLTexName());
+		glBindTexture(GL_TEXTURE_2D, tex.SpecularTexture->Get());
 		glUniform1i(SpecularSamplerLoc, SpecularTexName);
 		scaling.SpecularScale.x = tex.SpecularTexture->GetWidthScale();
 		scaling.SpecularScale.y = tex.SpecularTexture->GetHeightScale();
@@ -1395,7 +1398,7 @@ void TextureManager::ApplyTextures(Textures *textures)
 	{
 		tex.SpecularPowerTexture->LoadGL();
 		glActiveTexture(GL_TEXTURE0 + SpecularPowerTexName);
-		glBindTexture(GL_TEXTURE_2D, tex.SpecularPowerTexture->GetGLTexName());
+		glBindTexture(GL_TEXTURE_2D, tex.SpecularPowerTexture->Get());
 		glUniform1i(SpecularPowerSamplerLoc, SpecularPowerTexName);
 		scaling.SpecularPowerScale.x = tex.SpecularPowerTexture->GetWidthScale();
 		scaling.SpecularPowerScale.y = tex.SpecularPowerTexture->GetHeightScale();
@@ -1410,7 +1413,7 @@ void TextureManager::ApplyTextures(Textures *textures)
 	{
 		tex.NormalTexture->LoadGL();
 		glActiveTexture(GL_TEXTURE0 + NormalTexName);
-		glBindTexture(GL_TEXTURE_2D, tex.NormalTexture->GetGLTexName());
+		glBindTexture(GL_TEXTURE_2D, tex.NormalTexture->Get());
 		glUniform1i(NormalSamplerLoc, NormalTexName);
 		scaling.NormalScale.x = tex.NormalTexture->GetWidthScale();
 		scaling.NormalScale.y = tex.NormalTexture->GetHeightScale();
@@ -1425,7 +1428,7 @@ void TextureManager::ApplyTextures(Textures *textures)
 	{
 		tex.BumpTexture->LoadGL();
 		glActiveTexture(GL_TEXTURE0 + BumpTexName);
-		glBindTexture(GL_TEXTURE_2D, tex.BumpTexture->GetGLTexName());
+		glBindTexture(GL_TEXTURE_2D, tex.BumpTexture->Get());
 		glUniform1i(BumpSamplerLoc, BumpTexName);
 		scaling.BumpScale.x = tex.BumpTexture->GetWidthScale();
 		scaling.BumpScale.y = tex.BumpTexture->GetHeightScale();
@@ -1474,6 +1477,8 @@ void TextureManager::InitializeLocations()
 
 GLuint TextureManager::InitTexScaleBuffer()
 {
+	TexScaleLoc = Drawing::BindingManager::GetNext();
+
 	GLint index = glGetUniformBlockIndex(m_Program.Get(), "TextureScales");
 	glUniformBlockBinding(m_Program.Get(), index, TexScaleLoc);
 	CHECK_GL_ERR("Binding Tex Scale Buffer");

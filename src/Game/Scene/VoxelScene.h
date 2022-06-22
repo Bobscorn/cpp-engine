@@ -20,7 +20,7 @@ namespace Voxel
 		virtual void DisplaceWorld(floaty3 by) override;
 
 		// Inherited via IChunkLoader
-		virtual ChunkyBoi::RawChunkDataMap LoadChunk(int64_t x, int64_t y, int64_t z) override;
+		virtual RawChunkDataMap LoadChunk(int64_t x, int64_t y, int64_t z) override;
 
 		// Inherited via IChunkUnloader
 		virtual void UnloadChunk(std::unique_ptr<ChunkyBoi> &&chunk) override;

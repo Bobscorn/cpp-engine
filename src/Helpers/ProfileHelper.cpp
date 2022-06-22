@@ -10,6 +10,70 @@
 
 constexpr float OtherThreshold = 0.001f;
 
+bool TimedEvent::operator==(const TimedEvent& other) const
+{
+	return Name == other.Name
+		&& PercentOfFrame == other.PercentOfFrame
+		&& PercentOfParent == other.PercentOfParent
+		&& Time == other.Time
+		&& StartTime == other.StartTime
+		&& Parent == other.Parent
+		&& EndTime == other.EndTime
+		&& ChildEvents == other.ChildEvents;
+}
+
+void TimedEvent::AggregateChildren()
+{
+	if (!Aggregate)
+		return;
+
+	bool foundSome = true;
+	while (foundSome)
+	{
+		foundSome = false;
+		for (int i = ChildEvents.size(); i-- > 0; )
+		{
+			for (int j = ChildEvents.size(); j-- > 0; )
+			{
+				if (i == j)
+					continue;
+				if (ChildEvents[i].Name == ChildEvents[j].Name &&
+					ChildEvents[i].Aggregate && ChildEvents[j].Aggregate)
+				{
+					foundSome = true;
+					ChildEvents[i].AggregateOntoThis(ChildEvents[j], *this);
+					goto leaveloop;
+				}
+			}
+		}
+	leaveloop:;
+	}
+}
+
+void TimedEvent::AggregateOntoThis(TimedEvent& other, TimedEvent& parent)
+{
+	if (other.Name != Name)
+		return;
+
+	int siblingIndex = -1;
+	for (int i = 0; i < parent.ChildEvents.size(); ++i)
+		if (parent.ChildEvents[i] == other)
+			siblingIndex = i;
+
+	if (siblingIndex == -1)
+		return;
+
+	Time += other.Time;
+	Aggregations += other.Aggregations + 1;
+
+	int start = (int)ChildEvents.size();
+	ChildEvents.insert(ChildEvents.end(), other.ChildEvents.begin(), other.ChildEvents.end());
+
+	AggregateChildren();
+
+	parent.ChildEvents.erase(parent.ChildEvents.begin() + siblingIndex);	
+}
+
 #ifdef EC_PROFILE
 ProfileMcGee::ProfileMcGee(ProfileOptions options) : m_Options(options)
 {
@@ -20,6 +84,8 @@ ProfileMcGee::ProfileMcGee(ProfileOptions options) : m_Options(options)
 #ifdef _DEBUG
 void ProfileMcGee::Push(std::string name, const char *func, size_t line)
 #else
+
+
 void ProfileMcGee::Push(std::string name)
 #endif // _DEBUG
 {
@@ -33,6 +99,24 @@ void ProfileMcGee::Push(std::string name)
 	m_CurrentChild = &m_CurrentChild->ChildEvents.emplace_back(TimedEvent{ name, m_TimerBoi.TotalTime(), m_CurrentChild, func, line });
 #else
 	m_CurrentChild = &m_CurrentChild->ChildEvents.emplace_back(TimedEvent{ name, m_TimerBoi.TotalTime(), m_CurrentChild });
+#endif // _DEBUG
+}
+#ifdef _DEBUG
+void ProfileMcGee::PushAggregate(std::string name, const char* func, size_t line)
+#else
+void ProfileMcGee::PushAggregate(std::string name)
+#endif
+{
+	if (!m_Running)
+		return;
+
+	if (!m_CurrentChild)
+		return;
+	m_TimerBoi.Tick();
+#ifdef _DEBUG
+	m_CurrentChild = &m_CurrentChild->ChildEvents.emplace_back(TimedEvent{ name, m_TimerBoi.TotalTime(), m_CurrentChild, func, line, true });
+#else
+	m_CurrentChild = &m_CurrentChild->ChildEvents.emplace_back(TimedEvent{ name, m_TimerBoi.TotalTime(), m_CurrentChild, true });
 #endif // _DEBUG
 }
 
@@ -71,6 +155,27 @@ void ProfileMcGee::Pop()
 			auto &other = m_CurrentChild->ChildEvents.emplace_back(TimedEvent{ "Other", last_time, m_CurrentChild });
 			other.EndTime = m_CurrentChild->EndTime;
 			other.Time = other.EndTime - other.StartTime;
+		}
+	}
+
+	// Aggregate
+	if (m_CurrentChild->Parent && m_CurrentChild->Aggregate)
+	{
+		for (int i = 0; i < m_CurrentChild->Parent->ChildEvents.size(); ++i)
+		{
+			auto& sibling = m_CurrentChild->Parent->ChildEvents[i];
+
+			if (sibling != *m_CurrentChild &&
+				sibling.Name == m_CurrentChild->Name &&
+				sibling.Aggregate)
+			{
+				auto parent = m_CurrentChild->Parent;
+
+				m_CurrentChild->AggregateOntoThis(sibling, *parent);
+
+				m_CurrentChild = parent;
+				return;
+			}
 		}
 	}
 
@@ -246,7 +351,10 @@ void BigBoiStats::WriteToFile(const BigBoiStats& stats, std::string filename)
 		int myMax = (maxCharacters - realName.length() - namePadding);
 		int numIndicators = (int)roundf(e.PercentOfFrame * (float)myMax);
 		int numSpaces = myMax - numIndicators;
-		file << std::string(namePadding, indentChar) << realName << "-" << std::string(numIndicators, indicatorChar) << std::string(numSpaces, spaceChar) << "| " << e.TimeString() << std::endl;
+		file << std::string(namePadding, indentChar) << realName << "-" << std::string(numIndicators, indicatorChar) << std::string(numSpaces, spaceChar) << "| " << e.TimeString();
+		if (e.Aggregate)
+			file << " [Aggregate of " << e.Aggregations + 1 << "]";
+		file << std::endl;
 		for (int i = 0; i < e.ChildEvents.size(); ++i)
 			print_event(e.ChildEvents[i], indent + 1);
 	};

@@ -11,6 +11,12 @@
 
 namespace Drawing
 {
+	struct TextureMapping
+	{
+		std::string MaterialName;
+		std::string GLName;
+	};
+
 	// Describes what a program can do
 	// Texture names that are empty ("") are considered not used
 	struct ProgramDescription
@@ -36,14 +42,7 @@ namespace Drawing
 		MaterialDescription MaterialDesc;
 
 		// Textures
-		std::string DiffuseTextureName;
-		std::string OpacityTextureName;
-		std::string AmbientTextureName;
-		std::string EmissiveTextureName;
-		std::string SpecularTextureName;
-		std::string SpecularPowerTextureName;
-		std::string NormalTextureName;
-		std::string BumpTextureName;
+		std::vector<TextureMapping> TextureMappings;
 
 		// True means this Program's Fragment shader has a Light buffer named by the LightBufferName string
 		// The format of this Light buffer must be this:
@@ -58,6 +57,13 @@ namespace Drawing
 		bool IsInstanced;
 	};
 
+	struct BoundTextureMapping
+	{
+		GLint Binding;
+		std::string MatName;
+		std::string GLName;
+	};
+
 	class Program
 	{
 		GLProgram _program;
@@ -66,17 +72,11 @@ namespace Drawing
 
 		MaterialDescription _matDesc;
 		GLBuffer _matBuffer;
+		GLuint _matBufBinding;
 
 		GLVertexArray _inputVAO;
 
-		GLint _diffuseTextureLoc;
-		GLint _opacityTextureLoc;
-		GLint _ambientTextureLoc;
-		GLint _emissiveTextureLoc;
-		GLint _specularTextureLoc;
-		GLint _specularPowerTextureLoc;
-		GLint _normalTextureLoc;
-		GLint _bumpTextureLoc;
+		std::vector<BoundTextureMapping> _textureMappings;
 
 		std::vector<GLShaderPair> GenerateShaders(const ProgramDescription& desc);
 
@@ -95,6 +95,8 @@ namespace Drawing
 		inline void BindVAO() { CHECK_GL_ERR("Before Binding VAO"); glBindVertexArray(_inputVAO.Get()); CHECK_GL_ERR("After Binding VAO"); }
 
 		void SetMaterial(const Material& material);
+
+		inline const std::vector<BoundTextureMapping>& GetTexMappings() const { return _textureMappings; }
 	};
 
 	/// <summary>
