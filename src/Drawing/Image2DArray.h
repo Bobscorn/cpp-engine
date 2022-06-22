@@ -57,6 +57,18 @@ namespace Drawing
 		void SetArea(SDL_Surface* src, SDL_Rect dstRect, int targetLayer);
 
 		/**
+		* Fills the specified rects with the target color.
+		* The target color can be generated with SDL_MapRGBA.
+		* The color must match the internal format of the surfaces.
+		*/
+		void SetRects(std::vector<SDL_Rect> rects, int targetLayer, Uint32 color);
+
+		/**
+		* Same as SetArea(SDL_Surface*, SDL_Rect, int) but also uses a srcRect to specify which part of source image to copy.
+		*/
+		void SetArea(SDL_Surface* src, SDL_Rect srcRect, SDL_Rect dstRect, int targetLayer);
+
+		/**
 		* Adds a layer to the CPU image. Will re-create the OpenGL image if GL is loaded
 		*/
 		void AddLayer();
@@ -76,6 +88,8 @@ namespace Drawing
 		*/
 		void LoadGL() override;
 		void UnLoadGL();
+
+		void GenerateMipmaps();
 
 		bool HasLoadedGL();
 

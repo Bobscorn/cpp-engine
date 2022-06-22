@@ -105,6 +105,13 @@ namespace Drawing
     {
         if (!src)
             return;
+        SetArea(src, SDL_Rect{ 0, 0, src->w, src->h }, dstRect, targetLayer);
+    }
+
+    void Image2DArray::SetArea(SDL_Surface* src, SDL_Rect srcRect, SDL_Rect dstRect, int targetLayer)
+    {
+        if (!src)
+            return;
         if (targetLayer < 0 || targetLayer >= _cpuSurfaces.size())
             return;
 
@@ -116,7 +123,7 @@ namespace Drawing
             _cpuSurfaces[targetLayer] = CreateSurface();
         }
 
-        SDL_BlitSurface(src, nullptr, _cpuSurfaces[targetLayer], &dstRect);
+        SDL_BlitSurface(src, &srcRect, _cpuSurfaces[targetLayer], &dstRect);
 
         if (HasLoadedGL())
         {
@@ -150,7 +157,14 @@ namespace Drawing
 
         glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &_tex);
 
-        glTextureStorage3D(_tex, 1, GL_RGBA8, _width, _height, _cpuSurfaces.size());
+        glTextureStorage3D(_tex, 2, GL_RGBA8, _width, _height, _cpuSurfaces.size());
+
+        glTextureParameteri(_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glTextureParameteri(_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+        glTextureParameteri(_tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        CHECK_GL_ERR("Setting Texture2DArray parameters");
 
         for (int i = 0; i < _cpuSurfaces.size(); ++i)
             glTextureSubImage3D(_tex, 0, 0, 0, 0, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, _cpuSurfaces[i] ? _cpuSurfaces[i]->pixels : nullptr);
@@ -164,6 +178,13 @@ namespace Drawing
         glDeleteTextures(1, &_tex);
 
         _tex = 0;
+    }
+
+    void Image2DArray::GenerateMipmaps()
+    {
+        LoadGL();
+        if (HasLoadedGL())
+            glGenerateTextureMipmap(_tex);
     }
 
     bool Image2DArray::HasLoadedGL()

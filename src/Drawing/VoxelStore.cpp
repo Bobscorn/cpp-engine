@@ -266,12 +266,12 @@ namespace Voxel
 		int faceSize = DefaultFaceSize;
 		float faceSizef = (float)DefaultFaceSize;
 
-		float atlasLayerSize = (float)faceSize * DefaultAtlasLayerFaceCount;
+		float atlasLayerSize = (float)faceSize * DefaultAtlasLayerFaceCount + (DefaultAtlasLayerFaceCount - 1) * 2;
 		int faceCount = DefaultAtlasLayerFaceCount;
 
 		StitchedAtlasSet stitched;
 		stitched.AtlasName = set.AtlasGroup;
-		stitched.Image = std::make_shared<Drawing::Image2DArray>( (size_t)faceCount * faceSize, (size_t)faceCount * faceSize, 1 );
+		stitched.Image = std::make_shared<Drawing::Image2DArray>( (size_t)faceCount * faceSize + (faceCount - 1) * 2, (size_t)faceCount * faceSize + (faceCount - 1) * 2, 1 );
 		stitched.Blocks = std::unordered_map<std::string, VoxelBlock>();
 
 		auto& img = stitched.Image;
@@ -285,12 +285,23 @@ namespace Voxel
 			if (p.is_relative())
 				p = faceTexDir / p;
 			SimpleSurface faceSurf = Drawing::SDLImage::LoadSurface(p.string());
+			if (!faceSurf)
+				return;
 			SDL_Rect dst;
-			dst.x = data.curX * faceSize;
-			dst.y = data.curY * faceSize;
+			dst.x = data.curX * faceSize + data.curX * 2;
+			dst.y = data.curY * faceSize + data.curY * 2;
 			dst.w = faceSize;
 			dst.h = faceSize;
 			img->SetArea(faceSurf.Get(), dst, data.curLayer);
+
+			if (data.curX > 0)
+				img->SetArea(faceSurf.Get(), SDL_Rect{ 0, 0, 1, faceSize }, SDL_Rect{ dst.x - 1, dst.y, 1, faceSize }, data.curLayer);
+			if (data.curY > 0)
+				img->SetArea(faceSurf.Get(), SDL_Rect{ 0, 0, faceSize, 1 }, SDL_Rect{ dst.x, dst.y - 1, faceSize, 1 }, data.curLayer);
+			if (data.curX < faceCount - 1)
+				img->SetArea(faceSurf.Get(), SDL_Rect{ faceSize - 1, 0, 1, faceSize }, SDL_Rect{ dst.x + faceSize, dst.y, 1, faceSize }, data.curLayer);
+			if (data.curY < faceCount - 1)
+				img->SetArea(faceSurf.Get(), SDL_Rect{ 0, faceSize - 1, faceSize, 1 }, SDL_Rect{ dst.x, dst.y + faceSize, faceSize, 1 }, data.curLayer);
 
 			face.LowerTexCoord = { (float)dst.x / atlasLayerSize, (float)dst.y / atlasLayerSize, (float)data.curLayer };
 			face.UpperTexCoord = face.LowerTexCoord + floaty3{ faceSizef / atlasLayerSize, faceSizef / atlasLayerSize, 0.f };
@@ -319,6 +330,7 @@ namespace Voxel
 		}
 
 		stitched.Image->LoadGL();
+		stitched.Image->GenerateMipmaps();
 
 		return stitched;
 	}
@@ -424,6 +436,9 @@ namespace Voxel
 		if (ID == 0)
 			return nullptr;
 
-		return std::make_unique<VoxelCube>(nullptr, &g_Engine->Resources, nullptr, floaty3{ 0.f, 0.f, 0.f }, 0, 0, 0);
+		VoxelBlock desc;
+		if (TryGetDescription(ID, desc))
+			return std::make_unique<VoxelCube>(nullptr, &g_Engine->Resources, nullptr, floaty3{ 0.f, 0.f, 0.f }, 0, 0, 0, desc.Name);
+		return nullptr;
 	}
 }
