@@ -3,7 +3,7 @@
 in vec2 TexFS;
 in vec4 ColorFS;
 
-layout(binding = 2) uniform sampler2D ParticleTexture;
+uniform sampler2D ParticleTexture;
 
 out vec4 FinalColor;
 

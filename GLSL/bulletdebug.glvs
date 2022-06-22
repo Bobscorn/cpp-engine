@@ -1,6 +1,6 @@
 #version 420 core
 
-layout(binding = 0, std140) uniform MatrixBuffer
+layout(std140) uniform MatrixBuffer
 {
 	mat4 ViewProj;
 };

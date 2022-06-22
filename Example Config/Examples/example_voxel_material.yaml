@@ -5,11 +5,10 @@
 #
 # The actual meat of a material
 
-name: example-material
-program: example-program
+name: example-voxel-material
+program: example-voxel-program
 textures:
-  diffuse: my-diffuse-texture-name
-  specular: my-specular-texture-name
+  diffuse: atlas-global
 
 # The children of the properties tag are iterated over
 # The children are expected to be of the form:
@@ -26,16 +25,20 @@ textures:
 # If the type is omitted, it is assumed as floating point
 # And then the child is scanned for x/y/z/w or r/g/b/a, or u/v components containing their integral/floating point values
 properties:
-  diffuse:
-    size: 4
-    r: 1.0
-    g: 0.3
-    b: 0.1
-    a: 1.0
-  specular:
-    size: 4
-    r: 0.8
-    g: 0.8
-    b: 0.8
-    a: 3.0
+    diffuse:
+        size: 4
+        r: 1.0
+        g: 0.3
+        b: 0.1
+        a: 1.0
+    specular:
+        size: 4
+        r: 0.8
+        g: 0.8
+        b: 0.8
+        a: 3.0
+    tex-bitmap:
+        size: 1
+        type: int
+        x: 4
 # and so on

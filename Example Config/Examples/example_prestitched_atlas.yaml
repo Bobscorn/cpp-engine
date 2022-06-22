@@ -1,0 +1,143 @@
+# Example YAML structure of a pre-stitched atlas file
+# |----------------------------------|
+# |       Not Currently Used!        |
+# |----------------------------------|
+# Prestitched atlas files are not currently used, they'll probably be added later on.
+# 
+# Consists of a name, and a sequence of blocks, and optionally a 'default-width' value
+# The 'name' determines the name of the Atlas once loaded, 
+# The 'texture' determines the texture file loaded,
+# The 'default-width' determines the width/height used if not specified for each block item
+# The 'blocks' sequence contains a list of block items
+# Each block item in the sequence contains:
+# - block-name: 
+# - pos-y:
+#   - x: [X UV offset]
+#   - y: [Y UV offset]
+#   - width: [UV width] (optional if default-width is specified)
+#   - height: [UV height] (optional if default-width is specified)
+#
+#
+# This example YAML file demonstrates how to load a pre-stitched atlas with 6 blocks on it
+# Where each block is laid out in it's own column, each column taking up exactly 1/6th of the image's width
+# Each column, from *bottom* to *top*, has the faces of pos-y, pos-x, neg-y, neg-x, pos-z, neg-z in that order, each face taking up 1/6th of the column (and image's) height
+#
+# The atlas will be named 'global'
+# It will load the 'texture' global_atlas.jpg
+# The 6 blocks will be 'grass', 'wood', 'dirt', 'stone', 'ooga-booga' and 'booga-ooga'
+# The widths and heights are not specified, instead the default-width is specified to be 0.16666667 (1/6)
+
+name: global
+texture: global_atlas.jpg
+default-width: 0.166666667 # Specify the default here *OR* specify under each face
+blocks:
+    - 
+        block-name: grass
+        pos-y:
+            x: 0
+            y: 0
+        pos-x: 
+            x: 0
+            y: 0.1666667
+        neg-y:
+            x: 0
+            y: 0.3333333
+        neg-x:
+            x: 0
+            y: 0.5
+        pos-z:
+            x: 0
+            y: 0.6666667
+        neg-z:
+            x: 0
+            y: 0.8333333
+    - 
+        block-name: wood
+        pos-y:
+            x: 0.1666667
+            y: 0
+        pos-x: 
+            x: 0.1666667
+            y: 0.1666667
+        neg-y:
+            x: 0.1666667
+            y: 0.3333333
+        neg-x:
+            x: 0.1666667
+            y: 0.5
+        pos-z:
+            x: 0.1666667
+            y: 0.6666667
+        neg-z:
+            x: 0.1666667
+            y: 0.8333333
+    - 
+        block-name: dirt
+        pos-y:
+            x: 0.3333333
+            y: 0
+        pos-x: 
+            x: 0.3333333
+            y: 0.1666667
+        neg-y:
+            x: 0.3333333
+            y: 0.3333333
+        neg-x:
+            x: 0.3333333
+            y: 0.5
+        pos-z:
+            x: 0.3333333
+            y: 0.6666667
+        neg-z:
+            x: 0.3333333
+            y: 0.8333333
+    - 
+        block-name: stone
+        pos-y:
+            x: 0.5
+            y: 0
+        pos-x: 
+            x: 0.5
+            y: 0.1666667
+        neg-y:
+            x: 0.5
+            y: 0.3333333
+        neg-x:
+            x: 0.5
+            y: 0.5
+        pos-z:
+            x: 0.5
+            y: 0.6666667
+        neg-z:
+            x: 0.5
+            y: 0.8333333
+    - 
+        block-name: ooga-booga
+        pos-y:
+            x: 0.6666667
+            y: 0
+        pos-x: 
+            y: 0.1666667
+        neg-y:
+            y: 0.3333333
+        neg-x:
+            y: 0.5
+        pos-z:
+            y: 0.6666667
+        neg-z:
+            y: 0.8333333
+    - 
+        block-name: booga-ooga
+        pos-y:
+            x: 0.1666667
+            y: 0
+        pos-x: 
+            y: 0.1666667
+        neg-y:
+            y: 0.3333333
+        neg-x:
+            y: 0.5
+        pos-z:
+            y: 0.6666667
+        neg-z:
+            y: 0.8333333

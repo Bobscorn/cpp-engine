@@ -1,0 +1,18 @@
+# Basic description of a simple cube block
+# Perhaps in the future an entire cube texture can be in one image file
+# Otherwise in the future all game data could be zipped up into a .zip file or a .dat file and loaded all at once
+# Contains:
+#  name
+#  pos-y-face: [texture name of positive y face]
+#  neg-y-face: [texture name]
+#  pos-x-face: [texture name]
+#  neg-x-face: [texture name]
+#  pos-z-face: [texture name]
+#  neg-z-face: [texture name]
+name: basic-bitch-block
+pos-y-face: example-py-face.jpeg
+neg-y-face: example-ny-face.jpeg
+pos-x-face: example-px-face.jpeg
+neg-x-face: example-nx-face.jpeg
+pos-z-face: example-pz-face.jpeg
+neg-z-face: example-nz-face.jpeg

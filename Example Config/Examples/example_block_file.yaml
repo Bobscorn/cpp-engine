@@ -1,0 +1,76 @@
+# This file serves as an example and base documentation for creating a 'Voxel Block File' in YAML
+#
+# A 'Voxel Block File' is designed to used to describe 1 or more 'Voxel Blocks'
+# 
+# Currently it will just contain a 'blocks' tag, and within this a sequence (see YAML sequences) of 'block' items
+# Each 'block' item will look like:
+# -
+#   block-name: grass
+#   atlas: global
+# # The 'textures' tag will either be:
+#   textures: elsewhere
+# # or
+#   textures:
+#     pos-y: my_block_py_tex.jpg
+#     pos-x: my_block_px_tex.jpg
+#     pos-z: my_block_pz_tex.jpg
+#     neg-y: my_block_ny_tex.jpg
+#     neg-x: my_block_nx_tex.jpg
+#     neg-z: my_block_nz_tex.jpg
+# # and likely other properties later
+#
+# The 'block-name' tag determines which block you are defining,
+# The 'atlas' tag determines which atlas the block will belong to
+# The 'textures' tag determines how the textures are atlased, 
+# If the 'textures' tag defines each face's textures (which currently it has to), they will be stitched together onto the given atlas together with other blocks with the same atlas tag
+#
+#
+# This example file demonstrates how to define 4 blocks.
+# 'grass', 'wood', 'velvet', and 'straw'
+# 'grass' and 'wood' have textures define elsewhere
+# 'velvet' and 'straw' have textures defined in this file
+#
+# In general it is better to use prestritched atlases, but for example 'velvet' and 'straw' do not.
+# Otherwise any number of these 'block files' can be defined and loaded in, they will all be loaded the same.
+
+blocks:
+-
+    block-name: grass
+    atlas: global
+    textures:
+        pos-x: grass_px.jpg
+        neg-x: grass_nx.jpg
+        pos-y: grass_py.jpg
+        neg-y: grass_ny.jpg
+        pos-z: grass_pz.jpg
+        neg-z: grass_nz.jpg
+- 
+    block-name: wood
+    atlas: global
+    textures:
+        pos-x: wood_px.jpg
+        neg-x: wood_nx.jpg
+        pos-y: wood_py.jpg
+        neg-y: wood_ny.jpg
+        pos-z: wood_pz.jpg
+        neg-z: wood_nz.jpg
+- 
+    block-name: velvet
+    atlas: global
+    textures:
+        pos-x: velvet_px.jpg
+        pos-y: velvet_py.jpg
+        pos-z: velvet_pz.jpg
+        neg-x: velvet_nx.jpg
+        neg-y: velvet_ny.jpg
+        neg-z: velvet_nz.jpg
+- 
+    block-name: straw
+    atlas: global
+    textures:
+        pos-x: straw_px.jpg
+        pos-y: straw_py.jpg
+        pos-z: straw_pz.jpg
+        neg-x: straw_nx.jpg
+        neg-y: straw_ny.jpg
+        neg-z: straw_nz.jpg

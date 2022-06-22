@@ -1,6 +1,6 @@
 #version 410 core
 
-layout(binding = 0, std140) uniform PerObject
+layout(std140) uniform PerObject
 {
 	mat4 ViewProj;
 };

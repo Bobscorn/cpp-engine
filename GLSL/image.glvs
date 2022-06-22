@@ -2,11 +2,11 @@
 // Image drawing Vertex Shader
 
 // Matrices
-layout(binding = 3, std140) uniform SharedProjData
+layout(std140) uniform SharedProjData
 {
 	mat4 ProjectionMatrix;
 };
-layout(binding = 4, std140) uniform SharedTransformData
+layout(std140) uniform SharedTransformData
 {
 	mat4 TransformMatrix;
 };

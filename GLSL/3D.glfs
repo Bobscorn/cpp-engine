@@ -49,12 +49,12 @@ struct Light
 
 
 
-layout(binding = 1, std140) uniform MaterialBuffer
+layout(std140) uniform MaterialBuffer
 {
 	Material Mat;
 };
 
-layout(binding = 2, std140) uniform Lights
+layout(std140) uniform Lights
 {
 	Light lights[MAX_LIGHT_COUNT];
 };

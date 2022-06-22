@@ -14,7 +14,7 @@ perobjectbuf: PerObject
 
 lightbuf: Lights
 
-materialbuf: Material
+materialbuf: MaterialBuffer
 
 # The ORDERED properties of the material
 # And texture names/gl names
@@ -76,28 +76,28 @@ material:
             x: 0
             y: 0
 
-    textures:
-    -
-        mat_name: diffuse
-        gl_name: DiffuseTexture
-    -
-        mat_name: specular
-        gl_name: SpecularTexture
-    -
-        mat_name: opacity
-        gl_name: OpacityTexture
-    -
-        mat_name: ambient
-        gl_name: AmbientTexture
-    -
-        mat_name: emissive
-        gl_name: EmissiveTexture
-    -
-        mat_name: normal
-        gl_name: NormalTexture
-    -
-        mat_name: bump
-        gl_name: BumpTexture
+textures:
+-
+    mat-name: diffuse
+    gl-name: DiffuseTexture
+-
+    mat-name: specular
+    gl-name: SpecularTexture
+-
+    mat-name: opacity
+    gl-name: OpacityTexture
+-
+    mat-name: ambient
+    gl-name: AmbientTexture
+-
+    mat-name: emissive
+    gl-name: EmissiveTexture
+-
+    mat-name: normal
+    gl-name: NormalTexture
+-
+    mat-name: bump
+    gl-name: BumpTexture
 
 
 # How the geometry has been laid out in GLSL
