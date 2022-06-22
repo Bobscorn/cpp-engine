@@ -36,7 +36,7 @@ constexpr std::array<FullVertex, 24> CubeVertices = {
 };
 constexpr std::array<unsigned int, 36> CubeIndices = { 2, 1, 0, 5, 4, 3, 8, 7, 6, 11, 10, 9, 14, 13, 12, 17, 16, 15, 1, 18, 0, 4, 19, 3, 7, 20, 6, 10, 21, 9, 13, 22, 12, 16, 23, 15, };
 
-Voxel::VoxelCube::VoxelCube(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 position, size_t x, size_t y, size_t z) : IShape(container, "Cube"), ICube(world, "grass"), FullResourceHolder(resources), m_Trans(Matrixy4x4::Translate(position)), m_X(x), m_Y(y), m_Z(z)
+Voxel::VoxelCube::VoxelCube(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 position, size_t x, size_t y, size_t z, std::string name) : IShape(container, "Cube"), ICube(world, name), FullResourceHolder(resources), m_Trans(Matrixy4x4::Translate(position)), m_X(x), m_Y(y), m_Z(z)
 {
 	PROFILE_PUSH("Construct Body");
 	//btTransform tmp;
@@ -88,7 +88,7 @@ void Voxel::VoxelCube::UpdatePosition(floaty3 new_position, size_t new_x, size_t
 
 std::unique_ptr<Voxel::ICube> Voxel::VoxelCube::Clone() const
 {
-	return std::make_unique<VoxelCube>(GetContainer(), mResources, m_World, GetPosition(), m_X, m_Y, m_Z);
+	return std::make_unique<VoxelCube>(GetContainer(), mResources, m_World, GetPosition(), m_X, m_Y, m_Z, m_Name);
 }
 
 void Voxel::VoxelCube::ResetCuller()

@@ -189,7 +189,7 @@ namespace Voxel
 
 	void Voxel::ChunkyBoi::create(size_t x, size_t y, size_t z)
 	{
-		set(x, y, z, std::make_unique<Voxel::VoxelCube>(this->Container, this->mResources, this->m_World, PositionFromCoord(m_Origin, x, y, z), x, y, z));
+		set(x, y, z, std::make_unique<Voxel::VoxelCube>(this->Container, this->mResources, this->m_World, PositionFromCoord(m_Origin, x, y, z), x, y, z, "grass"));
 	}
 
 	Voxel::ICube* Voxel::ChunkyBoi::get(size_t x, size_t y, size_t z)

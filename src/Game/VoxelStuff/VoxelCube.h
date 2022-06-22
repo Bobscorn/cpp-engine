@@ -53,7 +53,7 @@ namespace Voxel
 
 	struct VoxelCube : ICube, virtual G1::IShape, BulletHelp::INothingInterface
 	{
-		VoxelCube(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 position, size_t x, size_t y, size_t z);
+		VoxelCube(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 position, size_t x, size_t y, size_t z, std::string name);
 		~VoxelCube();
 
 		virtual void BeforeDraw() override;
