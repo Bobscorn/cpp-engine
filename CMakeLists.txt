@@ -1,4 +1,4 @@
-# CMakeList.txt : CMake project for Encapsulated, include source and define
+# CMakeList.txt : CMake project for cpp_engine_lib, include source and define
 # project specific logic here.
 #
 cmake_minimum_required (VERSION 3.8)
@@ -6,7 +6,7 @@ cmake_minimum_required (VERSION 3.8)
 cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL") # Make all libraries and crap link to dynamic MSVC runtime (Bullet does this itself, which basically forces this project to as well)
 
-project("Encapsulated")
+project("cpp_engine" "CXX")
 
 option(EC_USE_BULLET "Use the Bullet Physics library (Off means no physics)" ON)
 option(EC_BUILD_PARALLEL "Build using multiple threads" ON)
@@ -26,40 +26,59 @@ if (EC_PROFILE)
 	add_compile_definitions(EC_PROFILE)
 endif()
 
-add_executable(Encapsulated ${EC_SRCS})
+remove(EC_SRCS "src/Main.cpp")
+add_library(cpp_engine_lib STATIC ${EC_SRCS})
+
+add_executable(cpp_engine "src/Main.cpp")
+target_link_libraries(cpp_engine PRIVATE cpp_engine_lib)
+
 set(BUILD_SHARED_LIBS ON)
 
-install(TARGETS Encapsulated
+# install library
+install(TARGETS cpp_engine_lib
+		RUNTIME DESTINATION bin
+		LIBRARY DESTINATION bin
+		ARCHIVE DESTINATION lib)
+		
+install(TARGETS cpp_engine
 		DESTINATION bin)
 
 install(DIRECTORY GLSL/ DESTINATION bin/Shaders/)
 
-set_target_properties(Encapsulated
+set_target_properties(cpp_engine_lib
 	PROPERTIES
 		CXX_STANDARD 17
 		CXX_STANDARD_REQUIRED YES
 		CXX_EXTENSIONS NO # Turning Extensions off for increased compatibility - see https://crascit.com/2015/03/28/enabling-cxx11-in-cmake/
 		$<EC_PROFILE:EXE_LINKER_FLAGS ${CMAKE_LINKER_FLAGS} /Profile>
 		) 
+		
+set_target_properties(cpp_engine
+	PROPERTIES
+		CXX_STANDARD 17
+		CXX_STANDARD_REQUIRED YES
+		CXX_EXTENSIONS NO # Turning Extensions off for increased compatibility - see https://crascit.com/2015/03/28/enabling-cxx11-in-cmake/
+		$<EC_PROFILE:EXE_LINKER_FLAGS ${CMAKE_LINKER_FLAGS} /Profile>
+		)
 
 
 if (MSVC)
 	if (EC_MAXWARN)
-		target_compile_options(Encapsulated PRIVATE /W4)
+		target_compile_options(cpp_engine_lib PUBLIC /W4)
 	endif()
 	if(EC_BUILD_PARALLEL)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP5")
 	endif()
 endif()
 
-target_include_directories(Encapsulated PUBLIC ${EC_SRC_DIR})
+target_include_directories(cpp_engine_lib PUBLIC ${EC_SRC_DIR})
 
 
 # Find Zlib
 
 find_package(ZLIB REQUIRED)
  
-target_link_libraries(Encapsulated PRIVATE ${ZLIB_LIBRARIES})
+target_link_libraries(cpp_engine_lib PUBLIC ${ZLIB_LIBRARIES})
 if (BUILD_SHARED_LIBS AND WIN32)
 	if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 		install(FILES "${ZLIB_INCLUDE_DIRS}/../bin/zlibd.dll" DESTINATION bin)
@@ -87,12 +106,12 @@ if (NOT SDL2_FOUND)
 	endif()
 	add_subdirectory(external/sdl)
 	set(SDL2_LIBRARIES SDL2::SDL2main SDL2::SDL2)
-	target_include_directories(Encapsulated PRIVATE $<TARGET_PROPERTY:SDL2::SDL2main,INTERFACE_INCLUDE_DIRECTORIES> $<TARGET_PROPERTY:SDL2::SDL2,INTERFACE_INCLUDE_DIRECTORIES>)
+	target_include_directories(cpp_engine_lib PUBLIC $<TARGET_PROPERTY:SDL2::SDL2main,INTERFACE_INCLUDE_DIRECTORIES> $<TARGET_PROPERTY:SDL2::SDL2,INTERFACE_INCLUDE_DIRECTORIES>)
 else()
-	target_include_directories(Encapsulated PRIVATE SDL2_INCLUDE_DIRECTORIES)
+	target_include_directories(cpp_engine_lib PUBLIC SDL2_INCLUDE_DIRECTORIES)
 endif()
 
-target_link_libraries(Encapsulated PRIVATE ${SDL2_LIBRARIES})
+target_link_libraries(cpp_engine_lib PUBLIC ${SDL2_LIBRARIES})
 
 # Find Assimp
 find_package(ASSIMP QUIET)
@@ -108,12 +127,12 @@ if (NOT ASSIMP_FOUND)
 	set(ASSIMP_INSTALL_PDB OFF CACHE BOOL "Prevent Assimp from installing broken pdb" FORCE)
 	add_subdirectory(external/assimp)
 	set(ASSIMP_LIBRARIES "assimp")
-	target_include_directories(Encapsulated PRIVATE $<TARGET_PROPERTY:assimp,INTERFACE_INCLUDE_DIRECTORIES>)
+	target_include_directories(cpp_engine_lib PUBLIC $<TARGET_PROPERTY:assimp,INTERFACE_INCLUDE_DIRECTORIES>)
 else()
-	target_include_directories(Encapsulated PRIVATE ASSIMP_INCLUDE_DIRECTORIES)
+	target_include_directories(cpp_engine_lib PUBLIC ASSIMP_INCLUDE_DIRECTORIES)
 endif()
 
-target_link_libraries(Encapsulated PRIVATE ${ASSIMP_LIBRARIES})
+target_link_libraries(cpp_engine_lib PRIVATE ${ASSIMP_LIBRARIES})
 
 
 # Find SDL Image
@@ -129,12 +148,12 @@ if (NOT SDL_IMAGE_FOUND)
 	set(PNG_BUILD_ZLIB ON CACHE BOOL "Prevent libpng from building zlib" FORCE)
 	add_subdirectory(external/sdl_image)
 	set(SDL_IMAGE_LIBRARIES SDL2::image)
-	target_include_directories(Encapsulated PRIVATE $<TARGET_PROPERTY:SDL2::image,INTERFACE_INCLUDE_DIRECTORIES>)
+	target_include_directories(cpp_engine_lib PUBLIC $<TARGET_PROPERTY:SDL2::image,INTERFACE_INCLUDE_DIRECTORIES>)
 else()
-	target_include_directories(Encapsulated PRIVATE SDL_IMAGE_INCLUDE_DIRECTORIES)
+	target_include_directories(cpp_engine_lib PUBLIC SDL_IMAGE_INCLUDE_DIRECTORIES)
 endif()
 
-target_link_libraries(Encapsulated PRIVATE ${SDL_IMAGE_LIBRARIES})
+target_link_libraries(cpp_engine_lib PUBLIC ${SDL_IMAGE_LIBRARIES})
 install(TARGETS SDL2_image
 		RUNTIME DESTINATION bin)
 
@@ -164,8 +183,8 @@ if (NOT SDL_TFF_FOUND)
 	endif()
 endif()
 
-target_link_libraries(Encapsulated PRIVATE SDL2_ttf)
-target_include_directories(Encapsulated PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/external/SDL_ttf")
+target_link_libraries(cpp_engine_lib PUBLIC SDL2_ttf)
+target_include_directories(cpp_engine_lib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/external/SDL_ttf")
 
 
 # Find bullet
@@ -197,7 +216,7 @@ if (NOT BULLET_FOUND)
 	add_dependencies(Bullet2FileLoader LinearMath)
 
 	set(BULLET_LIBRARIES LinearMath BulletCollision BulletDynamics)
-	target_include_directories(Encapsulated PRIVATE
+	target_include_directories(cpp_engine_lib PUBLIC
 		$<TARGET_PROPERTY:BulletCollision,INCLUDE_DIRECTORIES>
 		$<TARGET_PROPERTY:BulletDynamics,INCLUDE_DIRECTORIES>
 		$<TARGET_PROPERTY:LinearMath,INCLUDE_DIRECTORIES>)
@@ -206,10 +225,10 @@ if (NOT BULLET_FOUND)
 		set(BUILD_SHARED_LIBS ${EC_TMP_BUILD_SHARED_LIBS})
 	endif()
 else()
-	target_include_directories(Encapsulated PRIVATE ${BULLET_INCLUDE_DIRS})
+	target_include_directories(cpp_engine_lib PUBLIC ${BULLET_INCLUDE_DIRS})
 endif()
 
-target_link_libraries(Encapsulated PRIVATE ${BULLET_LIBRARIES})
+target_link_libraries(cpp_engine_lib PUBLIC ${BULLET_LIBRARIES})
 
 
 
@@ -217,8 +236,8 @@ target_link_libraries(Encapsulated PRIVATE ${BULLET_LIBRARIES})
 
 find_package(OPENGL REQUIRED)
 
-target_link_libraries(Encapsulated PRIVATE ${OPENGL_LIBRARIES})
-target_include_directories(Encapsulated PRIVATE ${OPENGL_INCLUDE_DIRECTORIES})
+target_link_libraries(cpp_engine_lib PUBLIC ${OPENGL_LIBRARIES})
+target_include_directories(cpp_engine_lib PUBLIC ${OPENGL_INCLUDE_DIRECTORIES})
 
 # Find GLEW
 
@@ -234,13 +253,13 @@ if(NOT GLEW_FOUND)
 
 	add_subdirectory(external/glew/build/cmake)
 	set(GLEW_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/glew/include")
-	target_link_libraries(Encapsulated PRIVATE glew)
+	target_link_libraries(cpp_engine_lib PUBLIC glew)
 else()
-	target_link_libraries(Encapsulated PRIVATE ${GLEW_STATIC_LIBRARIES})
+	target_link_libraries(cpp_engine_lib PUBLIC ${GLEW_STATIC_LIBRARIES})
 	install(FILES ${GLEW_SHARED_LIBRARIES} DESTINATION bin)
 endif()
 
-target_include_directories(Encapsulated PRIVATE ${GLEW_INCLUDE_DIRS})
+target_include_directories(cpp_engine_lib PUBLIC ${GLEW_INCLUDE_DIRS})
 message("Glew Libraries: ${GLEW_LIBRARIES} --- Glew Include Dir: ${GLEW_INCLUDE_DIRS}")
 
 
@@ -259,7 +278,7 @@ if(NOT OPENAL_FOUND)
 	set(OPENAL_LIBRARY OpenAL)
 endif()
 	
-target_link_libraries(Encapsulated PRIVATE ${OPENAL_LIBRARY})
+target_link_libraries(cpp_engine_lib PUBLIC ${OPENAL_LIBRARY})
 
 
 # Find YAML-CPP
@@ -277,4 +296,11 @@ if (NOT YAML_CPP_FOUND)
 	set(YAML_CPP_LIBRARY yaml-cpp)
 endif()
 
-target_link_libraries(Encapsulated PRIVATE ${YAML_CPP_LIBRARY})
+target_link_libraries(cpp_engine_lib PUBLIC ${YAML_CPP_LIBRARY})
+
+
+# Enable Testing
+
+include(CTest)
+
+add_subdirectory(src/Game)

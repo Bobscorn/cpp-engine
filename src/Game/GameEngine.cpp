@@ -1,5 +1,6 @@
 #include "GameEngine.h"
 
+#ifndef CPP_ENGINE_TESTS
 #include "Scene/StartingScene.h"
 #include "Scene/VoxelScene.h"
 
@@ -84,3 +85,13 @@ Debug::DebugReturn Engine::GameEngine::Request(Requests::Request & action)
 	}
 	return false;
 }
+#endif
+
+#ifdef CPP_ENGINE_TESTS
+int GameEngine(int argc, char* argv[])
+{
+	printf("OwO\n");
+
+	return 0;
+}
+#endif
