@@ -30,7 +30,8 @@ And comment out
 
 	//#define FT_CONFIG_OPTION_USE_ZLIB
 
-(As of writing this is line 198 in ftoption.h)
+(As of writing this is, this define is at line 198 in ftoption.h)
+
 Then to install:
 Run the following in the root directory of the modified freetype clone:
 
@@ -38,6 +39,8 @@ Run the following in the root directory of the modified freetype clone:
 	cmake --build build --config Release
 	cmake --install build --config Release
 
+
+And lastly to fix a broken assimp cmake script if using the assimp clone, remove the INSTALL lines 479 and 480 from the assimp CMakeLists.txt.
 
 This is most likely only a windows requirement, linux usually has prebuilt versions of all these dependencies as packages.
 On Windows, this will build and install zlib and freetype binaries and include headers into your C:\Program Files (x86)\ folder.
@@ -109,7 +112,9 @@ Package requirements for running on Linux are:
 - libgl
 - libglu
 - libglew
-Probably, it could in fact be much simpler to run a prebuilt client on linux with much less than these packages
+Probably, it could in fact be much simpler to run a prebuilt client on linux with much less than these packages.
+Especially if static linking is used.
+Also chances are several libraries such as libgl, libpng, libz, libglu, ligdl etc. are pre-installed.
 
 A prebuilt linux client does not need any Bullet libraries
 

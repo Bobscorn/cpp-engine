@@ -32,7 +32,7 @@ add_library(cpp_engine_lib STATIC ${EC_SRCS})
 add_executable(cpp_engine "src/Main.cpp")
 target_link_libraries(cpp_engine PRIVATE cpp_engine_lib)
 
-set(BUILD_SHARED_LIBS ON)
+option(BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
 
 # install library
 install(TARGETS cpp_engine_lib
@@ -86,7 +86,7 @@ if (BUILD_SHARED_LIBS AND WIN32)
 		install(FILES "${ZLIB_INCLUDE_DIRS}/../bin/zlib.dll" DESTINATION bin)
 	endif()
 endif()
-
+message("Zlib libraies: ${ZLIB_LIBRARIES}")
 
 # Find SDL2
 find_package(SDL2 QUIET)
@@ -104,14 +104,25 @@ if (NOT SDL2_FOUND)
 			# message("Setting HAVE_LIBC")
 		# endif()
 	endif()
+	if (BUILD_SHARED_LIBS)
+		message("Linking Shared SDL")
+		set(SDL_SHARED TRUE)
+		set(SDL_STATIC FALSE)
+	else()
+		message("Linking Static SDL")
+		set(SDL_STATIC TRUE)
+		set(SDL_SHARED FALSE)
+	endif()
 	add_subdirectory(external/sdl)
-	set(SDL2_LIBRARIES SDL2::SDL2main SDL2::SDL2)
-	target_include_directories(cpp_engine_lib PUBLIC $<TARGET_PROPERTY:SDL2::SDL2main,INTERFACE_INCLUDE_DIRECTORIES> $<TARGET_PROPERTY:SDL2::SDL2,INTERFACE_INCLUDE_DIRECTORIES>)
+	set(SDL2_LIBRARIES SDL2::SDL2-static)
+	target_include_directories(cpp_engine_lib PUBLIC $<TARGET_PROPERTY:SDL2::SDL2main,INTERFACE_INCLUDE_DIRECTORIES> $<TARGET_PROPERTY:SDL2::SDL2-static,INTERFACE_INCLUDE_DIRECTORIES>)
 else()
-	target_include_directories(cpp_engine_lib PUBLIC SDL2_INCLUDE_DIRECTORIES)
+	message("Using SDL Found with libraries: ${SDL2_LIBRARIES}")
+	target_include_directories(cpp_engine_lib PUBLIC ${SDL2_INCLUDE_DIRECTORIES})
 endif()
 
 target_link_libraries(cpp_engine_lib PUBLIC ${SDL2_LIBRARIES})
+target_link_libraries(cpp_engine PUBLIC SDL2::SDL2main)
 
 # Find Assimp
 find_package(ASSIMP QUIET)
@@ -291,6 +302,10 @@ if (NOT YAML_CPP_FOUND)
 					WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 	set(YAML_CPP_INSTALL ON CACHE BOOL "Enable YAML Cpp install targets" FORCE)
+	if (NOT BUILD_SHARED_LIBS)
+		set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "Disable YAML Cpp shared libraries" FORCE)
+		target_compile_definitions(cpp_engine_lib PRIVATE  YAML_CPP_STATIC_DEFINE=True)
+	endif()
 	add_subdirectory(external/yaml)
 
 	set(YAML_CPP_LIBRARY yaml-cpp)
@@ -304,3 +319,4 @@ target_link_libraries(cpp_engine_lib PUBLIC ${YAML_CPP_LIBRARY})
 include(CTest)
 
 add_subdirectory(src/Game)
+add_subdirectory(src/Tests)

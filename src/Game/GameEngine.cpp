@@ -88,9 +88,11 @@ Debug::DebugReturn Engine::GameEngine::Request(Requests::Request & action)
 #endif
 
 #ifdef CPP_ENGINE_TESTS
+#include <iostream>
+
 int GameEngine(int argc, char* argv[])
 {
-	printf("OwO\n");
+	std::cout << "GameEngine Test!" << std::endl;
 
 	return 0;
 }
