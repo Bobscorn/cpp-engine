@@ -13,6 +13,9 @@ namespace Drawing
 {
 	struct DefaultPerObjectStruct
 	{
+		Matrixy4x4 World;
+		Matrixy4x4 View;
+		Matrixy4x4 Projection;
 		Matrixy4x4 WorldView;
 		Matrixy4x4 WorldViewProj;
 	};
@@ -36,7 +39,7 @@ namespace Drawing
 
 		void UpdateLights(Matrixy4x4 view);
 
-		void UpdatePerObject(Matrixy4x4 worldView, Matrixy4x4 worldViewProj);
+		void UpdatePerObject(Matrixy4x4 world, Matrixy4x4 view, Matrixy4x4 proj);
 		void UpdateMaterial(Program& prog, const Material& mat);
 		void UpdateTextures(Program& prog, const Material& mat);
 

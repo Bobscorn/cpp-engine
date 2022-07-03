@@ -52,7 +52,7 @@ namespace Voxel
 		TheBoi m_Boi;
 
 		// Player
-		Pointer::f_ptr<Voxel::VoxelPlayer> m_Ass;
+		Pointer::f_ptr<Voxel::VoxelPlayer> m_Player;
 
 		UI1::RootElement m_UI;
 		Voxel::Crosshair m_Crosshair;

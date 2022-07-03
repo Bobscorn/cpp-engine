@@ -2,11 +2,13 @@
 
 #include "Game/VoxelStuff/Entities/Ball.h"
 
+#include "Game/VoxelStuff/SkyBoxShape.h"
+
 Voxel::VoxelScene::VoxelScene(CommonResources *resources) 
 	: FullResourceHolder(resources)
 	, m_GSpace(resources)
 	, m_World(m_GSpace.FindShapeyRaw("")->AddChild<Voxel::VoxelWorld>(WorldStuff{ &m_Boi, &m_Boi, &m_Boi, 2, 1, 2 }))
-	, m_Ass(m_GSpace.FindShapeyRaw("")->AddChild<Voxel::VoxelPlayer>(m_World.get(), VoxelPlayerStuff{ {0.f, 10.f, 0.f}, {0.f, 0.f, -1.f} }))
+	, m_Player(m_GSpace.FindShapeyRaw("")->AddChild<Voxel::VoxelPlayer>(m_World.get(), VoxelPlayerStuff{ {0.f, 10.f, 0.f}, {0.f, 0.f, -1.f} }))
 	, m_UI(resources)
 {
 	(void)m_GSpace.FindShapeyRaw("")->AddChild((G1::IShape *)new G1I::LightShape({ &m_GSpace, resources, "Rando Light" }, Light{ {10.f, 10.f, 0.f, 0.f}, {-0.7f, -0.7f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {1.f, 1.f, 1.f}, 0.f, {1.f, 1.f, 1.f}, 35.f, 1, LIGHT_DIRECTION, {0.f, 0.f} }));
@@ -15,6 +17,7 @@ Voxel::VoxelScene::VoxelScene(CommonResources *resources)
 	(void)m_GSpace.FindShapeyRaw("")->AddChild(new G1I::ProfilerShape({ &m_GSpace, resources, "Profiler McGee" }, { 10.0, false }));
 
 	(void)m_GSpace.FindShapeyRaw("")->AddChild(new G1I::GLRen2TestShape({ &m_GSpace, resources, "GLRen2 test" }));
+	(void)m_GSpace.FindShapeyRaw("")->AddChild(new SkyBoxShape({ &m_GSpace, resources, "Skybox Shape" }, "Textures/skybox", ".bmp"));
 
 	m_UI.AddChildTop(&m_Crosshair);
 
@@ -29,7 +32,7 @@ Voxel::VoxelScene::~VoxelScene()
 
 Debug::DebugReturn Voxel::VoxelScene::Initialize()
 {
-	m_World->Update(m_Ass->GetPosition());
+	m_World->Update(m_Player->GetPosition());
 
 
 	return true;
@@ -58,7 +61,7 @@ void Voxel::VoxelScene::Draw()
 
 void Voxel::VoxelScene::AfterDraw()
 {
-	m_World->Update(m_Ass->GetPosition());
+	m_World->Update(m_Player->GetPosition());
 	m_GSpace.AfterDraw();
 }
 

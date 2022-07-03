@@ -66,6 +66,7 @@ namespace Drawing
 	public:
 		TextureReference() = default;
 		TextureReference(std::string textureName);
+		TextureReference(std::shared_ptr<GLImage> texture); // Creates an unnamed texture reference
 		TextureReference(TextureReference&& other);
 		
 		TextureReference& operator=(const std::string& textureName);

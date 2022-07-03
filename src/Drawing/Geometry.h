@@ -180,6 +180,7 @@ namespace Drawing
 		floaty2 TexCoord;
 	};
 
+	constexpr GeometryDescription PositionOnly3DDesc{ 3, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
 	constexpr GeometryDescription Full3DVertexDesc{ 3, 1, 3, 2, 3, 4, 3, 3, 2, 5 };
 	constexpr GeometryDescription VoxelVertexDesc{ 3, 1, 3, 2, 3, 4, 3, 3, 3, 5 };
 	constexpr GeometryDescription Regular2DVertexDesc{ 2, 1, 0, 0, 0, 0, 0, 0, 2, 2 };

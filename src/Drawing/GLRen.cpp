@@ -184,10 +184,13 @@ void GLRen::DrawCalls(Matrixy4x4 View, Matrixy4x4 Proj, Voxel::CameraFrustum fru
 	glEnable(GL_DEPTH_TEST);
 	CHECK_GL_ERR("Enabling Depth Test");
 	View3D = View;
-	PerObjectInstanceDesc gpu;
-	gpu.View = View3D;
-	gpu.Proj = Projection3D;
-	UpdatePerObjectInstance(&gpu);
+	PerObjectv2Desc po;
+	po.World = Matrixy4x4::Identity();
+	po.View = View3D;
+	po.Proj = Projection3D;
+	po.WorldView = Matrixy4x4::Multiply(po.View, po.World);
+	po.WorldViewProj = Matrixy4x4::Multiply(Projection3D, po.WorldView);
+	UpdatePerObjectInstance(&po);
 
 	// Prep Draw Calls
 	std::vector<size_t> final_keys = DrawCallGuy.Cull(DrawCallGuy.GetKeys(), frustum);
@@ -630,7 +633,7 @@ GLuint GLRen::InitPerObjectBuffer()
 	GLuint out = 0;
 	glGenBuffers(1, &out);
 	glBindBufferBase(GL_UNIFORM_BUFFER, PerObjectLoc, out);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PerObjectDesc), NULL, GL_STREAM_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(PerObjectv2Desc), NULL, GL_STREAM_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	CHECK_GL_ERR("Initializing Per Object Buffer");
 
@@ -677,13 +680,13 @@ void GLRen::UpdateDrawColor(floaty4 color)
 	glUniform4f(DrawColorName, color.x, color.y, color.z, color.w);
 }
 
-void GLRen::UpdatePerObjectInstance(PerObjectInstanceDesc * desc)
+void GLRen::UpdatePerObjectInstance(PerObjectv2Desc * desc)
 {
 	if (!desc)
 		return;
 	CHECK_GL_ERR("Pre-Updating Per Object Instance");
 	glBindBuffer(GL_UNIFORM_BUFFER, PerObjectBuf.Get());
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(PerObjectInstanceDesc), desc);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(PerObjectv2Desc), desc);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	CHECK_GL_ERR("Updating Per Object Instance");
 }

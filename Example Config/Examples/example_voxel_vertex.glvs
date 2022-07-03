@@ -1,7 +1,11 @@
 #version 420 core
 
+// Standard GLRenv2 PerObject buffer layout
 layout(std140) uniform PerObject
 {
+	mat4 World;
+	mat4 View;
+	mat4 Proj;
 	mat4 WorldView;
 	mat4 WorldViewProj;
 };

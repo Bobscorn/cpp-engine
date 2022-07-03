@@ -113,11 +113,11 @@ vec4 NormalMapping(mat3 TBN, sampler2D s, vec2 uv)
 vec4 BumpMapping(mat3 TBN, vec2 uv, float bumpScale)
 {
     // Sample the heightmap at the current texture coordinate.
-    float height = texture(BumpTexture, uv).r * bumpScale;
+    float height = texture(BumpTexture, uv).r;
     // Sample the heightmap in the U texture coordinate direction.
-    float heightU = textureOffset(BumpTexture, uv, ivec2(1, 0)).r * bumpScale;
+    float heightU = textureOffset(BumpTexture, uv, ivec2(1, 0)).r;
     // Sample the heightmap in the V texture coordinate direction.
-    float heightV = textureOffset(BumpTexture, uv, ivec2(0, 1)).r * bumpScale;
+    float heightV = textureOffset(BumpTexture, uv, ivec2(0, 1)).r;
  
     vec3 p = { 0.0, 0.0, height };
     vec3 pU = { 1.0, 0.0, heightU };
@@ -309,7 +309,7 @@ void main()
     vec4 diffuse = mat.DiffuseColor;
     if ((mat.TexBitmap & BIT_DIFFUSE) != 0)
     {
-        vec4 diffuseTex = texture(DiffuseTexture, vec3((TexOut.xy * DiffuseScale), TexOut.z));
+        vec4 diffuseTex = texture(DiffuseTexture, vec3((TexOut.xy), TexOut.z));
         if (diffuse.r != 0.0 || diffuse.g != 0.0 || diffuse.b != 0.0)
         {
             diffuse *= diffuseTex;
@@ -324,7 +324,7 @@ void main()
     if ((mat.TexBitmap & BIT_OPACITY) != 0)
     {
     // If the material has an opacity texture, use that to override the diffuse alpha.
-        alpha = texture(OpacityTexture, TexOut.xy * OpacityScale).r;
+        alpha = texture(OpacityTexture, TexOut.xy).r;
     }
 
 	// ^
@@ -335,7 +335,7 @@ void main()
     vec3 ambient = mat.AmbientColor.xyz;
     if ((mat.TexBitmap & BIT_AMBIENT) != 0)
     {
-        vec3 ambientTex = texture(AmbientTexture, TexOut.xy * AmbientScale).xyz;
+        vec3 ambientTex = texture(AmbientTexture, TexOut.xy).xyz;
         if (ambient.r != 0.0 || ambient.g != 0.0 || ambient.b != 0.0)
         {
             ambient *= ambientTex;
@@ -349,7 +349,7 @@ void main()
     vec3 emissive = mat.EmissiveColor.xyz;
     if ((mat.TexBitmap & BIT_EMISSIZE) != 0)
     {
-        vec3 emissiveTex = texture(EmissiveTexture, TexOut.xy * EmissiveScale).xyz;
+        vec3 emissiveTex = texture(EmissiveTexture, TexOut.xy).xyz;
         if (emissive.r != 0.0 || emissive.g != 0.0 || emissive.b != 0.0)
         {
             emissive *= emissiveTex;
@@ -362,7 +362,7 @@ void main()
 
     if ((mat.TexBitmap & BIT_SPECPOW) != 0)
     {
-        mat.SpecularColor.w *= texture(SpecularPowerTexture, TexOut.xy * SpecularPowerScale).r;
+        mat.SpecularColor.w *= texture(SpecularPowerTexture, TexOut.xy).r;
     }
 
 	// ^
@@ -378,7 +378,7 @@ void main()
 								normalize(BinormalVS),
 								normalize(NormalVS));
  
-        N = NormalMapping(TBN, NormalTexture, TexOut.xy * NormalScale);
+        N = NormalMapping(TBN, NormalTexture, TexOut.xy);
     }
     // Bump mapping
     else if ((mat.TexBitmap & BIT_BUMP) != 0)
@@ -388,7 +388,7 @@ void main()
 								normalize(-BinormalVS),
 								normalize(NormalVS));
  
-        N = BumpMapping(TBN, TexOut.xy * BumpScale, 1.0);
+        N = BumpMapping(TBN, TexOut.xy, 1.0);
     }
     else
     {
@@ -416,7 +416,7 @@ void main()
         specular = mat.SpecularColor.xyz;
         if ((mat.TexBitmap & BIT_SPECULAR) != 0)
         {
-            vec3 specularTex = texture(SpecularTexture, TexOut.xy * SpecularScale).xyz;
+            vec3 specularTex = texture(SpecularTexture, TexOut.xy).xyz;
             if (specular.r != 0.0 || specular.g != 0.0 || specular.b != 0.0)
             {
                 specular *= specularTex;

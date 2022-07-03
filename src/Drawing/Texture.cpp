@@ -78,6 +78,12 @@ namespace Drawing
 		, _texture()
 	{
 	}
+	
+	TextureReference::TextureReference(std::shared_ptr<GLImage> ptr)
+		: _textureName()
+		, _texture(ptr)
+	{
+	}
 
 	TextureReference::TextureReference(TextureReference&& other)
 		: _textureName(std::move(other._textureName))

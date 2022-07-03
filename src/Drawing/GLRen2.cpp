@@ -28,10 +28,8 @@ namespace Drawing
 
 	void DrawCallRenderer::Draw(Matrixy4x4 View, Matrixy4x4 Proj, Voxel::CameraFrustum frustum)
 	{
+
 		PROFILE_PUSH_WITH(g_Engine->Resources.Profile, "Renv2");
-		Matrixy4x4 ViewProj = Matrixy4x4::Multiply(Proj, View);
-		Matrixy4x4 WorldView = Matrixy4x4::Identity();
-		Matrixy4x4 WorldViewProj = Matrixy4x4::Identity();
 
 		GLuint lastVertexBuffer = 0;
 
@@ -108,10 +106,9 @@ namespace Drawing
 				}
 				lastVertexBuffer = thisBuffer;
 
-				WorldView = Matrixy4x4::Multiply(View, (*drawcall.Matrix));
-				WorldViewProj = Matrixy4x4::Multiply(ViewProj, (*drawcall.Matrix));
+				auto& world = *drawcall.Matrix;
 
-				UpdatePerObject(WorldView, WorldViewProj);
+				UpdatePerObject(world, View, Proj);
 				UpdateMaterial(*program, *drawcall.Material);
 				UpdateTextures(*program, *drawcall.Material);
 					
@@ -159,28 +156,37 @@ namespace Drawing
 		}
 
 		glNamedBufferSubData(_lightBuffer.Get(), 0, sizeof(Light) * LightCount, _lights.data());
+		CHECK_GL_ERR("After Updating Lights");
 	}
 
-	void DrawCallRenderer::UpdatePerObject(Matrixy4x4 worldView, Matrixy4x4 worldViewProj)
+	void DrawCallRenderer::UpdatePerObject(Matrixy4x4 world, Matrixy4x4 view, Matrixy4x4 proj)
 	{
+		CHECK_GL_ERR("Pre Updating Per Object");
 		PROFILE_PUSH_WITH(g_Engine->Resources.Profile, "Per Object");
 		DefaultPerObjectStruct data;
-		data.WorldView = worldView;
-		data.WorldViewProj = worldViewProj;
+		data.World = world;
+		data.View = view;
+		data.Projection = proj;
+		data.WorldView = Matrixy4x4::Multiply(view, world);
+		data.WorldViewProj = Matrixy4x4::Multiply(proj, data.WorldView);
 
 		glNamedBufferSubData(_perObjectBuffer.Get(), 0, sizeof(DefaultPerObjectStruct), (GLvoid*)&data);
 		PROFILE_POP_WITH(g_Engine->Resources.Profile);
+		CHECK_GL_ERR("Post Updating Per Object");
 	}
 
 	void DrawCallRenderer::UpdateMaterial(Program& prog, const Material& mat)
 	{
+		CHECK_GL_ERR("Pre Updating Material");
 		PROFILE_PUSH_WITH(g_Engine->Resources.Profile, "Material");
 		prog.SetMaterial(mat);
 		PROFILE_POP_WITH(g_Engine->Resources.Profile);
+		CHECK_GL_ERR("Post Updating Material");
 	}
 
 	void DrawCallRenderer::UpdateTextures(Program& prog, const Material& mat)
 	{
+		CHECK_GL_ERR("Before Updating Textures");
 		PROFILE_PUSH_WITH(g_Engine->Resources.Profile, "Textures");
 		auto& mappings = prog.GetTexMappings();
 
@@ -198,6 +204,7 @@ namespace Drawing
 			}
 		}
 		PROFILE_POP_WITH(g_Engine->Resources.Profile);
+		CHECK_GL_ERR("Post Updating Textures");
 	}
 
 	GLuint DrawCallRenderer::InitPerObjectBuffer()
@@ -243,6 +250,10 @@ namespace Drawing
 			PerObjectBufBinding = BindingManager::GetNext();
 		if (!LightBufBinding)
 			LightBufBinding = BindingManager::GetNext();
+		
+#if defined(GL_ARB_seamless_cube_map)
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+#endif
 	}
 
 	DrawCallReference DrawCallRenderer::SubmitDrawCall(DrawCallv2 drawCall)

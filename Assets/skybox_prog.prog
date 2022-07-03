@@ -1,0 +1,42 @@
+# Skybox shader
+name: skybox-prog
+
+# No lights
+
+materialbuf: MatBuf
+perobjectbuf: PerObject
+
+material:
+    properties:
+    -
+        name: diffuse
+        size: 3
+        type: float
+        default:
+            r: 1
+            g: 1
+            b: 1
+    -
+        name: padding
+        size: 1
+        type: float
+        default:
+            r: 0
+            
+textures:
+-
+    mat-name: diffuse
+    gl-name: skyBoxTex
+    
+
+shaders:
+{
+    skybox_vertex.glvs: VERTEX,
+    skybox_fragment.glfs: FRAGMENT
+}
+        
+
+geometry:
+    position:
+        order: 1
+        size: 3

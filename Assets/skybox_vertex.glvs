@@ -1,0 +1,20 @@
+#version 420 core
+
+layout(std140) uniform PerObject
+{
+	mat4 World;
+	mat4 View;
+	mat4 Proj;
+	mat4 WorldView;
+	mat4 WorldViewProj;
+};
+
+layout(location = 0) in vec3 Position;
+
+out vec3 Direction;
+
+void main()
+{
+	Direction = Position;
+	gl_Position = Proj * mat4(mat3(View)) * vec4(Position, 1);
+}

@@ -1,9 +1,14 @@
 #version 420 core
 
+// Contains Essential transformation matrices
+// World, WorldView and WorldViewProj are only included as required to be consistent with GLRenv2
 layout(std140) uniform PerObject
 {
+	mat4 World; // Set to Identity to disable in instanced mode
 	mat4 View;
 	mat4 Proj;
+	mat4 WorldView; // Set to Identity to disable in instanced mode
+	mat4 WorldViewProj; // Set to Identity to disable in instanced mode
 };
 
 layout(location = 0) in vec3 PosL;
@@ -11,7 +16,7 @@ layout(location = 1) in vec3 TangentL;
 layout(location = 2) in vec3 BinormalL;
 layout(location = 3) in vec3 NormalL;
 layout(location = 4) in vec2 Tex;
-layout(location = 5) in mat4 World;
+layout(location = 5) in mat4 WorldInstance;
 
 out vec3 PosVS;
 out vec3 TangentVS;
@@ -23,7 +28,7 @@ void main()
 {
 	TexOut = Tex;
 	
-	mat4 WorldView = View * World;
+	mat4 WorldView = View * WorldInstance;
 	PosVS = (WorldView * vec4(PosL, 1.f)).xyz;
 
 	TangentVS = mat3(WorldView) * TangentL;

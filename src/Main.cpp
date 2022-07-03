@@ -251,17 +251,7 @@ int main(int argc, char *args[])
 
 
 		g_Engine = std::make_unique<Engine::GameEngine>();
-		try {
-			Run();
-		}
-		catch (Debug::GLExc &e)
-		{
-			Debug::ReportError("OpenGL Failed", (std::string("OpenGL ran into an error post creation: ") + e.what()).c_str());
-		}
-		catch (Debug::SDLException &e)
-		{
-			Debug::ReportError("SDL Failed", (std::string("SDL ran into an error post creation: ") + e.what()).c_str());
-		}
+		Run();
 	}
 	catch (Debug::GLExc &e)
 	{

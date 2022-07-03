@@ -205,6 +205,15 @@ struct PerObjectInstanceDesc
 	Matrixy4x4 Proj;
 };
 
+struct PerObjectv2Desc
+{
+	Matrixy4x4 World;
+	Matrixy4x4 View;
+	Matrixy4x4 Proj;
+	Matrixy4x4 WorldView;
+	Matrixy4x4 WorldViewProj;
+};
+
 struct LightManager
 {
 	LightManager(GLProgram &program) : m_Program(program), LightBuffer(InitLightBuffer()) {}
@@ -432,7 +441,7 @@ protected:
 	void UpdateDrawVerts(std::array<floaty2, 4u> vertices);
 	void UpdateDrawColor(floaty4 color);
 
-	void UpdatePerObjectInstance(PerObjectInstanceDesc *desc);
+	void UpdatePerObjectInstance(PerObjectv2Desc *desc);
 	void UpdatePerObject(Matrixy4x4 *mat);
 	void UpdatePerObject(PerObjectDesc *desc);
 

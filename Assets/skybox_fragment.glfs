@@ -1,0 +1,18 @@
+#version 420 core
+
+layout(std140) uniform MatBuf
+{
+    vec3 Color;
+	float Padding;
+};
+
+uniform samplerCube skyBoxTex;
+
+in vec3 Direction;
+
+out vec4 FragColor;
+
+void main()
+{
+	FragColor = texture(skyBoxTex, Direction) * vec4(Color, 1);
+}

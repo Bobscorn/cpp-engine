@@ -405,7 +405,7 @@ namespace Drawing
 			constexpr std::array<const char*, 4> vectorComps = { "x", "y", "z", "w" };
 			constexpr std::array<const char*, 4> colorComps = { "r", "g", "b", "a" };
 
-			auto processDefaultFunc = [&vectorComps, &colorComps](const YAML::Node& defaultNode, MaterialProperty& prop, auto defaultVal, auto defaultSingleVal, auto isTypeFunc)
+			auto processDefaultFunc = [&vectorComps, &colorComps](YAML::Node& defaultNode, MaterialProperty& prop, auto defaultVal, auto defaultSingleVal, auto isTypeFunc)
 			{
 				decltype(defaultVal) val = defaultVal;
 				int size = MatSizeToInt(prop.size);
