@@ -172,6 +172,21 @@ namespace Drawing
 			return !(*this == other);
 		}
 
+		constexpr static GeometryDescription GetDescription()
+		{
+			GeometryDescription desc;
+			desc.PositionSize = 3;
+			desc.PositionOrder = 1;
+			desc.NormalSize = 3;
+			desc.NormalOrder = 2;
+			desc.BinormalSize = 3;
+			desc.BinormalOrder = 3;
+			desc.TangentSize = 3;
+			desc.TangentOrder = 4;
+			desc.TexCoordSize = 3;
+			desc.TexCoordOrder = 5;
+			return desc;
+		}
 	};
 
 	struct Regular2DVertex
@@ -182,7 +197,7 @@ namespace Drawing
 
 	constexpr GeometryDescription PositionOnly3DDesc{ 3, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
 	constexpr GeometryDescription Full3DVertexDesc{ 3, 1, 3, 2, 3, 4, 3, 3, 2, 5 };
-	constexpr GeometryDescription VoxelVertexDesc{ 3, 1, 3, 2, 3, 4, 3, 3, 3, 5 };
+	constexpr GeometryDescription VoxelVertexDesc = VoxelVertex::GetDescription();
 	constexpr GeometryDescription Regular2DVertexDesc{ 2, 1, 0, 0, 0, 0, 0, 0, 2, 2 };
 
 	struct VertexData

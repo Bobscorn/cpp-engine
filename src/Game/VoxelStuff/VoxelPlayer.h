@@ -172,6 +172,7 @@ namespace Voxel
 		constexpr static float MaxGroundIntersection = 0.015f;
 
 		VoxelPlayerStuff m_Stuff;
+		size_t m_SelectedBlockID = 0;
 
 		// Sound
 		constexpr static float FootstepInterval = 0.6f;

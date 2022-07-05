@@ -109,6 +109,10 @@ namespace Voxel
 		, m_Mesh()
 	{
 		SetFrom(std::move(preloadedStuff));
+		PROFILE_PUSH("Submitting DrawCall");
+		auto name = std::string("Chunk (") + std::to_string(m_Coord.X) + ", " + std::to_string(m_Coord.Y) + ", " + std::to_string(m_Coord.Z) + ")";
+		m_DrawCall = resources->Ren3v2->SubmitDrawCall(Drawing::DrawCallv2{ m_Mesh, m_Material, std::make_shared<Matrixy4x4>(Matrixy4x4::Translate(m_Origin)), name, true });
+		PROFILE_POP();
 	}
 
 	Voxel::ChunkyBoi::~ChunkyBoi()
@@ -270,6 +274,8 @@ namespace Voxel
 
 			Container->RequestPhysicsCall(m_Body, ENVIRONMENT, PLAYER | ENTITY_GENERAL);
 		}
+
+		m_Coord = preLoadedChunk.Coord;
 	}
 
 	void Voxel::ChunkyBoi::RecomputeMesh()

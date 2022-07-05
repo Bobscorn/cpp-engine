@@ -11,9 +11,9 @@ layout(std140) uniform PerObject
 };
 
 layout(location = 0) in vec3 PosL;
-layout(location = 1) in vec3 TangentL;
+layout(location = 1) in vec3 NormalL;
 layout(location = 2) in vec3 BinormalL;
-layout(location = 3) in vec3 NormalL;
+layout(location = 3) in vec3 TangentL;
 layout(location = 4) in vec3 Tex;
 
 out vec3 PosVS;

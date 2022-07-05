@@ -15,6 +15,7 @@
 #include <functional>
 #include <memory>
 #include <atomic>
+#include <shared_mutex>
 
 
 namespace Voxel
@@ -89,10 +90,10 @@ namespace Voxel
 		void ReplaceStaticCube(BlockCoord coord, std::unique_ptr<ICube> cube);
 		void SetStaticCube(BlockCoord coord);
 
-		ICube* GetCubeAt(BlockCoord coord);
-		const ICube* GetCubeAt(BlockCoord coord) const;
-		size_t GetCubeIdAt(BlockCoord coord) const;
-		bool IsCubeAt(BlockCoord coord);
+		ICube* GetCubeAt(BlockCoord coord); // Get is thread-safe, modification via returned pointer not thread-safe
+		const ICube* GetCubeAt(BlockCoord coord) const; // Thread-safe
+		size_t GetCubeIdAt(BlockCoord coord) const; // Thread-safe
+		bool IsCubeAt(BlockCoord coord) const; // Thread-safe
 
 		// Get the coords of a block/chunk given by position, in Displaced Physics space
 		BlockCoord GetBlockCoordFromPhys(floaty3 phys_pos);
@@ -115,6 +116,7 @@ namespace Voxel
 		WorldStuff m_Stuff;
 		std::shared_ptr<LoadingStuff> m_LoadingStuff;
 		std::thread m_LoadingThread;
+		mutable std::shared_mutex m_ChunksMutex;
 
 		std::vector<ChunkCoord> m_Offsets;
 
@@ -155,6 +157,7 @@ namespace Voxel
 
 		// Begins loading chunk at specific coord
 		void Load(ChunkCoord at);
+		void Unload(ChunkCoord at);
 
 		floaty3 ChunkOrigin(ChunkCoord of);
 

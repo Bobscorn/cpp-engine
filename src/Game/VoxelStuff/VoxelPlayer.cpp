@@ -18,6 +18,7 @@
 #include "VoxelInteractable.h"
 #include "VoxelChunk.h"
 #include "VoxelWorld.h"
+#include "Drawing/VoxelStore.h"
 
 std::unique_ptr<btCapsuleShape> Voxel::VoxelPlayer::SweepCapsule = nullptr;
 std::unique_ptr<btCylinderShape> Voxel::VoxelPlayer::Capsule = nullptr;
@@ -243,6 +244,35 @@ bool Voxel::VoxelPlayer::Receive(Event::KeyInput *key)
 			UnlockMouse();
 		}
 	}
+	else if (key->KeyCode == SDLK_1)
+	{
+		if (key->State)
+		{
+			m_SelectedBlockID = 1;
+		}
+	}
+	else if (key->KeyCode == SDLK_2)
+	{
+		if (key->State)
+		{
+			m_SelectedBlockID = 2;
+		}
+	}
+	else if (key->KeyCode == SDLK_3)
+	{
+		if (key->State)
+		{
+			m_SelectedBlockID = 3;
+		}
+	}
+	else if (key->KeyCode == SDLK_4)
+	{
+		if (key->State)
+		{
+			m_SelectedBlockID = 4;
+		}
+	}
+
 	return Events::RelevantEvent;
 }
 
@@ -484,8 +514,7 @@ void Voxel::VoxelPlayer::PlaceBlock(RayReturn ray)
 	floaty3 pos{ ray.hitPoint + ray.normal * 0.25f };
 	auto thing = static_cast<Voxel::VoxelCube *>(ray.hold->Pointy);
 	auto coord = m_World->GetBlockCoordFromPhys(pos);
-	m_World->SetStaticCube(coord);
-	
+	m_World->ReplaceStaticCube(coord, VoxelStore::Instance().CreateCube(m_SelectedBlockID));
 }
 
 void Voxel::VoxelPlayer::SetCrouchState(bool state)
@@ -1312,6 +1341,7 @@ std::vector<Audio::ALBufferI> Voxel::VoxelPlayer::GetFootstepSounds()
 					}
 				}
 			}
+		DINFO("Loaded " + std::to_string(count) + " footstep sounds");
 	}
 	catch (const std::bad_alloc & e)
 	{

@@ -1,4 +1,5 @@
 #include "VoxelWorld.h"
+#include "VoxelWorld.h"
 
 #include "Helpers/MathHelper.h"
 #include "Helpers/ProfileHelper.h"
@@ -382,6 +383,25 @@ floaty3 Voxel::VoxelWorld::Update(floaty3 New_Centre)
 	}
 
 	PROFILE_POP();
+	PROFILE_PUSH("Chunk Unloading");
+	std::vector<ChunkCoord> to_unload;
+	
+	for (auto& chunkPair : m_Chunks)
+	{
+		auto& chunkCoord = chunkPair.first;
+		
+		if (chunkCoord.X > (centre_x + (int64_t)m_Stuff.HalfBonusWidth ) || chunkCoord.X < (centre_x - (int64_t)m_Stuff.HalfBonusWidth) ||
+			chunkCoord.Y > (centre_y + (int64_t)m_Stuff.HalfBonusHeight) || chunkCoord.Y < (centre_y - (int64_t)m_Stuff.HalfBonusHeight) ||
+			chunkCoord.Z > (centre_z + (int64_t)m_Stuff.HalfBonusDepth ) || chunkCoord.Z < (centre_z - (int64_t)m_Stuff.HalfBonusDepth))
+		{
+			to_unload.push_back(chunkCoord);
+		}
+	}
+	
+	for (auto& chunkCoord : to_unload)
+		Unload(chunkCoord);
+	
+	PROFILE_POP();
 
 	return { 0.f, 0.f, 0.f };
 }
@@ -475,6 +495,7 @@ bool Voxel::VoxelWorld::Receive(Event::AfterPhysicsEvent *event)
 
 void Voxel::VoxelWorld::ReplaceStaticCube(BlockCoord coords, std::unique_ptr<ICube> cube)
 {
+	std::unique_lock lock(m_ChunksMutex);
 	auto it = m_Chunks.find(coords.Chunk);
 	if (it != m_Chunks.end() && it->second)
 	{
@@ -484,6 +505,7 @@ void Voxel::VoxelWorld::ReplaceStaticCube(BlockCoord coords, std::unique_ptr<ICu
 
 void Voxel::VoxelWorld::SetStaticCube(BlockCoord coord)
 {
+	std::unique_lock lock(m_ChunksMutex);
 	auto it = m_Chunks.find(coord.Chunk);
 	if (it != m_Chunks.end() && it->second)
 	{
@@ -493,6 +515,7 @@ void Voxel::VoxelWorld::SetStaticCube(BlockCoord coord)
 
 Voxel::ICube* Voxel::VoxelWorld::GetCubeAt(BlockCoord coord)
 {
+	std::shared_lock lock(m_ChunksMutex);
 	auto it = m_Chunks.find(coord.Chunk);
 	if (it != m_Chunks.end() && it->second)
 	{
@@ -503,6 +526,7 @@ Voxel::ICube* Voxel::VoxelWorld::GetCubeAt(BlockCoord coord)
 
 const Voxel::ICube* Voxel::VoxelWorld::GetCubeAt(BlockCoord coord) const
 {
+	std::shared_lock lock(m_ChunksMutex);
 	auto it = m_Chunks.find(coord.Chunk);
 	if (it != m_Chunks.end() && it->second)
 		return it->second->get(coord.X, coord.Y, coord.Z);
@@ -517,7 +541,7 @@ size_t Voxel::VoxelWorld::GetCubeIdAt(BlockCoord coord) const
 	return Voxel::VoxelStore::Instance().GetIDFor(ptr->GetBlockName());
 }
 
-bool Voxel::VoxelWorld::IsCubeAt(BlockCoord coord)
+bool Voxel::VoxelWorld::IsCubeAt(BlockCoord coord) const
 {
 	return GetCubeAt(coord) != nullptr;
 }
@@ -650,16 +674,20 @@ void Voxel::VoxelWorld::CheckLoadingThread()
 	Voxel::LoadedChunk chunk;
 	while (m_LoadingStuff->Loaded.try_pop(chunk))
 	{
-		auto it = m_Chunks.find(chunk.Coord);
+		{
+			std::shared_lock lock(m_ChunksMutex);
+			auto it = m_Chunks.find(chunk.Coord);
 
-		// Skip if not an expected chunk (expected chunks are put into m_Chunks as nullptrs)
-		if (it == m_Chunks.end())
-			continue;
+			// Skip if not an expected chunk (expected chunks are put into m_Chunks as nullptrs)
+			if (it == m_Chunks.end())
+				continue;
 
-		// Skip if there's already a chunk there
-		if (it->second)
-			continue;
+			// Skip if there's already a chunk there
+			if (it->second)
+				continue;
+		}
 
+		std::unique_lock lock(m_ChunksMutex);
 		m_Chunks[chunk.Coord] = std::make_unique<ChunkyBoi>(GetContainer(), mResources, this, ChunkOrigin(chunk.Coord), std::move(chunk));
 	}
 }
@@ -668,19 +696,34 @@ void Voxel::VoxelWorld::Load(ChunkCoord at)
 {
 	PROFILE_PUSH_AGG("Load Chunk");
 	PROFILE_PUSH("Chunk Find");
+	std::shared_lock lock(m_ChunksMutex);
 	auto it = m_Chunks.find(at);
 	PROFILE_POP();
 	if (it == m_Chunks.end())
 	{
 		// Multi threaded:
 		// TODO: Add a chunk to loading thread's queue and mark it as 'being loaded' so it isn't re-added
-		//m_Chunks.emplace(std::make_pair(at, nullptr));
-		//m_LoadingStuff->ToLoad.push(at);
+		lock.unlock();
+		{
+			std::unique_lock write_lock(m_ChunksMutex);
+			m_Chunks.emplace(std::make_pair(at, nullptr));
+		}
+		m_LoadingStuff->ToLoad.push(at);
 		PROFILE_PUSH("Chunk Emplace");
-		m_Chunks.emplace(at, std::make_unique<ChunkyBoi>(GetContainer(), GetResources(), this, ChunkOrigin(at), m_Stuff.m_ChunkLoader->LoadChunk(at.X, at.Y, at.Z), at)); // Single threaded
+		//m_Chunks.emplace(at, std::make_unique<ChunkyBoi>(GetContainer(), GetResources(), this, ChunkOrigin(at), m_Stuff.m_ChunkLoader->LoadChunk(at.X, at.Y, at.Z), at)); // Single threaded
 		PROFILE_POP();
 	}
 	PROFILE_POP();
+}
+
+void Voxel::VoxelWorld::Unload(ChunkCoord at)
+{
+	std::unique_lock lock(m_ChunksMutex);
+	if (auto it = m_Chunks.find(at); it != m_Chunks.end())
+	{
+		// TODO: write unloading crap
+		m_Chunks.erase(it);
+	}
 }
 
 floaty3 Voxel::VoxelWorld::ChunkOrigin(ChunkCoord of)
@@ -724,8 +767,7 @@ void Voxel::DoChunkLoading(std::shared_ptr<LoadingStuff> stuff, LoadingOtherStuf
 	using namespace std::chrono;
 	while (!stuff->QuitVal.load())
 	{
-		Voxel::ChunkCoord toLoad;
-		if (stuff->ToLoad.try_pop(toLoad, 10ms))
+		if (Voxel::ChunkCoord toLoad; stuff->ToLoad.try_pop(toLoad, 10ms))
 		{
 			auto data = other.GetChunkDataFunc(toLoad);
 
