@@ -34,15 +34,15 @@ namespace Audio
 		ALErrorGuy(std::string description);
 		~ALErrorGuy();
 
-	protected:
-		friend bool TestForALError(ALErrorGuy &&guy);
+		inline ALCenum GetError() const { return m_Error; }
 
+	protected:
 		std::string m_Description;
 		ALCenum m_Error = AL_NO_ERROR;
 		bool m_EarlyError = false; // Ideally never true
 	};
 
-	bool TestForALError(ALErrorGuy &&guy);
+	bool TestForALError(const ALErrorGuy &guy);
 
 	struct ALException : std::exception 
 	{

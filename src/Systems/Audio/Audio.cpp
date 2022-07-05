@@ -134,9 +134,9 @@ Audio::ALErrorGuy::~ALErrorGuy()
 	}
 }
 
-bool Audio::TestForALError(ALErrorGuy && guy)
+bool Audio::TestForALError(const ALErrorGuy & guy)
 {
-	return guy.m_Error != AL_NO_ERROR;
+	return guy.GetError() != AL_NO_ERROR;
 }
 
 void Audio::Clear() noexcept
