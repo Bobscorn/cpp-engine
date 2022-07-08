@@ -39,8 +39,8 @@
 
 namespace Voxel
 {
-	constexpr int DefaultFaceSize = 32;
-	constexpr int DefaultAtlasLayerFaceCount = 6;
+	constexpr int DefaultFaceSize = 1024;
+	constexpr int DefaultAtlasLayerFaceCount = 1;
 
 	enum class BlockFace
 	{
@@ -57,6 +57,18 @@ namespace Voxel
 		LEFT = 5,
 		NEG_X = 5,
 	};
+
+	enum class AtlasType
+	{
+		DIFFUSE = 0,
+		SPECULAR = 1,
+		EMISSIVE = 2,
+		NORMAL = 3,
+		BUMP = 4,
+		OTHER = 5,
+	};
+	
+	constexpr std::array<AtlasType, 5> AtlasTypes{ AtlasType::DIFFUSE, AtlasType::SPECULAR, AtlasType::EMISSIVE, AtlasType::NORMAL, AtlasType::BUMP };
 
 	struct FaceTexCoord
 	{
@@ -79,9 +91,31 @@ namespace Voxel
 	{
 		std::string AtlasName;
 
-		std::shared_ptr<Drawing::Image2DArray> Image;
+		std::shared_ptr<Drawing::Image2DArray> DiffuseImage;
+		std::shared_ptr<Drawing::Image2DArray> SpecularImage;
+		std::shared_ptr<Drawing::Image2DArray> EmissiveImage;
+		std::shared_ptr<Drawing::Image2DArray> NormalImage;
+		std::shared_ptr<Drawing::Image2DArray> BumpImage;
 
 		std::unordered_map<std::string, VoxelBlock> Blocks;
+		
+		constexpr std::shared_ptr<Drawing::Image2DArray>& GetImageFromType(AtlasType type)
+		{
+			switch (type)
+			{
+			default:
+			case AtlasType::DIFFUSE:
+				return DiffuseImage;
+			case AtlasType::SPECULAR:
+				return SpecularImage;
+			case AtlasType::EMISSIVE:
+				return EmissiveImage;
+			case AtlasType::NORMAL:
+				return NormalImage;
+			case AtlasType::BUMP:
+				return BumpImage;
+			}
+		}
 	};
 
 	struct BlockDescription
@@ -90,12 +124,35 @@ namespace Voxel
 		std::string AtlasName;
 		bool isOpaque;
 
-		std::array<std::string, 6> FaceTextures;
+		std::array<std::string, 6> DiffuseFaceTextures;
+		std::array<std::string, 6> NormalFaceTextures;
+		std::array<std::string, 6> BumpFaceTextures;
+		std::array<std::string, 6> SpecularFaceTextures;
+		std::array<std::string, 6> EmissiveFaceTextures;
+		
+		inline constexpr const std::array<std::string, 6>& GetFacesFor(AtlasType type) const
+		{
+			switch (type)
+			{
+			default:
+			case AtlasType::DIFFUSE:
+				return DiffuseFaceTextures;
+			case AtlasType::NORMAL:
+				return NormalFaceTextures;
+			case AtlasType::BUMP:
+				return BumpFaceTextures;
+			case AtlasType::SPECULAR:
+				return SpecularFaceTextures;
+			case AtlasType::EMISSIVE:
+				return EmissiveFaceTextures;
+			}
+		}
 	};
 
 	struct UnStitchedAtlasSet
 	{
-		std::string AtlasGroup;
+		// Prefix given to each sub-atlas (diffuse/normal/specular/emissive/bump)
+		std::string AtlasPrefix;
 		std::vector<BlockDescription> Blocks;
 	};
 
@@ -137,7 +194,7 @@ namespace Voxel
 		std::unordered_map<std::string, std::shared_ptr<StitchedAtlasSet>> _atlasLookup;
 		std::unordered_map<std::string, size_t> _descriptionLookup;
 		std::vector<VoxelBlock> _descriptions;
-		std::vector<BlockDescription> _unstitched;
+		std::vector<BlockDescription> _unstitchedDescriptions;
 
 		void LoadAtlas(std::string path);
 		void LoadBlockFile(std::string path);

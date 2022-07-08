@@ -8,7 +8,14 @@
 name: example-voxel-material
 program: example-voxel-program
 textures:
-  diffuse: atlas-global
+  diffuse: atlas-global-diffuse
+  specular: atlas-global-specular
+  ambient: atlas-ambient
+  opacity: atlas-opacity
+  specpower: atlas-specpower
+  normal: atlas-global-normal
+  emissive: atlas-emissive
+  bump: atlas-global-bump
 
 # The children of the properties tag are iterated over
 # The children are expected to be of the form:
@@ -37,8 +44,14 @@ properties:
         g: 0.8
         b: 0.8
         a: 3.0
+    ambient:
+        size: 4
+        r: 0.1
+        g: 0.1
+        b: 0.1
+        a: 1.0
     tex-bitmap:
         size: 1
         type: int
-        x: 4
+        x: 100
 # and so on

@@ -38,39 +38,58 @@ blocks:
     block-name: grass
     atlas: global
     textures:
-        pos-x: grass_px.jpg
-        neg-x: grass_nx.jpg
-        pos-y: grass_py.jpg
-        neg-y: grass_ny.jpg
-        pos-z: grass_pz.jpg
-        neg-z: grass_nz.jpg
+        diffuse:
+            pos-x: grass_px.jpg
+            neg-x: grass_nx.jpg
+            pos-y: grass_py.jpg
+            neg-y: grass_ny.jpg
+            pos-z: grass_pz.jpg
+            neg-z: grass_nz.jpg
+    
 - 
     block-name: wood
     atlas: global
     textures:
-        pos-x: wood_px.jpg
-        neg-x: wood_nx.jpg
-        pos-y: wood_py.jpg
-        neg-y: wood_ny.jpg
-        pos-z: wood_pz.jpg
-        neg-z: wood_nz.jpg
+        diffuse:
+            pos-x: wood_color.jpg
+            neg-x: wood_color.jpg
+            pos-y: wood_color.jpg
+            neg-y: wood_color.jpg
+            pos-z: wood_color.jpg
+            neg-z: wood_color.jpg
+        normal:
+            pos-x: wood_normal.jpg
+            neg-x: wood_normal.jpg
+            pos-y: wood_normal.jpg
+            neg-y: wood_normal.jpg
+            pos-z: wood_normal.jpg
+            neg-z: wood_normal.jpg
+        bump:
+            pos-x: wood_displace.jpg
+            neg-x: wood_displace.jpg
+            pos-y: wood_displace.jpg
+            neg-y: wood_displace.jpg
+            pos-z: wood_displace.jpg
+            neg-z: wood_displace.jpg
 - 
     block-name: velvet
     atlas: global
     textures:
-        pos-x: velvet_px.jpg
-        pos-y: velvet_py.jpg
-        pos-z: velvet_pz.jpg
-        neg-x: velvet_nx.jpg
-        neg-y: velvet_ny.jpg
-        neg-z: velvet_nz.jpg
+        diffuse:
+            pos-x: velvet_px.jpg
+            pos-y: velvet_py.jpg
+            pos-z: velvet_pz.jpg
+            neg-x: velvet_nx.jpg
+            neg-y: velvet_ny.jpg
+            neg-z: velvet_nz.jpg
 - 
     block-name: straw
     atlas: global
     textures:
-        pos-x: straw_px.jpg
-        pos-y: straw_py.jpg
-        pos-z: straw_pz.jpg
-        neg-x: straw_nx.jpg
-        neg-y: straw_ny.jpg
-        neg-z: straw_nz.jpg
+        diffuse:
+            pos-x: straw_px.jpg
+            pos-y: straw_py.jpg
+            pos-z: straw_pz.jpg
+            neg-x: straw_nx.jpg
+            neg-y: straw_ny.jpg
+            neg-z: straw_nz.jpg

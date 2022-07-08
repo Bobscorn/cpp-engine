@@ -98,7 +98,8 @@ namespace Drawing
             _cpuSurfaces[targetLayer] = CreateSurface();
         }
 
-        SDL_BlitSurface(surf, nullptr, _cpuSurfaces[targetLayer], nullptr);
+		SimpleSurface tmp = SDL_ConvertSurface(surf, _cpuSurfaces[targetLayer]->format, 0);
+        SDL_BlitSurface(tmp.Get(), nullptr, _cpuSurfaces[targetLayer], nullptr);
     }
 
     void Image2DArray::SetArea(SDL_Surface* src, SDL_Rect dstRect, int targetLayer)
@@ -122,8 +123,9 @@ namespace Drawing
         {
             _cpuSurfaces[targetLayer] = CreateSurface();
         }
-
-        SDL_BlitSurface(src, &srcRect, _cpuSurfaces[targetLayer], &dstRect);
+		
+        SimpleSurface tmp = SDL_ConvertSurface(src, _cpuSurfaces[targetLayer]->format, 0);
+        SDL_BlitSurface(tmp.Get(), &srcRect, _cpuSurfaces[targetLayer], &dstRect);
 
         if (HasLoadedGL())
         {
@@ -167,7 +169,7 @@ namespace Drawing
         CHECK_GL_ERR("Setting Texture2DArray parameters");
 
         for (int i = 0; i < _cpuSurfaces.size(); ++i)
-            glTextureSubImage3D(_tex, 0, 0, 0, 0, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, _cpuSurfaces[i] ? _cpuSurfaces[i]->pixels : nullptr);
+            glTextureSubImage3D(_tex, 0, 0, 0, i, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, _cpuSurfaces[i] ? _cpuSurfaces[i]->pixels : nullptr);
     }
 
     void Image2DArray::UnLoadGL()

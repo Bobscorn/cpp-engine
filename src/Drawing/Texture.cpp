@@ -48,9 +48,38 @@ namespace Drawing
 	{
 		if (name.size() > 6 && name.rfind("atlas-", 0) == 0)
 		{
-			auto atlas = Voxel::VoxelStore::Instance().GetAtlas(name.substr(6));
+			Voxel::AtlasType type = Voxel::AtlasType::DIFFUSE;
+			std::string atlasName = name.substr(6);
+			if (name.compare(name.length() - 8, 8, "-diffuse") == 0)
+			{
+				atlasName = atlasName.substr(0, atlasName.length() - 8);
+				type = Voxel::AtlasType::DIFFUSE;
+			}
+			else if (name.compare(name.length() - 7, 7, "-normal") == 0)
+			{
+				atlasName = atlasName.substr(0, atlasName.length() - 7);
+				type = Voxel::AtlasType::NORMAL;
+			}
+			else if (name.compare(name.length() - 9, 9, "-specular") == 0)
+			{
+				atlasName = atlasName.substr(0, atlasName.length() - 9);
+				type = Voxel::AtlasType::SPECULAR;
+			}
+			else if (name.compare(name.length() - 9, 9, "-emissive") == 0)
+			{
+				atlasName = atlasName.substr(0, atlasName.length() - 9);
+				type = Voxel::AtlasType::EMISSIVE;
+			}
+			else if (name.compare(name.length() - 5, 5, "-bump") == 0)
+			{
+				atlasName = atlasName.substr(0, atlasName.length() - 5);
+				type = Voxel::AtlasType::BUMP;
+			}
+			
+			auto atlas = Voxel::VoxelStore::Instance().GetAtlas(atlasName);
+			
 			if (atlas)
-				return atlas->Image;
+				return atlas->GetImageFromType(type);
 		}
 
 		auto it = _store.find(name);

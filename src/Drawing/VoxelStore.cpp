@@ -95,33 +95,51 @@ namespace Voxel
 					if (!tex || (tex.IsScalar() && tex.Scalar() == "elsewhere"))
 					{
 						desc.AtlasName = "";
-						std::fill(desc.FaceTextures.begin(), desc.FaceTextures.end(), std::string{});
+						std::fill(desc.DiffuseFaceTextures.begin(),  desc.DiffuseFaceTextures.end(),  std::string{});
+						std::fill(desc.NormalFaceTextures.begin(),	 desc.NormalFaceTextures.end(),   std::string{});
+						std::fill(desc.BumpFaceTextures.begin(),	 desc.BumpFaceTextures.end(),	  std::string{});
+						std::fill(desc.SpecularFaceTextures.begin(), desc.SpecularFaceTextures.end(), std::string{});
+						std::fill(desc.EmissiveFaceTextures.begin(), desc.EmissiveFaceTextures.end(), std::string{});
 					}
 					else if (tex.IsMap())
 					{
 						auto& blockName = desc.Name;
-						auto getFaceFunc = [&blockName](std::string name, const YAML::Node& n, std::string& texFileRef)
+						auto getTextureGroup = [&blockName](const YAML::Node& groupNode, std::array<std::string, 6>& faces)
 						{
-							if (!n)
+							if (groupNode && groupNode.IsMap())
 							{
-								DINFO("Block '" + blockName + "' missing expected tag '" + name + "' (expected because textures tag is not 'elsewhere' and is a YAML map)");
-								return;
-							}
-							if (!n.IsScalar())
-							{
-								DINFO("Block '" + blockName + "' contains invalid '" + name + "' tag!");
-								return;
-							}
-							texFileRef = n.Scalar();
-						};
+								auto getFaceFunc = [&blockName](std::string name, const YAML::Node& n, std::string& texFileRef)
+								{
+									if (!n)
+									{
+										DINFO("Block '" + blockName + "' missing expected tag '" + name + "' (expected because textures tag is not 'elsewhere' and is a YAML map)");
+										return;
+									}
+									if (!n.IsScalar())
+									{
+										DINFO("Block '" + blockName + "' contains invalid '" + name + "' tag!");
+										return;
+									}
+									texFileRef = n.Scalar();
+								};
 
-						getFaceFunc("pos-x", tex["pos-x"], desc.FaceTextures[(size_t)BlockFace::POS_X]);
-						getFaceFunc("pos-y", tex["pos-y"], desc.FaceTextures[(size_t)BlockFace::POS_Y]);
-						getFaceFunc("pos-z", tex["pos-z"], desc.FaceTextures[(size_t)BlockFace::POS_Z]);
-						getFaceFunc("neg-x", tex["neg-x"], desc.FaceTextures[(size_t)BlockFace::NEG_X]);
-						getFaceFunc("neg-y", tex["neg-y"], desc.FaceTextures[(size_t)BlockFace::NEG_Y]);
-						getFaceFunc("neg-z", tex["neg-z"], desc.FaceTextures[(size_t)BlockFace::NEG_Z]);
-						_unstitched.emplace_back(desc);
+								getFaceFunc("pos-x", groupNode["pos-x"], faces[(size_t)BlockFace::POS_X]);
+								getFaceFunc("pos-y", groupNode["pos-y"], faces[(size_t)BlockFace::POS_Y]);
+								getFaceFunc("pos-z", groupNode["pos-z"], faces[(size_t)BlockFace::POS_Z]);
+								getFaceFunc("neg-x", groupNode["neg-x"], faces[(size_t)BlockFace::NEG_X]);
+								getFaceFunc("neg-y", groupNode["neg-y"], faces[(size_t)BlockFace::NEG_Y]);
+								getFaceFunc("neg-z", groupNode["neg-z"], faces[(size_t)BlockFace::NEG_Z]);
+							}
+						};
+						
+						getTextureGroup(tex["diffuse"], desc.DiffuseFaceTextures);
+						getTextureGroup(tex["normal"], desc.NormalFaceTextures);
+						getTextureGroup(tex["specular"], desc.SpecularFaceTextures);
+						getTextureGroup(tex["bump"], desc.BumpFaceTextures);
+						getTextureGroup(tex["emissive"], desc.EmissiveFaceTextures);
+
+						if (std::any_of(desc.DiffuseFaceTextures.begin(), desc.DiffuseFaceTextures.end(), [](const std::string& s) { return s.size(); }))
+							_unstitchedDescriptions.emplace_back(desc);
 					}
 					else
 					{
@@ -186,12 +204,11 @@ namespace Voxel
 	void VoxelStore::StitchUnstitched(std::string faceTexDir)
 	{
 		// Currently this must be called once and must be called upon creation
-		if (_unstitched.empty())
-			return;
-
-		UnStitchedAtlasSet unstitched{ "global", std::move(_unstitched) };
-
-		StitchAndLoadAtlas(std::move(unstitched), faceTexDir);
+		if (_unstitchedDescriptions.size())
+		{
+			UnStitchedAtlasSet unstitchedDiffuse{ "global", std::move(_unstitchedDescriptions) };
+			StitchAndLoadAtlas(unstitchedDiffuse, faceTexDir);
+		}
 	}
 
 	void VoxelStore::CheckForNoAtlasses() const
@@ -237,16 +254,16 @@ namespace Voxel
 			return;
 
 		{
-			auto existing = GetAtlas(set.AtlasGroup);
+			auto existing = GetAtlas(set.AtlasPrefix);
 			if (existing)
 			{
-				DWARNING("Overwriting Existing atlas '" + set.AtlasGroup + "'!");
+				DWARNING("Overwriting Existing atlas '" + set.AtlasPrefix + "'!");
 			}
 		}
 
 		auto ptr = std::make_shared<StitchedAtlasSet>(StichAtlas(set, faceTexDir));
 
-		_atlasLookup[set.AtlasGroup] = ptr;
+		_atlasLookup[set.AtlasPrefix] = ptr;
 
 		for (auto& block : ptr->Blocks)
 		{
@@ -260,7 +277,7 @@ namespace Voxel
 	StitchedAtlasSet VoxelStore::StichAtlas(const UnStitchedAtlasSet& set, std::string faceTexDir)
 	{
 		if (set.Blocks.empty())
-			return StitchedAtlasSet{ set.AtlasGroup, nullptr, std::unordered_map<std::string, VoxelBlock>{} };
+			return StitchedAtlasSet{ set.AtlasPrefix, nullptr, nullptr, nullptr, nullptr, nullptr, std::unordered_map<std::string, VoxelBlock>{} };
 
 		MidStitchData data{};
 		int faceSize = DefaultFaceSize;
@@ -270,38 +287,77 @@ namespace Voxel
 		int faceCount = DefaultAtlasLayerFaceCount;
 
 		StitchedAtlasSet stitched;
-		stitched.AtlasName = set.AtlasGroup;
-		stitched.Image = std::make_shared<Drawing::Image2DArray>( (size_t)faceCount * faceSize + (faceCount - 1) * 2, (size_t)faceCount * faceSize + (faceCount - 1) * 2, 1 );
+		stitched.AtlasName = set.AtlasPrefix;
+		stitched.DiffuseImage = std::make_shared<Drawing::Image2DArray>( (size_t)faceCount * faceSize + (faceCount - 1) * 2, (size_t)faceCount * faceSize + (faceCount - 1) * 2, 1 );
+		stitched.SpecularImage = std::make_shared<Drawing::Image2DArray>( (size_t)faceCount * faceSize + (faceCount - 1) * 2, (size_t)faceCount * faceSize + (faceCount - 1) * 2, 1 );
+		stitched.EmissiveImage = std::make_shared<Drawing::Image2DArray>( (size_t)faceCount * faceSize + (faceCount - 1) * 2, (size_t)faceCount * faceSize + (faceCount - 1) * 2, 1 );
+		stitched.NormalImage = std::make_shared<Drawing::Image2DArray>( (size_t)faceCount * faceSize + (faceCount - 1) * 2, (size_t)faceCount * faceSize + (faceCount - 1) * 2, 1 );
+		stitched.BumpImage = std::make_shared<Drawing::Image2DArray>( (size_t)faceCount * faceSize + (faceCount - 1) * 2, (size_t)faceCount * faceSize + (faceCount - 1) * 2, 1 );
 		stitched.Blocks = std::unordered_map<std::string, VoxelBlock>();
 
-		auto& img = stitched.Image;
+		auto& dif = stitched.DiffuseImage;
+		auto& norm = stitched.NormalImage;
+		auto& bump = stitched.BumpImage;
+		auto& spec = stitched.SpecularImage;
+		auto& emis = stitched.EmissiveImage;
 
 		VoxelBlock block;
-		block.AtlasName = set.AtlasGroup;
+		block.AtlasName = set.AtlasPrefix;
 
-		auto addFaceFunc = [&data, &faceSize, &faceSizef, &faceCount, &atlasLayerSize, &faceTexDir, &img](FaceTexCoord& face, const std::string& faceFile)
+		auto getSurfaceFromFile = [&faceSize, &faceTexDir](const std::string& fileName)
 		{
-			auto p = std::filesystem::path(faceFile);
+			if (fileName == "empty" || fileName == "")
+			{
+				SDL_Surface* p = SDL_CreateRGBSurfaceWithFormat(0, faceSize, faceSize, 32, SDL_PIXELFORMAT_RGBA32);
+				SDL_FillRect(p, nullptr, SDL_MapRGBA(p->format, 0, 0, 0, 0xff));
+				return SimpleSurface(p);
+			}
+			std::filesystem::path p{ fileName };
 			if (p.is_relative())
 				p = faceTexDir / p;
-			SimpleSurface faceSurf = Drawing::SDLImage::LoadSurface(p.string());
-			if (!faceSurf)
+			return SimpleSurface(Drawing::SDLImage::LoadSurface(p.string()));
+		};
+
+		auto addFaceFunc = [&data, &faceSize, &faceSizef, &faceCount, &atlasLayerSize, &faceTexDir, &dif, &norm, &bump, &spec, &emis, &getSurfaceFromFile]
+			(FaceTexCoord& face, 
+			const std::string& difFaceFile, 
+			const std::string& specFaceFile, 
+			const std::string& emisFaceFile, 
+			const std::string& normFaceFile, 
+			const std::string& bumpFaceFile)
+		{
+			SimpleSurface difFaceSurf = getSurfaceFromFile(difFaceFile);
+			SimpleSurface specFaceSurf = getSurfaceFromFile(specFaceFile);
+			SimpleSurface emisFaceSurf = getSurfaceFromFile(emisFaceFile);
+			SimpleSurface normFaceSurf = getSurfaceFromFile(normFaceFile);
+			SimpleSurface bumpFaceSurf = getSurfaceFromFile(bumpFaceFile);
+			if (!difFaceSurf)
 				return;
 			SDL_Rect dst;
 			dst.x = data.curX * faceSize + data.curX * 2;
 			dst.y = data.curY * faceSize + data.curY * 2;
 			dst.w = faceSize;
 			dst.h = faceSize;
-			img->SetArea(faceSurf.Get(), dst, data.curLayer);
 
-			if (data.curX > 0)
-				img->SetArea(faceSurf.Get(), SDL_Rect{ 0, 0, 1, faceSize }, SDL_Rect{ dst.x - 1, dst.y, 1, faceSize }, data.curLayer);
-			if (data.curY > 0)
-				img->SetArea(faceSurf.Get(), SDL_Rect{ 0, 0, faceSize, 1 }, SDL_Rect{ dst.x, dst.y - 1, faceSize, 1 }, data.curLayer);
-			if (data.curX < faceCount - 1)
-				img->SetArea(faceSurf.Get(), SDL_Rect{ faceSize - 1, 0, 1, faceSize }, SDL_Rect{ dst.x + faceSize, dst.y, 1, faceSize }, data.curLayer);
-			if (data.curY < faceCount - 1)
-				img->SetArea(faceSurf.Get(), SDL_Rect{ 0, faceSize - 1, faceSize, 1 }, SDL_Rect{ dst.x, dst.y + faceSize, faceSize, 1 }, data.curLayer);
+			auto doFaceThing = [&dst, &data, &faceSize, &faceCount](const std::shared_ptr<Drawing::Image2DArray>& img, const SimpleSurface& surface)
+			{
+				img->SetArea(surface.Get(), dst, data.curLayer);
+				
+				if (data.curX > 0)
+					img->SetArea(surface.Get(), SDL_Rect{ 0, 0, 1, faceSize }, SDL_Rect{ dst.x - 1, dst.y, 1, faceSize }, data.curLayer);
+				if (data.curY > 0)
+					img->SetArea(surface.Get(), SDL_Rect{ 0, 0, faceSize, 1 }, SDL_Rect{ dst.x, dst.y - 1, faceSize, 1 }, data.curLayer);
+				if (data.curX < faceCount - 1)
+					img->SetArea(surface.Get(), SDL_Rect{ faceSize - 1, 0, 1, faceSize }, SDL_Rect{ dst.x + faceSize, dst.y, 1, faceSize }, data.curLayer);
+				if (data.curY < faceCount - 1)
+					img->SetArea(surface.Get(), SDL_Rect{ 0, faceSize - 1, faceSize, 1 }, SDL_Rect{ dst.x, dst.y + faceSize, faceSize, 1 }, data.curLayer);
+			};
+
+			doFaceThing(dif, difFaceSurf);
+			doFaceThing(norm, normFaceSurf);
+			doFaceThing(bump, bumpFaceSurf);
+			doFaceThing(spec, specFaceSurf);
+			doFaceThing(emis, emisFaceSurf);
 
 			face.LowerTexCoord = { (float)dst.x / atlasLayerSize, (float)dst.y / atlasLayerSize, (float)data.curLayer };
 			face.UpperTexCoord = face.LowerTexCoord + floaty3{ faceSizef / atlasLayerSize, faceSizef / atlasLayerSize, 0.f };
@@ -311,7 +367,11 @@ namespace Voxel
 				data.curX = 0;
 				if (++data.curY >= faceCount)
 				{
-					img->AddLayer();
+					dif->AddLayer();
+					norm->AddLayer();
+					bump->AddLayer();
+					spec->AddLayer();
+					emis->AddLayer();
 					++data.curLayer;
 					data.curY = 0;
 				}
@@ -324,13 +384,21 @@ namespace Voxel
 
 			block.Name = desc.Name;
 			for (int j = 0; j < 6; ++j)
-				addFaceFunc(block.FaceTexCoords[j], desc.FaceTextures[j]);
+				addFaceFunc(block.FaceTexCoords[j], desc.DiffuseFaceTextures[j], desc.SpecularFaceTextures[j], desc.EmissiveFaceTextures[j], desc.NormalFaceTextures[j], desc.BumpFaceTextures[j]);
 
 			stitched.Blocks[desc.Name] = block;
 		}
 
-		stitched.Image->LoadGL();
-		stitched.Image->GenerateMipmaps();
+		stitched.DiffuseImage->LoadGL();
+		stitched.DiffuseImage->GenerateMipmaps();
+		stitched.NormalImage->LoadGL();
+		stitched.NormalImage->GenerateMipmaps();
+		stitched.BumpImage->LoadGL();
+		stitched.BumpImage->GenerateMipmaps();
+		stitched.SpecularImage->LoadGL();
+		stitched.SpecularImage->GenerateMipmaps();
+		stitched.EmissiveImage->LoadGL();
+		stitched.EmissiveImage->GenerateMipmaps();
 
 		return stitched;
 	}
