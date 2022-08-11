@@ -1,4 +1,4 @@
-# This file serves as an example and base documentation for creating a 'Voxel Block File' in YAML
+# This file was taken from the example, and also serves as an example and base documentation for creating a 'Voxel Block File' in YAML
 #
 # A 'Voxel Block File' is designed to used to describe 1 or more 'Voxel Blocks'
 # 
@@ -23,7 +23,14 @@
 # The 'block-name' tag determines which block you are defining,
 # The 'atlas' tag determines which atlas the block will belong to
 # The 'textures' tag determines how the textures are atlased, 
-# If the 'textures' tag defines each face's textures (which currently it has to), they will be stitched together onto the given atlas together with other blocks with the same atlas tag
+# The 'textures' tag has up to 5 sub-tags:
+#   - diffuse
+#   - specular
+#   - normal
+#   - emissive
+#   - bump
+# Each sub-tag defines each face's textures, which will be stitched together as part of it's (subtag's) atlas
+# 
 #
 #
 # This example file demonstrates how to define 4 blocks.

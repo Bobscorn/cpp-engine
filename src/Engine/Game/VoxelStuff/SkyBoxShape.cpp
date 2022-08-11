@@ -70,12 +70,23 @@ SkyBoxShape::SkyBoxShape(G1::IShapeThings tings, std::string skybox_prefix, std:
 SkyBoxShape::SkyBoxShape(G1::IShapeThings tings, std::string px_img, std::string nx_img, std::string py_img, std::string ny_img, std::string pz_img, std::string nz_img)
 	: G1::IShape(tings)
 	, FullResourceHolder(tings.Resources)
-	, _tex(std::make_shared<Drawing::CubeMapTexture>(Drawing::SDLImage::LoadSurface(px_img), Drawing::SDLImage::LoadSurface(nx_img), Drawing::SDLImage::LoadSurface(py_img), Drawing::SDLImage::LoadSurface(ny_img), Drawing::SDLImage::LoadSurface(pz_img), Drawing::SDLImage::LoadSurface(nz_img)))
 	, _mesh(std::make_shared<Drawing::Mesh>(Drawing::RawMesh{ Drawing::VertexData::FromGeneric(Drawing::PositionOnly3DDesc, SkyboxVertices.begin(), SkyboxVertices.end()), SkyboxIndices }, Drawing::MeshStorageType::DEDICATED_BUFFER))
 	, _mat(std::make_shared<Drawing::Material>(Drawing::SerializableMaterial{ "skybox", "skybox-prog", {}, {} }.ToMaterial()))
 	, _trans(std::make_shared<Matrixy4x4>(Matrixy4x4::Identity()))
 	, _drawCall(mResources->Ren3v2->SubmitDrawCall(Drawing::DrawCallv2(_mesh, _mat, _trans, "Skybox shape", true)))
 {
+	auto px = Drawing::SDLImage::LoadSurface(px_img);
+	auto nx = Drawing::SDLImage::LoadSurface(nx_img);
+	auto py = Drawing::SDLImage::LoadSurface(py_img);
+	auto ny = Drawing::SDLImage::LoadSurface(ny_img);
+	auto pz = Drawing::SDLImage::LoadSurface(pz_img);
+	auto nz = Drawing::SDLImage::LoadSurface(nz_img);
+
+	if (px && nx && py && ny && pz && nz)
+	{
+		_tex = std::make_shared<Drawing::CubeMapTexture>(px, nx, py, ny, pz, nz);
+	}
+
 	_mat->Textures["diffuse"] = Drawing::TextureReference{ _tex };
 }
 

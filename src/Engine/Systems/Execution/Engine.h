@@ -123,8 +123,8 @@ namespace Engine
 
 		SDLW::Window Win;
 		GLRen Ren;
-		Config1::UIConfig UIC;
 		std::unique_ptr<Config::IConfigThrone> Config;
+		Config1::UIConfig UIC;
 		float HalfWinWidth{ 0.f }, HalfWinHeight{ 0.f };
 		double DpiScale = 1.0;
 		double InvDpiScale = 1.0;

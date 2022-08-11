@@ -46,6 +46,8 @@
 
 #define _CHEATS_
 
+extern void OutputSizeTest();
+
 std::unique_ptr<Engine::IEngine> g_Engine;
 
 struct EventReporter
@@ -156,7 +158,7 @@ int main(int argc, char *args[])
 
 	std::cout << "Encapsulated!" << std::endl;
 	std::cout << ".." << std::endl;
-	
+
 	bool Init = true;
 
 	Uint32 flags = SDL_INIT_VIDEO;
@@ -248,9 +250,11 @@ int main(int argc, char *args[])
 		if (Audio::TestForALError(Audio::ALErrorGuy{ "Creating Context" }))
 			throw std::exception{ "Failed to Create Context or something" };
 		*/
-
-
+		
 		g_Engine = std::make_unique<Engine::GameEngine>();
+		DINFO("Yo whats popping my bois");
+		auto* chungo = new char[10]{ '0' };
+		delete[] chungo;
 		Run();
 	}
 	catch (Debug::GLExc &e)

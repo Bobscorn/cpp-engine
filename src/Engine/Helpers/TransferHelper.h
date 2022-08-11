@@ -102,9 +102,9 @@ struct FullResourceHolder
 protected:
 	CommonResources *mResources;
 public:
-	FullResourceHolder(CommonResources *resources = nullptr) : mResources(resources) {}
-	virtual ~FullResourceHolder() {}
+	FullResourceHolder(CommonResources* resources = nullptr);
+	virtual ~FullResourceHolder();
 
-	inline void SetResources(CommonResources *resources) { mResources = resources; }
-	inline CommonResources *GetResources() const { return mResources; }
+	void SetResources(CommonResources* resources);
+	CommonResources* GetResources() const;
 };

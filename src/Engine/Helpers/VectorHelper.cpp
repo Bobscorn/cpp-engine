@@ -8,6 +8,11 @@
 #include <SDL.h>
 #endif
 
+void OutputSizeTest()
+{
+	DINFO("Library sizeof void*: " + std::to_string(sizeof(void*)));
+}
+
 floaty4::floaty4(SDL_Color color) : x(((float)color.r) / 255.f), y(((float)color.g) / 255.f), z(((float)color.b) / 255.f), w(((float)color.a) / 255.f) {}
 
 Matrixy4x4 Matrixy4x4::Multiply(const Matrixy4x4 & a, const Matrixy4x4 & b)

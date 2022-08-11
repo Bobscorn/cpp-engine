@@ -26,6 +26,12 @@ namespace Drawing
 	void TextureStore::LoadImageDirectory(std::string directory)
 	{
 		std::array<std::string, 4> imgExtensions = { ".png", ".jpg", ".jpeg", ".bmp" };
+		if (!std::filesystem::exists(directory) || !std::filesystem::is_directory(directory))
+		{
+			DERROR("Texture Directory does not exist!");
+			DERROR("Please copy textures to the correct directory!");
+			return;
+		}
 		for (auto& entry : std::filesystem::directory_iterator{ directory })
 		{
 			if (entry.exists() && entry.is_regular_file())

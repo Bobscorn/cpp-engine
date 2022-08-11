@@ -1,0 +1,433 @@
+#version 420 core
+
+#define MAX_LIGHT_COUNT 32
+#define MAX_SHADOW_LIGHT_COUNT 8
+
+#define LIGHT_POINT 0u
+#define LIGHT_SPOT 1u
+#define LIGHT_DIRECTION 2u
+
+#define COLOR_NORMAL 0u
+#define COLOR_NEGATIVE 1u
+#define COLOR_INVERTED 2u
+#define COLOR_INFRARED_FAKE 3u
+
+#define BIT_AMBIENT 0x1
+#define BIT_EMISSIZE 0x2
+#define BIT_DIFFUSE 0x4
+#define BIT_SPECULAR 0x8
+#define BIT_SPECPOW 0x10
+#define BIT_NORMAL 0x20
+#define BIT_BUMP 0x40
+#define BIT_OPACITY 0x80
+
+struct Material
+{
+	vec4 AmbientColor;
+	vec4 EmissiveColor;
+	vec4 DiffuseColor;
+	vec4 SpecularColor;
+	float IOR;
+	uint TexBitmap;
+	vec2 Padding;
+};
+
+struct Light
+{
+	vec4 PositionWS;
+	vec4 DirectionWS;
+	vec4 PositionVS;
+	vec4 DirectionVS;
+	vec3 Color;
+	float SpotlightAngle;
+	vec3 Attenuation;
+	float Range;
+	int Enabled;
+	uint Type;
+	vec2 Padding;
+};
+
+
+
+layout(std140) uniform MaterialBuffer
+{
+	Material Mat;
+};
+
+layout(std140) uniform Lights
+{
+	Light lights[MAX_LIGHT_COUNT];
+};
+
+struct LightingResult
+{
+    vec3 Diffuse;
+    vec3 Specular;
+};
+
+layout(std140) uniform TextureScales
+{
+	vec2 DiffuseScale;
+	vec2 OpacityScale;
+	vec2 AmbientScale;
+	vec2 EmissiveScale;
+	vec2 SpecularScale;
+	vec2 SpecularPowerScale;
+	vec2 NormalScale;
+	vec2 BumpScale;
+};
+
+uniform sampler2DArray DiffuseTexture;
+uniform sampler2DArray OpacityTexture;
+uniform sampler2DArray AmbientTexture;
+uniform sampler2DArray EmissiveTexture;
+uniform sampler2DArray SpecularTexture;
+uniform sampler2DArray SpecularPowerTexture;
+uniform sampler2DArray NormalTexture;
+uniform sampler2DArray BumpTexture;
+
+
+
+//uniform sampler2D ShadowMaps[MAX_SHADOW_LIGHT_COUNT];
+
+// ^
+// Structs
+// Functions
+// v
+
+vec3 ExpandNormal(vec3 n)
+{
+    return n * 2.0 - 1.0;
+}
+ 
+vec4 NormalMapping(mat3 TBN, sampler2DArray s, vec3 uv)
+{
+    vec3 normal = texture(s, uv).xyz;
+    normal = ExpandNormal(normal);
+ 
+    // Convert normal from tangent space to view space.
+    normal = TBN * normal;
+    return normalize(vec4(normal, 0));
+}
+
+vec4 BumpMapping(mat3 TBN, vec3 uv, float bumpScale)
+{
+    // Sample the heightmap at the current texture coordinate.
+    float height = texture(BumpTexture, uv).r;
+    // Sample the heightmap in the U texture coordinate direction.
+    float heightU = textureOffset(BumpTexture, uv, ivec2(1, 0)).r;
+    // Sample the heightmap in the V texture coordinate direction.
+    float heightV = textureOffset(BumpTexture, uv, ivec2(0, 1)).r;
+ 
+    vec3 p = { 0.0, 0.0, height };
+    vec3 pU = { 1.0, 0.0, heightU };
+    vec3 pV = { 0.0, 1.0, heightV };
+ 
+    // Normal = tangent x bitangent
+    vec3 nor = cross(normalize(pU - p), normalize(pV - p));
+ 
+    // Convert normal from tangent space to view space.
+    nor = TBN * nor;
+ 
+    return vec4(nor, 0);
+}
+
+LightingResult Negative(LightingResult lin)
+{
+    lin.Diffuse *= -1.0;
+    lin.Specular *= -1.0;
+    return lin;
+}
+
+LightingResult Normal(LightingResult lin)
+{
+    return lin;
+}
+
+LightingResult Inverted(LightingResult lin)
+{
+    LightingResult outahere;
+	outahere.Specular = vec3(0.0, 0.0, 0.0);
+    outahere.Diffuse.r = 1.0 - lin.Diffuse.r;
+    outahere.Diffuse.g = 1.0 - lin.Diffuse.g;
+    outahere.Diffuse.b = 1.0 - lin.Diffuse.b;
+    return outahere;
+}
+
+LightingResult InfraredFake(LightingResult lin)
+{
+    lin.Diffuse.r = abs(lin.Diffuse.r - 1) * -1.0 + 1.0;
+    lin.Diffuse.g = abs(lin.Diffuse.g - 2) * -1.0 + 1.0;
+    lin.Diffuse.b = abs(lin.Diffuse.b - 3) * -1.0 + 1.0;
+    return lin;
+}
+
+vec3 DiffuseLighting(Light light, vec4 L, vec4 N)
+{
+    float NdotL = max(dot(N, L), 0);
+    return light.Color * NdotL;
+}
+
+vec3 SpecularLighting(Light light, Material material, vec4 V, vec4 L, vec4 N)
+{
+    vec4 R = normalize(reflect(-L, N));
+    float RdotV = max(dot(R, V), 0.0);
+ 
+    return vec3(light.Color * pow(RdotV, material.SpecularColor.w));
+}
+
+float AttenuateLight(Light light, float d)
+{
+	return 1.0 / (light.Attenuation.x + light.Attenuation.y * d + light.Attenuation.z * (d * d));
+}
+
+LightingResult PointLighting(Light light, Material mat, vec4 V, vec4 P, vec4 N)
+{
+    LightingResult result;
+	
+    vec4 L = light.PositionVS - P;
+    float distance = length(L);
+    L.x = L.x / distance;
+	L.y = L.y / distance;
+	L.z = L.z / distance;
+	L.w = L.w / distance;
+ 
+    float attenuation = AttenuateLight(light, distance);
+ 
+    result.Diffuse = DiffuseLighting(light, L, N) * attenuation;
+    result.Specular = SpecularLighting(light, mat, V, L, N) * attenuation;
+ 
+    return result;
+}
+
+float SpotCone(Light light, vec4 L)
+{
+    // If the cosine angle of the light's direction 
+    // vector and the vector from the light source to the point being 
+    // shaded is less than minCos, then the spotlight contribution will be 0.
+    float minCos = cos(light.SpotlightAngle);
+    // If the cosine angle of the light's direction vector
+    // and the vector from the light source to the point being shaded
+    // is greater than maxCos, then the spotlight contribution will be 1.
+    float maxCos = mix(minCos, 1.0, 0.5);
+    float cosAngle = dot(light.DirectionVS, -L);
+    // Blend between the minimum and maximum cosine angles.
+    return smoothstep(minCos, maxCos, cosAngle);
+}
+
+LightingResult SpotLighting(Light light, Material mat, vec4 V, vec4 P, vec4 N)
+{
+    LightingResult result;
+ 
+    vec4 L = light.PositionVS - P;
+    float distance = length(L);
+    L = L / distance;
+ 
+    float attenuation = AttenuateLight(light, distance);
+    float spotIntensity = SpotCone(light, L);
+ 
+    result.Diffuse = DiffuseLighting(light, L, N) * attenuation * spotIntensity;
+    result.Specular = SpecularLighting(light, mat, V, L, N) * attenuation * spotIntensity;
+ 
+    return result;
+}
+
+LightingResult DirectionalLighting(Light light, Material mat, vec4 V, vec4 P, vec4 N)
+{
+    LightingResult result;
+ 
+    vec4 L = normalize(-light.DirectionVS);
+ 
+    result.Diffuse	= DiffuseLighting(light, L, N);
+    result.Specular = SpecularLighting(light, mat, V, L, N);
+ 
+    return result;
+}
+
+LightingResult Lighting(Material mat, vec4 Point, vec4 N)
+{
+	vec4 eyePos = { 0.0, 0.0, 0.0, 1.0 };
+    vec4 V = normalize(eyePos - Point);
+ 
+    LightingResult totalResult;
+	totalResult.Diffuse = vec3(0.0, 0.0, 0.0);
+	totalResult.Specular = vec3(0.0, 0.0, 0.0);
+ 
+    for (int i = 0; i < MAX_LIGHT_COUNT; ++i)
+    {
+        LightingResult result;
+		Light light = lights[i];
+
+        // Skip lights that are not enabled.
+        if (light.Enabled == 0)
+			continue;
+        // Skip point and spot lights that are out of range of the point being shaded.
+        if (light.Type != LIGHT_DIRECTION &&
+             length(light.PositionVS - Point) > light.Range)
+            continue;
+ 
+        switch (light.Type)
+        {
+        case LIGHT_DIRECTION:
+        {
+            result = DirectionalLighting(light, mat, V, Point, N);
+        }
+        break;
+        case LIGHT_POINT:
+        {
+            result = PointLighting(light, mat, V, Point, N);
+        }
+        break;
+        case LIGHT_SPOT:
+        {
+            result = SpotLighting(light, mat, V, Point, N);
+        }
+        break;
+        }
+
+        totalResult.Diffuse += result.Diffuse;
+        totalResult.Specular += result.Specular;
+    }
+
+    return totalResult;
+}
+
+layout(early_fragment_tests) in;
+
+in vec3 PosVS;
+in vec3 TangentVS;
+in vec3 BinormalVS;
+in vec3 NormalVS;
+in vec3 TexOut;
+
+out vec4 FragOut;
+
+void main()
+{	
+	Material mat = Mat;
+
+    vec4 diffuse = mat.DiffuseColor;
+    if ((mat.TexBitmap & BIT_DIFFUSE) != 0)
+    {
+        vec4 diffuseTex = texture(DiffuseTexture, TexOut);
+        if (diffuse.r != 0.0 || diffuse.g != 0.0 || diffuse.b != 0.0)
+        {
+            diffuse *= diffuseTex;
+        }
+        else
+        {
+            diffuse = diffuseTex;
+        }
+    }
+
+    float alpha = diffuse.a;
+    if ((mat.TexBitmap & BIT_OPACITY) != 0)
+    {
+    // If the material has an opacity texture, use that to override the diffuse alpha.
+        alpha = texture(OpacityTexture, TexOut).r;
+    }
+
+	// ^
+	// Diffuse
+	// Ambient/Emissive (+ Specular Power)
+	// v
+
+    vec3 ambient = mat.AmbientColor.xyz;
+    if ((mat.TexBitmap & BIT_AMBIENT) != 0)
+    {
+        vec3 ambientTex = texture(AmbientTexture, TexOut).xyz;
+        if (ambient.r != 0.0 || ambient.g != 0.0 || ambient.b != 0.0)
+        {
+            ambient *= ambientTex;
+        }
+        else
+        {
+            ambient = ambientTex;
+        }
+    }
+ 
+    vec3 emissive = mat.EmissiveColor.xyz;
+    if ((mat.TexBitmap & BIT_EMISSIZE) != 0)
+    {
+        vec3 emissiveTex = texture(EmissiveTexture, TexOut).xyz;
+        if (emissive.r != 0.0 || emissive.g != 0.0 || emissive.b != 0.0)
+        {
+            emissive *= emissiveTex;
+        }
+        else
+        {
+            emissive = emissiveTex;
+        }
+    }
+
+    if ((mat.TexBitmap & BIT_SPECPOW) != 0)
+    {
+        mat.SpecularColor.w *= texture(SpecularPowerTexture, TexOut).r;
+    }
+
+	// ^
+	// Ambient/Emissive (+ Specular Power)
+	// Bump/Normal Mapping
+	// v
+	
+    vec4 N;
+    if ((mat.TexBitmap & BIT_NORMAL) != 0)
+    {
+		// For scenes with normal mapping, I don't have to invert the binormal.
+        mat3 TBN = mat3(normalize(TangentVS),
+								normalize(BinormalVS),
+								normalize(NormalVS));
+ 
+        N = NormalMapping(TBN, NormalTexture, TexOut);
+    }
+    // Bump mapping
+    else if ((mat.TexBitmap & BIT_BUMP) != 0)
+    {
+		// For most scenes using bump mapping, I do have to invert the binormal.
+        mat3 TBN = mat3(normalize(TangentVS),
+								normalize(-BinormalVS),
+								normalize(NormalVS));
+ 
+        N = BumpMapping(TBN, TexOut, 1.0);
+    }
+    else
+    {
+        N = normalize(vec4(NormalVS, 0));
+    }
+
+	// ^
+	// Bump/Normal Mapping
+	// Lighting
+	// v
+
+    vec4 P = vec4(PosVS, 1);
+ 
+    LightingResult lit = Lighting(mat, P, N);
+ 
+    diffuse *= vec4(lit.Diffuse.rgb, 1.0); // Discard the alpha value from the lighting calculations.
+ 
+	// ^
+	// Lighting
+	// Specular
+	// v
+    vec3 specular = vec3(0.0, 0.0, 0.0);
+    if (mat.SpecularColor.w > 1.0) // Spec powers less than 1 are insignificant, so ignored
+    {
+        specular = mat.SpecularColor.xyz;
+        if ((mat.TexBitmap & BIT_SPECULAR) != 0)
+        {
+            vec3 specularTex = texture(SpecularTexture, TexOut).xyz;
+            if (specular.r != 0.0 || specular.g != 0.0 || specular.b != 0.0)
+            {
+                specular *= specularTex;
+            }
+            else
+            {
+                specular = specularTex;
+            }
+        }
+        specular *= lit.Specular;
+    }
+ 
+    FragOut = vec4((ambient + emissive + diffuse.xyz + specular).rgb, alpha * mat.DiffuseColor.w);
+}

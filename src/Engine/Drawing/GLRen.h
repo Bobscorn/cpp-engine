@@ -260,7 +260,7 @@ protected:
 	bool NeedUpdate = false;
 };
 
-struct GLRen : IRen2D, IRen3D, Particles::IParticleDrawer, virtual FullResourceHolder, Drawing::IDrawGuy, Drawing::ISorterGuy, Drawing::IMaterialGuy//, Drawing::IMatrixGuy
+struct GLRen : IRen2D, IRen3D, Particles::IParticleDrawer, FullResourceHolder, Drawing::IDrawGuy, Drawing::ISorterGuy, Drawing::IMaterialGuy//, Drawing::IMatrixGuy
 {
 	GLRen(CommonResources *resources);
 

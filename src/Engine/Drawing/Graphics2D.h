@@ -30,6 +30,7 @@ protected:
 
 struct IRen2D
 {
+	IRen2D() {}
 	virtual ~IRen2D() {}
 
 	virtual void DrawPoint(floaty2 point, floaty4 color) = 0;

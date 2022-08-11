@@ -234,3 +234,162 @@ cpp-engine does use a config file, the file is something like <executable direct
 Currently this just saves the last position, size, and fullscreen state of the application's last session
 Deleting it is perfectly fine
 There is currently no option to prevent cpp-engine to not create this file
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### New library requirements
+
+Libraries moved outside of source.
+
+So clone:
+- [SDL2](https://github.com/libsdl-org/SDL)
+- [SDL_image](https://github.com/libsdl-org/SDL_image)
+- [SDL_ttf](https://github.com/libsdl-orf/SDL_ttf)
+	- [Freetype](https://gitlab.freedesktop.org/freetype/freetype)
+- [OpenAL](https://github.com/kcat/openal-soft)
+- [Bullet Physics](https://github.com/bulletphysics/bullet3)
+- [zlib](https://github.com/madley/zlib)
+- [Assimp](https://github.com/assimp/assimp)
+- OpenGL/glu
+- [GLEW](https://github.com/nigels-com/glew)
+- [yaml-cpp](https://github.com/jbeder/yaml-cpp)
+- (gzip?)
+
+
+We now build each individual dependency on its own (we used to build them as subdirectories before).
+To make sure it uses msvc (windows), you may wish to use the powershell/cmd for vs2022 (or vs any version) (Developer Powershell for VS 2022 is one of the names).
+This will help cmake use and find the correct compiler.
+
+Otherwise for mingw, specify either the "MinGW Makefiles" generator for cmake, or pass -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ to the cmake generation command, and make sure gcc and g++ are added to path.
+Make sure you compile each library with the same compiler and options.
+
+For building All of the packages, you may use a different generator or compiler, and may build and install them to different places.
+For consistency these steps use the Ninja generator, inside a Developer Powershell for VS 2022, where cmake chooses the msvc compiler.
+These steps should be reproducible with MinGW or any other compiler, simply specify `-DCMAKE_C_COMPILER=<path to C compiler> -DCMAKE_CXX_COMPILER=<path to c++ compiler>` at config time.
+These steps place each package's build folder in the same location as the source folder in build/.
+For installation these steps place each package's install files into `<package dir>/../install`.
+This puts all package install files into the same folder.
+These steps assume you have cloned all packages into the same directory.
+
+You may also explicitly specify building in Release mode by adding `-DCMAKE_BUILD_TYPE=Release` to the cmake configure steps.
+Or with multi-config generators, you may simply specify at build time which configuration to build (--config Debug/--config Release).
+Example explicitly setting the build type at config time:
+
+    cmake -B build -DCMAKE_BUILD_TYPE=Release
+    
+Example explicitly setting the build type at build time:
+    
+    <run cmake config step>
+    cmake --build build --config Release
+
+Ensure that you compile all packages with the same compiler, built for the same architecture. Mixing debug and release should not cause problems, but may do so anyway.
+Also ensure that you properly specify correct paths when building packages that depend on one another, and give cpp-engine the correct paths to the libraries.
+
+
+## Per Package building
+    
+For building bullet:
+    Use regular cmake syntax,
+    It must build at least the Release build, (Debug can be added but the find_package will fail for bullet if there isn't release libraries)
+    It must have -DINSTALL_LIBS=ON to install properly
+    It must have -DUSE_MSVC_RUNTIME_LIBRARY_DLL=ON on windows (unless you are building everything to use static msvc runtime)
+    
+    cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DINSTALL_LIBS=ON -DUSE_MSVC_RUNTIME_LIBRARY_DLL=ON
+    cmake --build build
+    cmake --install build --prefix ../install
+
+For building ZLIB:
+    Use regular cmake syntax, also specifying at config time the install prefix:
+    
+    cmake -B build -G "Ninja" -DCMAKE_INSTALL_PREFIX="../install"
+    cmake --build build
+    cmake --install build
+
+For building SDL2:
+	Use regular cmake syntax:
+	
+    cmake -B build -G "Ninja"
+    cmake --build build
+    cmake --install build --prefix "../install"
+
+For building SDL_image:
+	Then use regular cmake syntax, specifying the install prefix at config time, and the CMAKE_PREFIX_PATH:
+    
+    cmake -B build -G "Ninja" -DCMAKE_PREFIX_PATH="../install" -DCMAKE_INSTALL_PREFIX="../install" 
+    cmake --build build
+    cmake --install build
+
+For building freetype:
+    Use regular cmake syntax with CMAKE_PREFIX_PATH:
+    
+    cmake -B build -G "Ninja" -DCMAKE_PREFIX_PATH="../install"
+    cmake --build build
+    cmake --install build --prefix ../install
+    
+For building SDL_ttf
+    Use regular cmake syntax with CMAKE_PREFIX_PATH and BUILD_SHARED_LIBS:
+    
+    cmake -B build -G "Ninja" -DCMAKE_PREFIX_PATH="../install" -DBUILD_SHARED_LIBS=ON
+    cmake --build build
+    cmake --install build --prefix ../install
+
+For building Assimp:
+Use regular cmake syntax:
+However when installing, at least on windows you will have to move the assimp-vc142-mtd.pdb (or whatever file the script complains about) file from <build dir>/bin/ to <build dir>/code/
+    
+    cmake -B build -G "Ninja"
+    cmake --build build
+    # example copying
+    cp build/bin/assimp-vc142-mtd.pdb build/code/assimp-vc
+    cmake --install build --prefix ../install
+    
+For building open-al:
+Use regular cmake syntax:
+
+        cmake -B build -G "Ninja"
+        cmake --build build
+        cmake --install build --prefix ../install
+        
+For building glew:
+Use regular cmake syntax:
+Except the cmakelists is inside <glew dir>/build/cmake/ rather than directly inside <glew dir>/
+
+    cd build/cmake/
+    cmake -B build -G "Ninja"
+    cmake --build build
+    cmake --install build --prefix ../../../install
+
+For building yaml-cpp:
+Use regular cmake syntax also specifying BUILD_SHARED_LIBS:
+
+        cmake -B build -G "Ninja" -DBUILD_SHARED_LIBS=ON
+        cmake --build build
+        cmake --install build --prefix ../install
+
+And that's it.
+
+To now build with these dependancies, if you have installed all packages into <cpp-engine-dir>/../install/ you can build the engine by simply running:
+    
+    cmake -B build -G "Ninja" -DCMAKE_PREFIX_PATH="../install"
+    cmake --build build
+    cmake --install build
+    
+Or you can leave it blank, it will default to "../install" if not explicitly set.
+If you have installed packages to another directory, you will have to adjust the CMAKE_PREFIX_PATH accordingly.
+I believe (but have not tested) you can define the CMAKE_PREFIX_PATH as a list of paths using semicolons as separators.
+This means if you have installed packages into more than one directory, you can specify these directories as well.
+Otherwise for platforms like linux, you will likely not have to build these yourself, and can instead install them using your package manager.
+CMake should find installed packages as per normal.
+    

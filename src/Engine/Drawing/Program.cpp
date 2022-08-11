@@ -52,7 +52,12 @@ namespace Drawing
 			auto pathStr = path.string();
 			return pathStr;
 		};
-				
+		if (!std::filesystem::exists(directory) || !std::filesystem::is_directory(directory))
+		{
+			DERROR("Program directory does not exist!");
+			DERROR("Please copy programs to correct directory!");
+			return;
+		}
 		for (auto& dir_entry : std::filesystem::directory_iterator(directory))
 		{
 			if (dir_entry.exists() && dir_entry.is_regular_file() && dir_entry.path().extension() == ".prog")

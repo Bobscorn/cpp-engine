@@ -29,6 +29,8 @@ void SDLW::Font::ScaleSize(float scaleby)
 	Create(desc.size * scaleby);
 }
 
+extern void test_memory();
+
 SDLW::Window::Window(Stringy workdir, Stringy configfile, Uint32 flags) : WindowConfig(workdir, configfile) 
 { 
 	if (Maximized)
@@ -36,8 +38,7 @@ SDLW::Window::Window(Stringy workdir, Stringy configfile, Uint32 flags) : Window
 	else if (FullScreen)
 		flags |= SDL_WINDOW_FULLSCREEN;
 
-	Create(Title, X, Y, Width, Height, flags); 
-
+	Create(Title, X, Y, Width, Height, flags);
 }
 
 void SDLW::Window::Create(char const * title, int x, int y, int width, int height, Uint32 flags)

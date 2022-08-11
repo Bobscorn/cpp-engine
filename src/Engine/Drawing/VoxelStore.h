@@ -39,6 +39,8 @@
 
 namespace Voxel
 {
+	// The pixel size of a single block face
+	// All face textures are assumed to be this size
 	constexpr int DefaultFaceSize = 1024;
 	constexpr int DefaultAtlasLayerFaceCount = 1;
 
