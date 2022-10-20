@@ -1,7 +1,7 @@
 #pragma once
 
-#include "VectorHelper.h"
 #include "DebugHelper.h"
+#include "Math/inty.h"
 
 #include <string>
 #include <random>
@@ -15,6 +15,11 @@ struct SDLRen2D;
 struct IRen2D;
 struct IRen3D;
 
+namespace Engine
+{
+	struct IEngine;
+}
+
 namespace Particles
 {
 	struct IParticleDrawer;
@@ -23,10 +28,6 @@ namespace Particles
 namespace Events
 {
 	class EventManager;
-}
-namespace Scene
-{
-	struct SceneManager;
 }
 namespace Config1
 {
@@ -58,8 +59,14 @@ namespace Drawing
 	struct IRen3Dv2;
 }
 
+namespace Time
+{
+	class Time;
+}
+
 struct CommonResources
 {
+	Engine::IEngine						* Engine;
 #ifdef EC_PROFILE
 	ProfileMcGee						*Profile;
 #endif
@@ -69,7 +76,6 @@ struct CommonResources
 	Particles::IParticleDrawer			*Particles;
 	SDL_Window							*Window;
 	Events::EventManager				*Event;
-	Scene::SceneManager					*Scene;
 	Requests::Requester					*Request;
 	InputAttach::AttachmentManager		*InputAttachment;
 	Config1::UIConfig					*UIConfig;
@@ -91,9 +97,10 @@ struct CommonResources
 	const double						*TargetUpdateInterval; // Used by physics
 	const float							*AspectRatio;
 	const unsigned int					*UpdateID;
-	const PointU						*MousePosition; // Polled every frame
+	const Vector::inty2					*MousePosition; // Polled every frame
 	const bool							*WindowFocused;
 	const bool							*MouseChangedPosition;
+	Time::Time							*Time;
 };
 
 

@@ -12,7 +12,7 @@ namespace Drawing
 	{
 		GLint maxUniforms = 0;
 		glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxUniforms);
-		if (_next >= maxUniforms)
+		if (_next >= (GLuint)maxUniforms)
 		{
 			DERROR("Exceeded maximum number of uniform buffer bindings!");
 			throw std::runtime_error("Ran out of OpenGL Uniform Buffer Bindings!");

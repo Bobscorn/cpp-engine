@@ -2,8 +2,6 @@
 
 #include "Helpers/TransferHelper.h"
 #include "Helpers/DebugHelper.h"
-#include "Helpers/ExceptionHelper.h"
-#include "Helpers/SDLHelper.h"
 
 #include "Systems/Execution/ResourceHolder.h"
 
@@ -34,12 +32,12 @@ namespace Drawing
 	public:
 		GLImage() : _tex(0) {}
 		GLImage(GLuint tex) : _tex(tex) {}
-		GLImage(GLImage&& other) : _tex(other._tex) { other._tex = 0; }
+		GLImage(GLImage&& other) noexcept : _tex(other._tex) { other._tex = 0; }
 		GLImage(const GLImage& other) = delete;
 		virtual ~GLImage() { this->Destroy(); }
 
 		GLImage& operator=(const GLImage& other) = delete;
-		inline GLImage& operator=(GLImage&& other)
+		inline GLImage& operator=(GLImage&& other) noexcept
 		{
 			Reset(other.Release());
 			return *this;
@@ -133,9 +131,9 @@ namespace Drawing
 	struct SDLFileImage : SDLImage
 	{
 		SDLFileImage(CommonResources *resources) : SDLImage({ resources, "Unknown" }) {}
-		SDLFileImage(CommonResources *resources, Stringy filename, unsigned int channels = 4) : SDLImage({ resources, filename }, LoadSurface(filename), channels), Filename(filename) {}
+		SDLFileImage(CommonResources *resources, const Stringy& filename, unsigned int channels = 4) : SDLImage({ resources, filename }, LoadSurface(filename), channels), Filename(filename) {}
 		
-		inline void LoadFromFile(Stringy filename, unsigned int channels = 4)
+		inline void LoadFromFile(const Stringy& filename, unsigned int channels = 4)
 		{
 			Reset(LoadSurface(filename));
 			ChannelCount = channels;

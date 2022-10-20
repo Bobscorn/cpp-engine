@@ -163,6 +163,7 @@ bool Perviousity::Player::IControllerState::HasGravity()
 
 bool Perviousity::Player::WalkingState::Receive(Events::IEvent * e)
 {
+	(void)e;
 	return false;
 }
 
@@ -233,6 +234,7 @@ void Perviousity::Player::WalkingState::Reset()
 
 void Perviousity::Player::WalkingState::BeforePhysics(btScalar dt)
 {
+	(void)dt;
 	btVector3 walkdir = { 0.f, 0.f, 0.f };
 	if (m_forwardness)
 		walkdir += GetHorizontalLook() * m_forwardness;
@@ -522,6 +524,7 @@ void Perviousity::Player::PerviousPlayer::AfterDraw()
 
 bool Perviousity::Player::PerviousPlayer::Receive(Events::IEvent * event)
 {
+	(void)event;
 	return false;
 }
 
@@ -540,6 +543,7 @@ bool Perviousity::Player::PerviousPlayer::Receive(Event::WindowFocusEvent * e)
 
 bool Perviousity::Player::PerviousPlayer::Receive(Event::AfterPhysicsEvent * e)
 {
+	(void)e;
 	PROFILE_PUSH("Pervious Player AFE");
 	DoPhys();
 
@@ -999,10 +1003,10 @@ void Perviousity::Player::PerviousPlayer::UpdateCache()
 	if (m_Look.getY() < (1.f - SIMD_EPSILON))
 		m_LookHorizontal.normalize();
 
-	auto right = Cam->GetRight();
-	m_Right = right;
-	m_RightHorizontal.setX(right.x);
-	m_RightHorizontal.setZ(right.z);
+	auto rightDir = Cam->GetRight();
+	m_Right = rightDir;
+	m_RightHorizontal.setX(rightDir.x);
+	m_RightHorizontal.setZ(rightDir.z);
 	if (m_Right.getY() < (1.0 - SIMD_EPSILON))
 		m_RightHorizontal.normalize();
 }
@@ -1624,6 +1628,10 @@ namespace wtf
 			const btCollisionObjectWrapper* colObj0, int partId0, int index0,
 			const btCollisionObjectWrapper* colObj1, int partId1, int index1)
 		{
+			(void)partId0;
+			(void)partId1;
+			(void)index0;
+			(void)index1;
 			if (colObj0->m_collisionObject == body)
 			{
 				data.push_back({ cp.m_normalWorldOnB, cp.getPositionWorldOnB(), cp.getDistance() });
@@ -1689,6 +1697,7 @@ void Perviousity::Shapes::PerviousWall::CheckMaterials()
 
 void Perviousity::Shapes::PerviousWall::EnsurePerviousResources(CommonResources * resources)
 {
+	(void)resources;
 	if (!g_OpaqueMaterial)
 		g_OpaqueMaterial = std::make_shared<struct Material>(OpaqueMaterialData);
 
@@ -1730,7 +1739,7 @@ void Perviousity::Shapes::PerviousWall::EnsurePerviousResources(CommonResources 
 			return;
 		}
 		
-		bool good = true;
+		good = true;
 		Damn::RawNode outer, _1, _2, _3, _4;
 
 		good &= Damn::GetRawNodeFromScene(scene, "Outer", outer, mResources->Ren3);

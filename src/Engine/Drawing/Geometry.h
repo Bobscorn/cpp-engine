@@ -2,9 +2,10 @@
 
 #include <array>
 #include <stdexcept>
+#include <cstring>
+#include <vector>
 
-#include "Helpers/VectorHelper.h"
-#include "Helpers/GLHelper.h"
+#include "Math/floaty.h"
 
 namespace Drawing
 {
@@ -74,6 +75,8 @@ namespace Drawing
 		size_t BinormalOrder;
 		size_t TexCoordSize; // Set to zero to ignore Texture Coordinates
 		size_t TexCoordOrder;
+
+		inline constexpr operator bool() const { return PositionSize > 0; }
 
 		inline bool operator==(const GeometryDescription& other) const
 		{
@@ -196,7 +199,8 @@ namespace Drawing
 	};
 
 	constexpr GeometryDescription PositionOnly3DDesc{ 3, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
-	constexpr GeometryDescription Full3DVertexDesc{ 3, 1, 3, 2, 3, 4, 3, 3, 2, 5 };
+	constexpr GeometryDescription Full3DVertexDesc{ 3, 1, 3, 4, 3, 2, 3, 3, 2, 5 };
+	constexpr GeometryDescription LegacyVertexDesc{ 3, 1, 3, 2, 3, 4, 3, 3, 2, 5 };
 	constexpr GeometryDescription VoxelVertexDesc = VoxelVertex::GetDescription();
 	constexpr GeometryDescription Regular2DVertexDesc{ 2, 1, 0, 0, 0, 0, 0, 0, 2, 2 };
 
@@ -263,6 +267,8 @@ namespace Drawing
 			return desc;
 		}
 
+		static VertexData ConvertGeometry(const VertexData& data, const GeometryDescription& to);
+
 		size_t NumVertices() const;
 		size_t VertexFloatCount() const;
 		inline constexpr size_t VertexByteSize() const { return Description.GetVertexByteSize(); }
@@ -272,7 +278,7 @@ namespace Drawing
 	{
 		VertexData VertexData;
 
-		std::vector<GLuint> Indices;
+		std::vector<unsigned int> Indices;
 	};
 
 	RawMesh CreateCubeMesh();

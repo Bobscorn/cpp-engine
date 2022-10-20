@@ -124,6 +124,11 @@ void G1::IGSpace::AfterDrawShapes(IShape * shape)
 	PROFILE_POP();
 }
 
+G1::IShape* G1::IGSpace::GetRootShape()
+{
+	return &Root;
+}
+
 G1::IShape * G1::IGSpace::FindShapeyRaw(std::string name)
 {
 	if (name == RootShapeName)

@@ -1,8 +1,5 @@
 #pragma once
 
-#include "Helpers/VectorHelper.h"
-#include "Helpers/IntVectorHelper.h"
-
 #include "ProgramReference.h"
 #include "Texture.h"
 
@@ -14,8 +11,6 @@
 
 namespace Drawing
 {
-	using namespace Vector;
-
 	// Temporary class
 	class EpicoTexture
 	{
@@ -60,7 +55,7 @@ namespace Drawing
 	struct MaterialProperty
 	{
 		std::string name;
-		std::array<char, 32> data;
+		std::array<uint8_t, 32> data;
 		MaterialSize size;
 		PropertyType type;
 
@@ -89,19 +84,54 @@ namespace Drawing
 		int CalculateMaterialByteSize() const;
 	};
 
-	struct Material
+	class Material
 	{
-		ProgramReference Program;
+		ProgramReference m_Program;
+		
+		std::unordered_map<std::string, TextureReference> m_Textures;
 
-		std::unordered_map<std::string, TextureReference> Textures;
+		std::unordered_map<std::string, MaterialProperty> m_Properties;
 
-		std::unordered_map<std::string, MaterialProperty> Properties;
+		std::vector<char> m_CachedByteForm;
+		bool m_Dirty = false;
+
+	public:
+		Material() {}
+		Material(ProgramReference program, std::unordered_map<std::string, TextureReference> textures, std::unordered_map<std::string, MaterialProperty> properties) 
+			: m_Program(std::move(program))
+			, m_Textures(std::move(textures))
+			, m_Properties(std::move(properties))
+		{ 
+			m_Dirty = true;
+		}
+		Material(const Material& other) = default;
+
+		Material& operator=(const Material& other) = default;
+
+		const ProgramReference& GetProgram() const;
+		void SetProgram(ProgramReference program);
+		
+		const std::unordered_map<std::string, TextureReference>& GetTextures() const;
+		void SetTexture(const std::string& name, TextureReference texture);
+
+		const std::unordered_map<std::string, MaterialProperty>& GetProperties() const;
+		void SetProperty(const std::string& name, MaterialProperty prop);
+		
 
 		// Uses the Program's MaterialDescription to convert to byte form
-		std::vector<char> ToByteForm();
+		// Returns reference to cached bytes
+		const std::vector<char>& ToByteForm();
 
 		// Converts a composition based Material to byte form using the MaterialDescription
 		static std::vector<char> ConvertBytesViaDescription(const Material& mat, const MaterialDescription& desc);
+
+
+		// Convenience builder functions v
+		Material Clone() const;
+		Material CloneWithProperty(const std::string& name, MaterialProperty prop) const;
+		Material CloneWithTexture(const std::string& name, TextureReference texRef) const;
+		Material& WithProperty(const std::string& name, MaterialProperty prop);
+		Material& WithTexture(const std::string& name, TextureReference texRef);
 	};
 
 	struct SerializableMaterial
@@ -134,7 +164,10 @@ namespace Drawing
 	public:
 		MaterialStore(std::string materialDirectory, std::vector<SerializableMaterial> builtIn = std::vector<SerializableMaterial>());
 
-		std::shared_ptr<Material> GetMaterial(std::string name);
+		void Reload(std::string materialDirectory, std::vector<SerializableMaterial> builtIns = std::vector<SerializableMaterial>());
+
+		std::shared_ptr<Material> GetMaterial(const std::string& name) const;
+		std::shared_ptr<Material> operator[](const std::string& name) const;
 
 		static void InitializeStore(std::string materialDirectory, std::vector<SerializableMaterial> builtIns = std::vector<SerializableMaterial>());
 	};

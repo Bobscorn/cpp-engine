@@ -75,7 +75,16 @@ namespace UI1I
 	// No Scrolling
 	struct ButtonyContainer : UI1::BlankElement
 	{
-		ButtonyContainer(CommonResources *resources) : Image(resources, "background.jpeg") {}
+		enum Alignment
+		{
+			LEFT_ALIGN = 0,
+			TOP_ALIGN = 0,
+			CENTRE_ALIGN = 1,
+			RIGHT_ALIGN = 2,
+			BOTTOM_ALIGN = 2,
+		};
+
+		ButtonyContainer(CommonResources *resources, const std::string& background_img, Alignment x_align = LEFT_ALIGN, Alignment y_align = CENTRE_ALIGN) : FullResourceHolder(resources), Image(resources, background_img), X_Align(x_align), Y_Align(y_align) {}
 
 		Debug::DebugReturn Initialize() override;
 
@@ -111,9 +120,13 @@ namespace UI1I
 
 	protected:
 
+		floaty2 GetAlignmentPosition();
+
 		std::vector<Buttony*> Buttons;
 
 		Drawing::SDLFileImage Image;
+		Alignment X_Align;
+		Alignment Y_Align;
 		Matrixy2x3 ImageTrans;
 		float Scale{ 1.f };
 		float TransX{ 0.f }, TransY{ 0.f };

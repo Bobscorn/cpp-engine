@@ -37,15 +37,17 @@ std::unique_ptr<btCapsuleShape> G1I::DynamicCharacterController::Shape = nullptr
 
 std::array<bool, LIGHT_COUNT> G1I::LightShape::TakenLights = { 0 };
 
-G1I::RenderShape::RenderShape(G1::IGSpace *container, std::vector<FullVertex> vertices, std::vector<unsigned int> indices, Material mat, Matrixy4x4 trans) : IShape(container), World(trans)
+G1I::RenderShape::RenderShape(G1::IGSpace *container, std::vector<FullVertex> vertices, std::vector<unsigned int> indices, Material mat, Matrixy4x4 trans) : World(trans)
 {
+	(void)container;
 	Drawing::DrawCall call = mResources->Ren3->CreateDrawCall(vertices, indices, mat, &World);
 	call.DebugString = GetName();
 	DrawCallKey = mResources->Ren3->AddDrawCall(call);
 }
 
-G1I::RenderShape::RenderShape(G1::IGSpace * container, std::vector<FullVertex> vertices, std::vector<unsigned int> indices, std::shared_ptr<Material> mat, Matrixy4x4 trans) : IShape(container), World(trans)
+G1I::RenderShape::RenderShape(G1::IGSpace * container, std::vector<FullVertex> vertices, std::vector<unsigned int> indices, std::shared_ptr<Material> mat, Matrixy4x4 trans) : World(trans)
 {
+	(void)container;
 	Drawing::DrawCall ass = mResources->Ren3->CreateDrawCall(vertices, indices, &World);
 	ass.Material = mat;
 	ass.DebugString = GetName();
@@ -54,6 +56,7 @@ G1I::RenderShape::RenderShape(G1::IGSpace * container, std::vector<FullVertex> v
 
 G1I::RenderShape::RenderShape(G1::IGSpace * container, Drawing::DrawCall call)
 {
+	(void)container;
 	if (!call.Matrix)
 		call.Matrix = &World;
 
@@ -64,6 +67,10 @@ G1I::RenderShape::RenderShape(G1::IGSpace * container, Drawing::DrawCall call)
 
 G1I::RenderShape::RenderShape(G1::IGSpace * container, std::string filename)
 {
+	(void)container;
+	(void)filename;
+	// deprecated code
+	abort();
 #if false
 #ifdef _DEBUG
 	Assimp::DefaultLogger::create("AssimpLog.txt", Assimp::Logger::LogSeverity::VERBOSE);
@@ -479,6 +486,7 @@ bool G1I::DynamicCharacterController::Receive(Event::KeyInput * key)
 
 bool G1I::DynamicCharacterController::Receive(Event::MouseMove * e)
 {
+	(void)e;
 	return true;
 }
 
@@ -493,6 +501,7 @@ bool G1I::DynamicCharacterController::Receive(Event::MouseButton * e)
 
 bool G1I::DynamicCharacterController::Receive(Event::MouseWheelButton * e)
 {
+	(void)e;
 	return false;
 }
 
@@ -535,6 +544,10 @@ struct GroundCallback : public btCollisionWorld::ContactResultCallback
 		const btCollisionObjectWrapper* colObj0, int partId0, int index0,
 		const btCollisionObjectWrapper* colObj1, int partId1, int index1)
 	{
+		(void)partId0;
+		(void)partId1;
+		(void)index0;
+		(void)index1;
 		// Skip unnecessary dot products if its already proven to be on ground
 		if (OnGround)
 			return 0;
@@ -1042,6 +1055,9 @@ void G1I::ProfilerShape::ReportProfiling()
 
 void G1I::ProfilerShape::ReportProfiling(double time)
 {
+#ifndef EC_PROFILE
+	(void)time;
+#else
 	if (!m_Info.Running)
 		return;
 
@@ -1070,15 +1086,14 @@ void G1I::ProfilerShape::ReportProfiling(double time)
 	DINFO("With a range of " + std::to_string(rangelow) + "-" + std::to_string(rangehigh));
 	DINFO("Querying ProfilerMcGee...");
 	
-#ifdef EC_PROFILE
 	const auto &stats = mResources->Profile->Finish(true);
-#endif
 
 	DINFO("Writing frames to file 'profile.txt'");
 
 	BigBoiStats::WriteToFile(stats, "profile.txt");
 
 	DINFO("-----------End Profiling----------------");
+#endif
 }
 
 G1I::GLRen2TestShape::GLRen2TestShape(G1::IShapeThings tings) 

@@ -39,12 +39,13 @@ struct Light
 	vec4 PositionVS;
 	vec4 DirectionVS;
 	vec3 Color;
-	float SpotlightAngle;
+    float Intensity;
 	vec3 Attenuation;
+	float SpotlightAngle;
 	float Range;
 	int Enabled;
 	uint Type;
-	vec2 Padding;
+	float Padding;
 };
 
 
@@ -194,8 +195,8 @@ LightingResult PointLighting(Light light, Material mat, vec4 V, vec4 P, vec4 N)
  
     float attenuation = AttenuateLight(light, distance);
  
-    result.Diffuse = DiffuseLighting(light, L, N) * attenuation;
-    result.Specular = SpecularLighting(light, mat, V, L, N) * attenuation;
+    result.Diffuse = DiffuseLighting(light, L, N) * attenuation * light.Intensity;
+    result.Specular = SpecularLighting(light, mat, V, L, N) * attenuation * light.Intensity;
  
     return result;
 }
@@ -226,8 +227,8 @@ LightingResult SpotLighting(Light light, Material mat, vec4 V, vec4 P, vec4 N)
     float attenuation = AttenuateLight(light, distance);
     float spotIntensity = SpotCone(light, L);
  
-    result.Diffuse = DiffuseLighting(light, L, N) * attenuation * spotIntensity;
-    result.Specular = SpecularLighting(light, mat, V, L, N) * attenuation * spotIntensity;
+    result.Diffuse = DiffuseLighting(light, L, N) * attenuation * spotIntensity * light.Intensity;
+    result.Specular = SpecularLighting(light, mat, V, L, N) * attenuation * spotIntensity * light.Intensity;
  
     return result;
 }
@@ -238,8 +239,8 @@ LightingResult DirectionalLighting(Light light, Material mat, vec4 V, vec4 P, ve
  
     vec4 L = normalize(-light.DirectionVS);
  
-    result.Diffuse	= DiffuseLighting(light, L, N);
-    result.Specular = SpecularLighting(light, mat, V, L, N);
+    result.Diffuse	= DiffuseLighting(light, L, N) * light.Intensity;
+    result.Specular = SpecularLighting(light, mat, V, L, N) * light.Intensity;
  
     return result;
 }

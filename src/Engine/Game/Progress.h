@@ -41,6 +41,8 @@ protected:
 
 struct IStageCreator
 {
+	virtual ~IStageCreator() {}
+
 	virtual std::unique_ptr<IStage> Create(CommonResources *resources, IStageManager *man) = 0;
 };
 

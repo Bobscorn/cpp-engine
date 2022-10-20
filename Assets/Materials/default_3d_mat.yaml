@@ -1,0 +1,48 @@
+# Example material yaml file
+# A material file requires these tags:
+# name - the name of this material (example: 'name: EpicGreenGrassMaterial')
+# program - name of the program this material uses (example 'program: Default3DProgram')
+#
+# The actual meat of a material
+
+name: default-3d-material
+program: Default3D
+
+# The children of the properties tag are iterated over
+# The children are expected to be of the form:
+# properties:
+#   [property name]:
+#     type: [int/float]
+#     [x/r/u]: 0.0
+#     [y/g/v]: 1.0
+#     [z/b]:   0.7
+#     [w/a]:   1.0
+# ie:
+# The name of the child is used as the name of the property,
+# The child is scanned for the 'type' tag expected either 'int' or 'float'
+# If the type is omitted, it is assumed as floating point, as it is here
+# And then the child is scanned for x/y/z/w or r/g/b/a, or u/v components containing their integral/floating point values
+properties:
+    diffuse:
+        size: 4
+        r: 1.0
+        g: 0.5
+        b: 0.5
+        a: 1.0
+    specular:
+        size: 4
+        r: 0.25
+        g: 0.25
+        b: 0.25
+        a: 25.0
+    ambient:
+        size: 4
+        r: 0.05
+        g: 0.05
+        b: 0.05
+        a: 1.0
+    tex-bitmap:
+        size: 1
+        type: int
+        x: 0
+# and so on

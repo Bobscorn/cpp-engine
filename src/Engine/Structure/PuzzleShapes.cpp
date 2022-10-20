@@ -156,6 +156,7 @@ void Puzzle::G1I::PuzzlePlayer::AfterDraw()
 
 bool Puzzle::G1I::PuzzlePlayer::Receive(Events::IEvent * event)
 {
+	(void)event;
 	return false;
 }
 
@@ -172,6 +173,7 @@ bool Puzzle::G1I::PuzzlePlayer::Receive(Event::WindowFocusEvent * e)
 
 bool Puzzle::G1I::PuzzlePlayer::Receive(Event::AfterPhysicsEvent * e)
 {
+	(void)e;
 	floaty3 ass(RigidBody->getWorldTransform().getOrigin());
 	ass.y = ass.y + 0.25f * CapsuleHeight;
 	ass.z = -ass.z; // Does a lot
@@ -360,6 +362,10 @@ struct GroundCallback : public btCollisionWorld::ContactResultCallback
 		const btCollisionObjectWrapper* colObj0, int partId0, int index0,
 		const btCollisionObjectWrapper* colObj1, int partId1, int index1)
 	{
+		(void)partId0;
+		(void)partId1;
+		(void)index0;
+		(void)index1;
 		// Skip unnecessary dot products if its already proven to be on ground
 		if (OnGround)
 			return 0;
@@ -632,7 +638,7 @@ Puzzle::G1I::SecondRoom::SecondRoom(G1::IGSpace * container, CommonResources * r
 {
 	if (firstroom)
 	{
-		size_t index = -1;
+		size_t index = 0;
 		for (size_t i = firstroom->children.size(); i-- > 0; )
 			if (firstroom->children[i].get() == firstroom->SecondFloor)
 			{

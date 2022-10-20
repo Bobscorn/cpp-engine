@@ -103,8 +103,8 @@ GeoGen::MeshData GeoGen::GeometryGenerator::CreateSphere(float radius, UINT slic
 	// Poles: note that there will be texture coordinate distortion as there is
 	// not a unique point on the texture map to assign to the pole when mapping
 	// a rectangular texture onto a sphere.
-	FullVertex topFullVertex{ { 0.0f, +radius, 0.0f }, { 1.f, 0.f, 0.f }, { 0.f, 0.f, -1.f }, { 0.f, +1.f, 0.f }, { 0.f, 0.f } };
-	FullVertex bottomFullVertex{ { 0.0f, -radius, 0.0f }, {1.f, 0.f, 0.f}, {0.f, 0.f, -1.f}, {0.f, -1.f, 0.f }, { 0.f, 1.f } };
+	FullVertex topFullVertex{ { 0.0f, +radius, 0.0f }, { 1.f, 0.f, 0.f }, { 0.f, 0.f, 1.f }, { 0.f, +1.f, 0.f }, { 0.f, 0.f } };
+	FullVertex bottomFullVertex{ { 0.0f, -radius, 0.0f }, {1.f, 0.f, 0.f}, {0.f, 0.f, 1.f}, {0.f, -1.f, 0.f }, { 0.f, 1.f } };
 
 	meshData.Vertices.push_back(topFullVertex);
 

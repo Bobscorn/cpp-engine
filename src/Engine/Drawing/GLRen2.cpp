@@ -1,6 +1,7 @@
 #include "GLRen2.h"
 
 #include <utility>
+#include <cstring>
 
 #include "Helpers/VectorHelper.h"
 #include "Helpers/ProfileHelper.h"
@@ -28,6 +29,7 @@ namespace Drawing
 
 	void DrawCallRenderer::Draw(Matrixy4x4 View, Matrixy4x4 Proj, Voxel::CameraFrustum frustum)
 	{
+		(void)frustum; // Frustum culling not done
 
 		PROFILE_PUSH_WITH(g_Engine->Resources.Profile, "Renv2");
 
@@ -43,60 +45,47 @@ namespace Drawing
 		// Temporarily we will not sort or cull calls
 		// auto culled_calls = Cull(calls); Cull here maybe?
 
-		// Also temporarily we will do a super slow and iterate the drawcalls every frame and collect them into a vector
-		std::vector<ProgramDrawCalls> calls;
-
 		PROFILE_PUSH_WITH(g_Engine->Resources.Profile, "Organising calls");
-		// Part of temporary-ness, use unordered map to gather all the calls into per-program vectors
-		std::unordered_map<std::string, std::vector<DrawCallv2>> programCallMap{};
-
-		for (auto& pair : _drawCalls)
-		{
-			auto& call = pair.second;
-			if (!call.Material || !call.Geometry || !call.Enabled || !call.Geometry->operator bool() || call.Geometry->GetMesh()->VertexData.NumVertices() <= 0)
-				continue;
-			auto& progName = call.Material->Program.GetProgramName();
-
-			programCallMap[progName].push_back(call);
-		}
-
-		// Decompose map into vector
-		for (auto& pair : programCallMap)
-		{
-			auto& progName = pair.first;
-			auto& callsVec = pair.second;
-
-			calls.emplace_back(ProgramDrawCalls{ ProgramStore::Instance().GetProgram(progName), callsVec });
-		}
+		if (_drawCallsDirty)
+			UpdateDrawCalls();
 		PROFILE_POP_WITH(g_Engine->Resources.Profile);
 
 
 		PROFILE_PUSH_WITH(g_Engine->Resources.Profile, "Executing Draw Calls");
-		for (auto& program_tmp : calls)
+		for (auto& program_calls_pair : m_DrawCallGroups)
 		{
-			auto& program = program_tmp.Program;
+			auto& program = program_calls_pair.first.GetProgram();
 			if (!program)
+			{
+				DWARNING("Invalid program found by name of '" + program->GetName() + "'");
 				continue;
+			}
 
 			program->SetActive();
 
-			for (auto& drawcall_tmp : program_tmp.DrawCalls)
+			auto p = PROFILE_EVENT_WITH(g_Engine->Resources.Profile, "Program DrawCalls", true);
+			for (auto& drawcall_tmp : program_calls_pair.second)
 			{
-				auto p = PROFILE_EVENT_WITH(g_Engine->Resources.Profile, "Individual DrawCall", true);
 
-				auto& drawcall = drawcall_tmp;
+				auto& drawcall = drawcall_tmp.get();
 
 				if (!drawcall.Geometry)
 					continue;
 
 				auto& storage = drawcall.Geometry->GetStorage();
 				if (!storage.Buffer)
+				{
+					DWARNING("DrawCall '" + drawcall.DebugString + "' has no geometry!");
 					continue;
+				}
 
 				storage.Buffer->UpdateIfDirty();
 
 				MeshOffsetData offsetData;
 				if (!storage.Buffer->TryGetMeshOffset(storage.ID, &offsetData))
+					continue;
+
+				if (offsetData.IndicesCount < 1)
 					continue;
 
 				auto thisBuffer = drawcall.Geometry->GetStorage().Buffer->GetVBO().Get();
@@ -146,13 +135,35 @@ namespace Drawing
 		_lights[index] = val;
 	}
 
+	void DrawCallRenderer::UpdateDrawCalls()
+	{
+		// Perhaps try clear just unused programs instead of the whole thing?
+		m_DrawCallGroups.clear();
+
+		for (auto& call_pair : _drawCalls)
+		{
+			auto& drawCall = call_pair.second;
+			if (!drawCall.Material || !drawCall.Material->GetProgram().IsValid())
+				continue;
+			const auto& drawCallProgName = drawCall.Material->GetProgram().GetProgramName();
+			auto& vec = m_DrawCallGroups[drawCallProgName];
+
+			vec.emplace_back(std::cref(drawCall));
+		}
+
+		_drawCallsDirty = false;
+	}
+
 	void DrawCallRenderer::UpdateLights(Matrixy4x4 view)
 	{
 		for (int i = 0; i < _lights.size(); ++i)
 		{
 			auto& l = _lights[i];
-			l.DirectionVS = view.TransformNormal(l.DirectionWS);
-			l.PositionVS = view.Transform(l.PositionWS);
+			if (l.Enabled)
+			{
+				l.DirectionVS = view.TransformNormal(l.DirectionWS);
+				l.PositionVS = view.Transform(l.PositionWS);
+			}
 		}
 
 		glNamedBufferSubData(_lightBuffer.Get(), 0, sizeof(Light) * LightCount, _lights.data());
@@ -175,7 +186,7 @@ namespace Drawing
 		CHECK_GL_ERR("Post Updating Per Object");
 	}
 
-	void DrawCallRenderer::UpdateMaterial(Program& prog, const Material& mat)
+	void DrawCallRenderer::UpdateMaterial(Program& prog, Material& mat)
 	{
 		CHECK_GL_ERR("Pre Updating Material");
 		PROFILE_PUSH_WITH(g_Engine->Resources.Profile, "Material");
@@ -193,10 +204,10 @@ namespace Drawing
 		for (int i = 0; i < mappings.size(); ++i)
 		{
 			auto& mapping = mappings[i];
-			auto it = mat.Textures.find(mapping.MatName);
-			if (it != mat.Textures.end())
+			auto it = mat.GetTextures().find(mapping.MatName);
+			if (it != mat.GetTextures().end())
 			{
-				auto tex = it->second.GetTexture();
+				const auto& tex = it->second.GetTexture();
 				if (!tex)
 					continue;
 				tex->LoadGL();
@@ -230,6 +241,8 @@ namespace Drawing
 		if (!LightBufBinding)
 			LightBufBinding = BindingManager::GetNext();
 
+		std::memset(_lights.data(), 0, sizeof(_lights));
+
 		GLuint out;
 		glGenBuffers(1, &out);
 
@@ -241,9 +254,12 @@ namespace Drawing
 	}
 
 	DrawCallRenderer::DrawCallRenderer(CommonResources* resources)
-		: _perObjectBuffer(InitPerObjectBuffer())
+		: _drawCalls()
+		, _lights()
+		, _perObjectBuffer(InitPerObjectBuffer())
 		, _lightBuffer(InitLightBuffer())
 	{
+		(void)resources; // Should it even take it?
 		if (!MaterialBufBinding)
 			MaterialBufBinding = BindingManager::GetNext();
 		if (!PerObjectBufBinding)
@@ -263,6 +279,7 @@ namespace Drawing
 
 		_drawCalls[key] = std::move(drawCall);
 
+		_drawCallsDirty = true;
 		return DrawCallReference{ key, this };
 	}
 
@@ -282,11 +299,15 @@ namespace Drawing
 	bool DrawCallRenderer::SetDrawCall(size_t key, DrawCallv2 call)
 	{
 		auto it = _drawCalls.find(key);
-		if (it == _drawCalls.end())
-			return false;
+		auto is_new = it == _drawCalls.end();
+
+		if (is_new)
+			_drawCallsDirty = true;
+		else
+			_drawCallsDirty = it->second.Material->GetProgram() != call.Material->GetProgram();
 
 		_drawCalls[key] = std::move(call);
-		return true;
+		return !is_new;
 	}
 
 	bool DrawCallRenderer::SetDrawCall(const DrawCallReference& reference, DrawCallv2 call)
@@ -327,6 +348,7 @@ namespace Drawing
 			return false;
 
 		_drawCalls.erase(it);
+		_drawCallsDirty = true; // Possibly don't recalc draw calls but just remove?
 		return true;
 	}
 

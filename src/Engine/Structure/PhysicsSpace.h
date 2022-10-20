@@ -25,8 +25,6 @@ namespace G1I
 			void debugDraw(btIDebugDraw *draw) override {}
 		};
 
-		GameTimer PhysicsTimer;
-
 		std::vector<std::shared_ptr<btRigidBody>> RigidBodies;
 		std::vector<std::shared_ptr<btCollisionObject>> CollisionObjects;
 

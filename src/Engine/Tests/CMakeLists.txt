@@ -5,16 +5,11 @@
 # Only enable tests if static build (dlls cause problems with shared build)
 
 if (NOT BUILD_SHARED_LIBS)
-	# Create test source list into TestsSrcs using "MyTests.cpp" as the driver file
-	create_test_sourcelist(TestSrcs
-		BasicTestRunner.cpp # Driver file
-		BasicTests.cpp
-	)
-
+	
 	# Add test executable
-	add_executable(BasicTestRunner ${TestSrcs})
-
-	message("Test sources: ${TestSrcs}")
+	add_executable(BasicTestRunner 
+		"BasicTests.cpp"
+	)
 
 	set_target_properties(BasicTestRunner
 		PROPERTIES
@@ -27,14 +22,20 @@ if (NOT BUILD_SHARED_LIBS)
 
 	target_include_directories(BasicTestRunner PRIVATE $<TARGET_PROPERTY:cpp_engine_lib,INCLUDE_DIRECTORIES>)
 	target_link_libraries(BasicTestRunner PRIVATE cpp_engine_lib)
+	target_link_libraries(BasicTestRunner PRIVATE GTest::gtest_main)
+
+	
+
+	add_custom_command( TARGET BasicTestRunner POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy
+                        $<TARGET_RUNTIME_DLLS:BasicTestRunner>
+                        $<TARGET_FILE_DIR:BasicTestRunner>
+                    COMMAND_EXPAND_LISTS)
 
 	# Go through test sources and add tests
 	set(TestsToRun ${TestSrcs})
 	remove(TestsToRun BasicTestRunner.cpp)
 
-	foreach (test ${TestsToRun})
-		get_filename_component(test_name ${test} NAME_WE)
-		add_test(NAME ${test_name} COMMAND BasicTestRunner ${test_name})
-	#	set_tests_properties(${test_name} PROPERTIES ENVIRONMENT "PATH=${TEST_PATH_VAR}")
-	endforeach()
+	include(GoogleTest)
+    gtest_discover_tests(BasicTestRunner)
 endif()

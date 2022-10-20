@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../../Helpers/VectorHelper.h"
-
 #include "Helpers/DebugHelper.h"
 #include "Systems/Events/EventsBase.h"
+
+#include <memory>
 
 class Camera;
 struct CommonResources;
@@ -12,23 +12,23 @@ namespace Scene
 {
 	struct IScene;
 
-	struct SceneManager
-	{
-		SizeU WindowSize;
-		PointU Center;
-		DOUBLE2 InverseSize;
-		double DpiScale;
-		double InverseDpiScale;
-		double AspectRatio;
-		PointU MousePos;
-		bool MouseChanged{ false };
-		//bool DrawOutline;  Not implemented wtf was I doing with this?
+	//struct SceneManager
+	//{
+	//	SizeU WindowSize;
+	//	PointU Center;
+	//	DOUBLE2 InverseSize;
+	//	double DpiScale;
+	//	double InverseDpiScale;
+	//	double AspectRatio;
+	//	PointU MousePos;
+	//	bool MouseChanged{ false };
+	//	//bool DrawOutline;  Not implemented wtf was I doing with this?
 
-		virtual void SwitchScene(Scene::IScene * scene) = 0;
+	//	virtual void SwitchScene(Scene::IScene * scene) = 0;
 
-	protected:
-		std::unique_ptr<Scene::IScene>	CurrentScene;
-	};
+	//protected:
+	//	std::unique_ptr<Scene::IScene>	CurrentScene;
+	//};
 
 
 	struct IScene : public Listener::IGEventListener
@@ -48,7 +48,7 @@ namespace Scene
 		virtual void WasContinued(CommonResources *resources) { (void)resources; }
 
 		// Returns loose pointer
-		virtual IScene *Clone() = 0;
+		virtual std::unique_ptr<IScene> Clone() = 0;
 
 		virtual ~IScene() {};
 	};

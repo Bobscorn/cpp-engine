@@ -4,17 +4,15 @@
 #include "Drawing/Graphics3D.h"
 
 #include "VoxelChunkCuller.h"
+#include "VoxelTypes.h"
 
 #include "Helpers/BulletHelper.h"
+#include "Helpers/VectorHelper.h"
 
 #include <memory>
 
 namespace Voxel
 {
-	struct CubeID
-	{
-		size_t ID;
-	};
 
 	struct VoxelWorld;
 
@@ -33,15 +31,16 @@ namespace Voxel
 		ICube(VoxelWorld *world, std::string name) : m_World(world), m_Name(name) {}
 
 		// Position in displaced physics space
-		virtual void BecomeDynamic(floaty3 pos) {};
+		virtual void BecomeDynamic(floaty3 pos) { (void)pos; };
 
 		// Position in absolute world space
-		virtual bool TryBecomeStatic(size_t x, size_t y, size_t z) { return false; };
+		virtual bool TryBecomeStatic(size_t x, size_t y, size_t z) { (void)x; (void)y; (void)z; return false; };
 
 		virtual void UpdatePosition(floaty3 new_position, size_t new_x, size_t new_y, size_t new_z, ChunkyFrustumCuller *new_culler) = 0;
 
 		inline VoxelWorld *GetWorld() const { return m_World; }
 		inline const std::string& GetBlockName() const { return m_Name; }
+		size_t GetBlockID() const;
 
 		virtual std::unique_ptr<ICube> Clone() const = 0;
 		inline virtual bool WantsUpdate() const { return false; }

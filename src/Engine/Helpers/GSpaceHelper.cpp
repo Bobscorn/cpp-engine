@@ -875,6 +875,7 @@ void Damn::Level1PerviousImporter::Finalize(const PulledScene & scene, G1::IShap
 
 void Damn::Level1PerviousImporter::ImportButtonEnd(const PulledNode &buttonnode, const PulledScene &scene, G1::IShape *target) noexcept
 {
+	(void)target;
 	auto geosearch = scene.Geometries.find({ buttonnode.GeoName, buttonnode.MaterialName });
 
 	btVector3 Normal;
@@ -889,11 +890,14 @@ void Damn::Level1PerviousImporter::ImportButtonEnd(const PulledNode &buttonnode,
 
 void Damn::Level1PerviousImporter::ImportPadEnd(const PulledNode &buttonnode, const PulledScene &scene, G1::IShape *target) noexcept
 {
+	(void)scene;
+	(void)target;
 	EndPads.emplace_back(PadData{ buttonnode.FlattenedTransform });
 }
 
 void Damn::Level1PerviousImporter::ImportButton(const PulledNode & buttonnode, size_t number, const PulledScene & scene, G1::IShape * target) noexcept
 {
+	(void)target;
 	auto geosearch = scene.Geometries.find({ buttonnode.GeoName, buttonnode.MaterialName });
 
 	if (geosearch != scene.Geometries.end())
@@ -906,6 +910,7 @@ void Damn::Level1PerviousImporter::ImportButton(const PulledNode & buttonnode, s
 
 void Damn::Level1PerviousImporter::ImportWall(const PulledNode & wall, size_t number, bool activated, const PulledScene & scene, G1::IShape * target) noexcept
 {
+	(void)target;
 	auto geosearch = scene.Geometries.find({ wall.GeoName, wall.MaterialName });
 
 	if (geosearch == scene.Geometries.end())
@@ -928,6 +933,8 @@ void Damn::Level1PerviousImporter::ImportWall(const PulledNode & wall, size_t nu
 
 void Damn::Level1PerviousImporter::ImportPad(const PulledNode & wall, size_t number, const PulledScene & scene, G1::IShape * target) noexcept
 {
+	(void)scene;
+	(void)target;
 	Pads[number].Transform = wall.FlattenedTransform;
 }
 

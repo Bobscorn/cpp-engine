@@ -1,8 +1,6 @@
 #include "Camera.h"
 
-
-#define _USE_MATH_DEFINES
-#include <cmath>
+#include "Helpers/MathHelper.h"
 
 Camera::Camera(CameraType Type) noexcept :
 	m_CartesianTarget(0.0f,0.0f,0.0f),
@@ -186,7 +184,7 @@ floaty3 Camera::GetSpherical()
 void ConvertToCartesian(floaty3 *sphericalIn, floaty3 *cartesianOut)
 {
 	float cx = 0.0f, cy = 0.0f, cz = 0.0f;
-	float r = sphericalIn->x, theta = (float)(sphericalIn->y + M_PI), phi = sphericalIn->z;
+	float r = sphericalIn->x, theta = (float)(sphericalIn->y + Math::PiF), phi = sphericalIn->z;
 	cz = r * sin(theta) * cos(phi);
 	cx = r * sin(theta) * sin(phi);
 	cy = r * cos(theta);

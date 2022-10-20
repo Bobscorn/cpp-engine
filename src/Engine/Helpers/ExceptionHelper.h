@@ -43,7 +43,11 @@ namespace Debug
 #define GET_GL_ERRE(x) std::string((const char*)gluErrorString(x))
 #define GET_GL_ERR GET_GL_ERRE(glGetError())
 //#define CHECK_GL_ERR(x) {auto er = glGetError(); if (er != GL_NO_ERROR) DWARNING(GET_GL_ERRE(er)); } //throw Debug::GLExc(er, x, __FUNCTION_NAME__, __FILE__, std::to_string(__LINE__).c_str());}
+#ifdef NDEBUG
+#define CHECK_GL_ERR(x) 
+#else
 #define CHECK_GL_ERR(x) {auto er = glGetError(); if (er != GL_NO_ERROR) throw Debug::GLExc(er, x, __FUNCTION_NAME__, __FILE__, std::to_string(__LINE__).c_str());}
+#endif
 #define GL_EXCEPT(x) Debug::GLExc(glGetError(), x, __FUNCTION_NAME__, __FILE__, std::to_string(__LINE__).c_str())
 #define PRINT_GL_ERR(x) { auto er = glGetError(); if (er != GL_NO_ERROR) DINFO("OpenGL Error: " + Debug::GLEtoC(glGetError()) + " in " + __FUNCTION_NAME__ + " in file " + __FILE__ + std::to_string(__LINE__).c_str() + ", " + x); }
 

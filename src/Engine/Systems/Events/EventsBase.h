@@ -217,7 +217,7 @@ namespace Events
 
 	struct ILambdaListener : IEventListener
 	{
-		ILambdaListener(std::vector<Event> events, std::function<bool(IEvent *event)> func) : IEventListener(events), ReceiveFunc(func) {};
+		ILambdaListener(std::vector<Event> events, std::function<bool(IEvent *event)> func) : IEventListener(events), ReceiveFunc(std::move(func)) {};
 
 		inline bool Receive(IEvent *event) override { return ReceiveFunc(event); }
 

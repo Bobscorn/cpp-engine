@@ -33,7 +33,6 @@ void Voxel::Entity::RemoveEffect(std::string entry, std::string effect_name)
 	auto it = m_Effects.find(entry);
 	if (it != m_Effects.end())
 	{
-		size_t index = 0;
 		bool done = false;
 		while (!done)
 		{
@@ -56,8 +55,9 @@ void Voxel::Entity::ClearEffects(std::string entry)
 	m_Effects.erase(entry);
 }
 
-inline void DoDamageThing(Voxel::DamageDescription &desc, Voxel::Entity *other, Voxel::Entity::stupid_it it)
+void DoDamageThing(Voxel::DamageDescription &desc, Voxel::Entity *other, Voxel::Entity::stupid_it it)
 {
+	(void)other;
 	using namespace Voxel;
 	auto type_it = it->second.find(typeid(PreDamageEffect));
 	if (type_it != it->second.end())

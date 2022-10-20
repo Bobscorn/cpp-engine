@@ -3,6 +3,7 @@
 #include "Helpers/MathHelper.h"
 #include "Helpers/DebugHelper.h"
 #include "Helpers/StringHelper.h"
+#include "Helpers/SDLHelper.h"
 
 #include "Systems/SDLWrapping/SDLWrappers.h"
 

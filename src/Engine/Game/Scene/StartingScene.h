@@ -25,7 +25,7 @@ namespace Scene
 		virtual void Draw() override;
 		virtual void AfterDraw() override;
 
-		inline virtual IScene * Clone() override { return new StartingScene(mResources); }
+		inline virtual std::unique_ptr<IScene> Clone() override { return std::make_unique<StartingScene>(mResources); }
 
 		virtual Debug::DebugReturn Request(Requests::Request &action) override;
 		inline virtual Stringy GetName() const override { return "StartingScene instance"; }

@@ -84,7 +84,7 @@ namespace Damn
 
 		virtual bool ImportNode(const PulledNode &node, const PulledScene &scene, G1::IShape *target) noexcept = 0; // Returning true means don't turn node into a renderable shape
 
-		inline virtual void Finalize(const PulledScene &scene, G1::IShape *target) noexcept {};
+		inline virtual void Finalize(const PulledScene& scene, G1::IShape* target) noexcept { (void)scene; (void)target; };
 	};
 
 	struct ImportOptions

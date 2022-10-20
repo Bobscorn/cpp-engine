@@ -1,7 +1,7 @@
 # CMakeList.txt : CMake project for cpp_engine_lib, include source and define
 # project specific logic here.
 #
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.21)
 
 cmake_policy(SET CMP0091 NEW)
 
@@ -26,7 +26,7 @@ endif()
 
 if (MSVC)
 	if (EC_MAXWARN)
-		target_compile_options(cpp_engine_lib PUBLIC /W4)
+		target_compile_options(cpp_engine_lib PRIVATE /W4)
 	endif()
 	if(EC_BUILD_PARALLEL)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP5")
@@ -40,7 +40,7 @@ install(TARGETS cpp_engine_lib
 		RUNTIME DESTINATION bin
 		LIBRARY DESTINATION bin
 		ARCHIVE DESTINATION lib)
-
+        
 set_target_properties(cpp_engine_lib
 	PROPERTIES
 		CXX_STANDARD 17
@@ -85,9 +85,8 @@ endif()
 
 
 
-# Enable Testing
+# Find test directories
 
-include(CTest)
-
-add_subdirectory(Game)
 add_subdirectory(Tests)
+add_subdirectory(Game)
+add_subdirectory(Drawing)

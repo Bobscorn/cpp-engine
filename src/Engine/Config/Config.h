@@ -51,7 +51,7 @@ namespace Config
 		size_t Index = 0ull;
 
 		constexpr KeyC(const char* name) : Name(name), Container(HashMap), Index(0ull) {}
-		constexpr KeyC(const char* name, ContainerType container, size_t index = 0ull) : Name(name), Container(container), Index(0ull) {}
+		constexpr KeyC(const char* name, ContainerType container, size_t index = 0ull) : Name(name), Container(container), Index(index) {}
 		constexpr KeyC(const char* name, size_t index) : Name(name), Container(HashMap), Index(index) {}
 
 		inline operator Key() const { return { Name, Container, Index }; }
@@ -226,6 +226,7 @@ namespace Config
 
 		inline void ReleaseListener(IChangeListener *listen) { listen->Release(); }
 	public:
+		virtual ~IConfigThrone() {}
 
 		virtual void Set(Key key, const std::any &val) = 0;
 		virtual void SafeSet(Key key, const std::any &val) noexcept = 0;

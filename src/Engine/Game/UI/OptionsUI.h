@@ -105,6 +105,8 @@ namespace Options
 		bool RealtimeAdjustment = false;
 	};
 
+#pragma warning(push)
+#pragma warning(disable:4250)
 	// A numeric Option with a draggable slider
 	struct SliderOption : Option, UIPositioner::RectangleInfo, UI1::BlankElement
 	{
@@ -179,7 +181,7 @@ namespace Options
 	{
 		floaty2 BorderThickness;
 	};
-
+	
 	// A visible container that directly holds Options
 	// What you could consider an Option Group
 	// Something like the Video or Audio tab of most option menus
@@ -260,6 +262,7 @@ namespace Options
 		floaty2 m_MinimumDimensions;
 		Matrixy2x3 m_WorldToHere;
 	};
+#pragma warning(pop)
 
 	struct DefaultOptionMenu : OptionMenu
 	{

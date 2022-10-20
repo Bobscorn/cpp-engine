@@ -74,7 +74,7 @@ namespace G1I
 	struct PhysicsShape : btMotionState, virtual G1::IShape
 	{
 		PhysicsShape(floaty3 pos = { 0.f, 0.f, 0.f }) : World(Matrixy4x4::Translate(pos.x, pos.y, pos.z)) {}
-		PhysicsShape(CommonResources *resources, floaty3 pos = { 0.f, 0.f, 0.f }) : FullResourceHolder(resources), World(Matrixy4x4::Translate(pos.x, pos.y, pos.z)) {}
+		PhysicsShape(CommonResources* resources, floaty3 pos = { 0.f, 0.f, 0.f }) : World(Matrixy4x4::Translate(pos.x, pos.y, pos.z)) { (void)resources; }
 		PhysicsShape(Matrixy4x4 trans) : World(trans) {}
 
 		virtual ~PhysicsShape() {}

@@ -6,6 +6,8 @@
 
 #include "Structure/BulletBitmasks.h"
 
+#include "Drawing/VoxelStore.h"
+
 //std::weak_ptr<btBoxShape> Voxel::VoxelCube::s_Shape;
 
 constexpr std::array<FullVertex, 24> CubeVertices = {
@@ -122,4 +124,9 @@ std::shared_ptr<btCollisionObject> Voxel::VoxelCube::GetBody(btCollisionShape *s
 	out->setCollisionShape(shape);
 	PROFILE_POP();
 	return out;
+}
+
+size_t Voxel::ICube::GetBlockID() const
+{
+	return Voxel::VoxelStore::Instance().GetIDFor(m_Name);
 }

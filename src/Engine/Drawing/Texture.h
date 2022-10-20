@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Drawing/AtlasTypes.h"
 #include "Drawing/Image.h"
 #include "Drawing/Image2DArray.h"
 
@@ -35,18 +36,18 @@ namespace Drawing
 
 		std::unordered_map<std::string, ImageState> _store;
 
-		void LoadImage(std::string fileName);
-		void LoadImageDirectory(std::string directory);
+		void LoadImage(const std::string& fileName);
+		void LoadImageDirectory(const std::string& directory);
 	public:
-		TextureStore(std::string textureDirectory);
+		TextureStore(const std::string& textureDirectory);
 
 		/**
 		* Returns a stored GLImage shared ptr if it exists, else an empty shared ptr.
 		* Will return a Voxel Atlas ptr if the name is prefixed with 'atlas-' and what follows the prefix is an existing atlas name.
 		*/
-		std::shared_ptr<GLImage> GetTexture(std::string name);
+		bool TryGetTexture(const std::string& name, std::shared_ptr<GLImage>& out);
 
-		static void InitializeStore(std::string textureDirectory);
+		static void InitializeStore(const std::string& textureDirectory);
 	};
 
 
@@ -61,21 +62,24 @@ namespace Drawing
 	class TextureReference
 	{
 		std::string _textureName;
-		std::shared_ptr<GLImage> _texture;
+		Voxel::AtlasTextureName _atlasName;
+		mutable std::shared_ptr<GLImage> _texture; // A mutable cache of TextureStore::Get(_textureName)
 
 	public:
 		TextureReference() = default;
 		TextureReference(std::string textureName);
+		TextureReference(Voxel::AtlasTextureName atlasName); // Create a reference to an Atlas Texture
 		TextureReference(std::shared_ptr<GLImage> texture); // Creates an unnamed texture reference
 		TextureReference(TextureReference&& other);
+		TextureReference(const TextureReference& other);
 		
 		TextureReference& operator=(const std::string& textureName);
 		TextureReference& operator=(TextureReference&& other);
+		TextureReference& operator=(const TextureReference& other);
 
 		void Reset();
 
 		inline bool HasTexture() const { return _texture.get(); }
-		std::shared_ptr<GLImage> GetTexture();
-		std::shared_ptr<GLImage> GetTexture() const;
+		const std::shared_ptr<GLImage>& GetTexture() const;
 	};
 }

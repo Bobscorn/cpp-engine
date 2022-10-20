@@ -4,11 +4,19 @@ namespace Drawing
 {
     SDL_Surface* Image2DArray::CreateSurface()
     {
-        auto out = SDL_CreateRGBSurfaceWithFormat(0, _width, _height, 32, SDL_PixelFormatEnum::SDL_PIXELFORMAT_ARGB8888);
+        auto out = SDL_CreateRGBSurfaceWithFormat(0, _width, _height, 32, SDL_PixelFormatEnum::SDL_PIXELFORMAT_RGBA32);
         SDL_SetSurfaceAlphaMod(out, 0);
         SDL_SetSurfaceBlendMode(out, SDL_BLENDMODE_NONE);
 
         return out;
+    }
+
+    void Image2DArray::VerifySurfaceFormats()
+    {
+        for (auto& surf : _cpuSurfaces)
+        {
+            VerifySurfaceIsFormat(&surf, SDL_PIXELFORMAT_RGBA32);
+        }
     }
 
     Image2DArray::Image2DArray()
@@ -33,6 +41,7 @@ namespace Drawing
         , _width(surfaces.size() && surfaces[0] ? surfaces[0]->w : 0)
         , _height(surfaces.size() && surfaces[0] ? surfaces[0]->h : 0)
     {
+        VerifySurfaceFormats();
     }
 
     Image2DArray::Image2DArray(Image2DArray&& other)
@@ -192,5 +201,22 @@ namespace Drawing
     bool Image2DArray::HasLoadedGL()
     {
         return _tex;
+    }
+
+    void VerifySurfaceIsFormat(SDL_Surface** surf, Uint32 format)
+    {
+        if (!surf || !*surf)
+            return;
+
+        auto* real_surf = *surf;
+
+        auto surf_format = SDL_MasksToPixelFormatEnum(real_surf->format->BitsPerPixel, real_surf->format->Rmask, real_surf->format->Gmask, real_surf->format->Bmask, real_surf->format->Amask);
+        if (surf_format != format)
+        {
+            auto* format_data = SDL_AllocFormat(format);
+            auto* new_surf = SDL_ConvertSurface(real_surf, format_data, 0);
+            SDL_FreeSurface(real_surf);
+            *surf = new_surf;
+        }
     }
 }

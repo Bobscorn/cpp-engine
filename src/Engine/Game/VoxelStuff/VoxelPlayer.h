@@ -5,6 +5,7 @@
 #include "Helpers/BulletHelper.h"
 
 #include "Systems/Events/EventsBase.h"
+#include "Systems/Input/InputAttachment.h"
 
 #include "Structure/BasicGSpace.h"
 #include "Systems/Audio/Audio.h"
@@ -15,14 +16,15 @@ namespace Voxel
 {
 	struct VoxelPlayerStuff
 	{
-		floaty3 InitialPosition = { 0.f, 0.f, 0.f };
+		floaty3 InitialPosition = { 0.f, 2.f, 0.f };
 		floaty3 InitialDirection = { 0.f, 0.f, -1.f };
+		float MovementSpeed = 3.f; // In m/s
 	};
 
 	// Rigid Body based player controller
-	struct VoxelPlayer : G1::IShape, Events::IEventListenerT<Events::WindowFocusEvent, Events::ResizeWindowEvent, Events::AfterPhysicsEvent, Events::MouseButtonEvent, Events::KeyEvent>, Entity
+	struct VoxelPlayer : G1::IShape, Events::IEventListenerT<Events::WindowFocusEvent, Events::ResizeWindowEvent, Events::AfterPhysicsEvent>, public InputAttach::IAttachable, Entity
 	{
-		VoxelPlayer(G1::IGSpace *Container, CommonResources *resources, VoxelWorld *world, VoxelPlayerStuff stuff);
+		VoxelPlayer(G1::IShapeThings things, VoxelWorld *world, VoxelPlayerStuff stuff);
 		~VoxelPlayer();
 
 		void BeforeDraw() override;
@@ -39,16 +41,20 @@ namespace Voxel
 		inline floaty3 GetPosition() const { return Cam->GetPosition(); }
 		inline floaty3 GetOrientation() const { return Cam->GetLook(); }
 
-		//floaty3 SetPosition() const;
+		void SetPosition(floaty3 newPos);
+		void SetVelocity(floaty3 newVel);
 
 		// Make Player work methods
 
 		// IEventListener/IAttachable methods
+		bool Receive(Event::KeyInput *e) override;
+		bool Receive(Event::MouseButton *e) override;
+
+		void Superseded() override;
+
 		bool Receive(Events::IEvent *event) override;
 		bool Receive(Event::WindowFocusEvent *e) override;
 		bool Receive(Event::AfterPhysicsEvent *e) override;
-		bool Receive(Event::KeyInput *e) override;
-		bool Receive(Event::MouseButton *e) override;
 
 		bool Receive(Event::ResizeEvent *e) override;
 
@@ -81,7 +87,6 @@ namespace Voxel
 		void PlaceBlock(RayReturn ray);
 				
 		// Walking Stuff
-		float m_WalkPowerBase = 2.f; // in m/s
 		float m_SprintMagnitude = 1.4f; // in m/s
 		float m_TotalWalkSpeed = 2.f; // in m/s
 		bool m_sprint = false;

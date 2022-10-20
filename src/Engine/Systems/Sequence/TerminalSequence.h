@@ -4,6 +4,8 @@
 
 #include "Systems/Execution/ResourceHolder.h"
 
+#include "Math/floaty.h"
+
 namespace Sequence
 {
 	struct TerminalSequencev2;
@@ -11,6 +13,7 @@ namespace Sequence
 	struct TerminalSequenceElement
 	{
 		TerminalSequenceElement(TerminalSequencev2 *term) : Terminal(term) {}
+		virtual ~TerminalSequenceElement() {}
 		virtual double GetTextString(double deltatime, std::string &out) = 0;
 	protected:
 		TerminalSequencev2 *Terminal;

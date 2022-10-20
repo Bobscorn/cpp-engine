@@ -84,11 +84,13 @@ void G1I::BirdyController::AfterDraw()
 
 bool G1I::BirdyController::Receive(Events::IEvent * event)
 {
+	(void)event;
 	return false;
 }
 
 bool G1I::BirdyController::Receive(Event::AfterPhysicsEvent * e)
 {
+	(void)e;
 	floaty3 ass(RigidBody->getWorldTransform().getOrigin());
 	ass.z = -ass.z; // Does a lot
 	Cam->SetPosition(ass);
@@ -137,6 +139,7 @@ bool G1I::BirdyController::Receive(Event::MouseButton * e)
 
 bool G1I::BirdyController::Receive(Event::WindowFocusEvent * e)
 {
+	(void)e;
 	Sprint = false;
 	mouse_locked = false;
 	return true;

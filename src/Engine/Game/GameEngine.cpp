@@ -8,18 +8,27 @@
 #include "Drawing/Material.h"
 #include "Drawing/VoxelStore.h"
 #include "Drawing/Texture.h"
+#include "Drawing/GeometryStore.h"
+
+#include "Drawing/GeometryGeneration.h"
 
 #include <iostream>
 
 Engine::GameEngine::GameEngine() : IWindowEngine() 
 { 
 	Drawing::VertexBuffer::InitializeStaticBuffer();
-	Drawing::MaterialStore::InitializeStore("Materials", std::vector<Drawing::SerializableMaterial>{ {Drawing::SerializableMaterial{ "Default3D", "Default3D", {}, { Drawing::MaterialProperty::from("diffuse", floaty4{ 0.5f, 0.5f, 0.5f, 1.f }, Drawing::MaterialSize::FOUR), Drawing::MaterialProperty::from("specular", floaty4{ 0.8f, 0.8f, 0.8f, 3.f }, Drawing::MaterialSize::FOUR) } }} });
+	Drawing::MaterialStore::InitializeStore("Materials");
 	Drawing::ProgramStore::InitializeStore("Programs");
 	Voxel::VoxelStore::InitializeVoxelStore("PreStitched not implemented", "Blocks", "Textures");
 	Drawing::TextureStore::InitializeStore("Textures");
 
-	SwitchScene(new Voxel::VoxelScene(&Resources)); 
+	// Generate a UV Sphere
+	auto sphereMesh = GeoGen::GeometryGenerator::CreateSphere(0.5f, 16, 6);
+	auto convertedMesh = Drawing::RawMesh{ Drawing::VertexData::ConvertGeometry(Drawing::VertexData::FromGeneric(Drawing::LegacyVertexDesc, sphereMesh.Vertices.begin(), sphereMesh.Vertices.end()), Drawing::Full3DVertexDesc), std::move(sphereMesh.Indices) };
+
+	Drawing::GeometryStore::InitializeStore("Geometry Loading not implemented yet", { Drawing::RawMeshData{ "default-cube", Drawing::MeshStorageType::STATIC_BUFFER, Drawing::CreateCubeMesh()}, Drawing::RawMeshData{ "default-sphere", Drawing::MeshStorageType::STATIC_BUFFER, std::move(convertedMesh) } });
+
+	//SwitchScene(new Voxel::VoxelScene(&Resources)); 
 	Req.Add(this); 
 
 	try
@@ -81,6 +90,11 @@ Debug::DebugReturn Engine::GameEngine::Request(Requests::Request & action)
 	else if (action.Name == "FullQuitNoWarningNoSave" || action.Name == "ExitGame")
 	{
 		QuitDatAss();
+		return true;
+	}
+	else if (action.Name == "ReloadMaterials")
+	{
+		Drawing::MaterialStore::Instance().Reload("Materials");
 		return true;
 	}
 	return false;

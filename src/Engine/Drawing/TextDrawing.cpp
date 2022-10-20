@@ -1,5 +1,8 @@
 #include "TextDrawing.h"
+
 #include "Systems/Input/Config1.h"
+
+#include <SDL2/SDL_ttf.h>
 
 void TextDrawing::Update() noexcept
 {

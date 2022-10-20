@@ -30,8 +30,6 @@ void Drawing::DrawCaller::Remove(size_t key)
 		return;
 	}
 
-	auto &call = it->second;
-
 	DrawCalls.erase(key);
 
 	auto ass = std::find(Keys.cbegin(), Keys.cend(), key);

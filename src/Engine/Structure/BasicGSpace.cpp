@@ -23,7 +23,7 @@ void G1I::BasicGSpace::ImportFile(std::string FileName)
 
 }
 
-inline bool G1I::BasicGSpace::Receive(Event::ResizeEvent * event)
+bool G1I::BasicGSpace::Receive(Event::ResizeEvent * event)
 {
 	(void)event;
 	Cam.SetLens(Math::HalfPiF, *mResources->AspectRatio, IdealNearPlane, IdealFarPlane);

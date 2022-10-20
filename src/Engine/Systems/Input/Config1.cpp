@@ -190,7 +190,7 @@ bool Config1::UIConfig::Receive(Events::IEvent *event)
 	return Events::IrrelevantEvent;
 }
 
-SDLW::Font *Config1::UIConfig::RegisterNewTextFormat(Stringy Name, SDLW::FontDesc fd)
+SDLW::Font *Config1::UIConfig::RegisterNewTextFormat(const Stringy& Name, SDLW::FontDesc fd)
 {
 	DINFO("Attempting registration of new brush named '" + Name + "'");
 	
@@ -217,7 +217,7 @@ SDLW::Font *Config1::UIConfig::RegisterNewTextFormat(Stringy Name, SDLW::FontDes
 	}
 }
 
-SDLW::Font *Config1::UIConfig::GetTextFormat(Stringy Name)
+SDLW::Font *Config1::UIConfig::GetTextFormat(const Stringy& Name)
 {
 	auto it = RegisteredTextFormats.find(Name);
 	if (it == RegisteredTextFormats.end())
@@ -225,7 +225,7 @@ SDLW::Font *Config1::UIConfig::GetTextFormat(Stringy Name)
 	return &it->second;
 }
 
-SDL_Color Config1::UIConfig::RegisterNewBrush(Stringy Name, SDL_Color color)
+SDL_Color Config1::UIConfig::RegisterNewBrush(const Stringy& Name, SDL_Color color)
 {
 	DINFO("Registering New Brush named '" + Name + "' ");
 
@@ -245,7 +245,7 @@ SDL_Color Config1::UIConfig::RegisterNewBrush(Stringy Name, SDL_Color color)
 	}
 }
 
-SDL_Color Config1::UIConfig::GetBrush(Stringy Name)
+SDL_Color Config1::UIConfig::GetBrush(const Stringy& Name)
 {
 	auto it = RegisteredBrushs.find(Name);
 	if (it != RegisteredBrushs.end())

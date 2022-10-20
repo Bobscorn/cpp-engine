@@ -17,7 +17,7 @@ namespace Voxel
 	const VoxelBlock VoxelStore::EmptyBlock = VoxelBlock{ };
 	const BlockDescription VoxelStore::EmptyBlockDesc = BlockDescription{};
 
-	void VoxelStore::LoadAtlas(std::string path)
+	void VoxelStore::LoadAtlas(const std::string& path)
 	{
 		if (std::filesystem::exists(path))
 		{
@@ -36,7 +36,7 @@ namespace Voxel
 		}
 	}
 
-	void VoxelStore::LoadBlockFile(std::string path)
+	void VoxelStore::LoadBlockFile(const std::string& path)
 	{
 		if (std::filesystem::exists(path))
 		{
@@ -108,7 +108,7 @@ namespace Voxel
 						{
 							if (groupNode && groupNode.IsMap())
 							{
-								auto getFaceFunc = [&blockName](std::string name, const YAML::Node& n, std::string& texFileRef)
+								auto getFaceFunc = [&blockName](const std::string& name, const YAML::Node& n, std::string& texFileRef)
 								{
 									if (!n)
 									{
@@ -157,7 +157,7 @@ namespace Voxel
 		}
 	}
 
-	void VoxelStore::LoadAtlasDirectory(std::string directory)
+	void VoxelStore::LoadAtlasDirectory(const std::string& directory)
 	{
 		if (std::filesystem::exists(directory))
 		{
@@ -179,7 +179,7 @@ namespace Voxel
 		}
 	}
 
-	void VoxelStore::LoadBlockDirectory(std::string directory)
+	void VoxelStore::LoadBlockDirectory(const std::string& directory)
 	{
 		if (std::filesystem::exists(directory))
 		{
@@ -201,7 +201,7 @@ namespace Voxel
 		}
 	}
 
-	void VoxelStore::StitchUnstitched(std::string faceTexDir)
+	void VoxelStore::StitchUnstitched(const std::string& faceTexDir)
 	{
 		// Currently this must be called once and must be called upon creation
 		if (_unstitchedDescriptions.size())
@@ -222,7 +222,7 @@ namespace Voxel
 		}
 	}
 
-	VoxelBlock& VoxelStore::GetOrCreateBlock(std::string blockName)
+	VoxelBlock& VoxelStore::GetOrCreateBlock(const std::string& blockName)
 	{
 		auto it = _descriptionLookup.find(blockName);
 		if (it == _descriptionLookup.end() || it->second >= _descriptions.size())
@@ -234,11 +234,11 @@ namespace Voxel
 		return _descriptions[it->second];
 	}
 
-	VoxelStore::VoxelStore(std::string prestitchedDirectory, std::string blockDirectory, std::string faceTexDir, std::vector<UnStitchedAtlasSet> builtInAtlases)
+	VoxelStore::VoxelStore(const std::string& prestitchedDirectory, const std::string& blockDirectory, const std::string& faceTexDir, std::vector<UnStitchedAtlasSet> builtInAtlases)
 	{
 		LoadBlock(BlockDescription{ "empty", "", false }); // Load empty block description first
 		LoadBlockDirectory(blockDirectory);
-		//LoadAtlasDirectory(prestitchedDirectory); No! Not Yet My Boi! (not implemented)
+		(void)prestitchedDirectory;//LoadAtlasDirectory(prestitchedDirectory); No! Not Yet My Boi! (not implemented)
 
 		StitchUnstitched(faceTexDir);
 
@@ -248,14 +248,14 @@ namespace Voxel
 		}
 	}
 
-	void VoxelStore::StitchAndLoadAtlas(const UnStitchedAtlasSet& set, std::string faceTexDir)
+	void VoxelStore::StitchAndLoadAtlas(const UnStitchedAtlasSet& set, const std::string& faceTexDir)
 	{
 		if (set.Blocks.empty())
 			return;
 
 		{
-			auto existing = GetAtlas(set.AtlasPrefix);
-			if (existing)
+			auto tmp = std::shared_ptr<StitchedAtlasSet>();
+			if (TryGetAtlas(set.AtlasPrefix, tmp))
 			{
 				DWARNING("Overwriting Existing atlas '" + set.AtlasPrefix + "'!");
 			}
@@ -274,7 +274,7 @@ namespace Voxel
 		}
 	}
 
-	StitchedAtlasSet VoxelStore::StichAtlas(const UnStitchedAtlasSet& set, std::string faceTexDir)
+	StitchedAtlasSet VoxelStore::StichAtlas(const UnStitchedAtlasSet& set, const std::string& faceTexDir)
 	{
 		if (set.Blocks.empty())
 			return StitchedAtlasSet{ set.AtlasPrefix, nullptr, nullptr, nullptr, nullptr, nullptr, std::unordered_map<std::string, VoxelBlock>{} };
@@ -426,21 +426,32 @@ namespace Voxel
 		// FaceTexCoords are set when loading an atlas
 	}
 
-	std::shared_ptr<StitchedAtlasSet> VoxelStore::GetAtlas(std::string name) const
+	bool VoxelStore::TryGetAtlas(const std::string& name, std::shared_ptr<StitchedAtlasSet>& out) const
 	{
 		auto it = _atlasLookup.find(name);
 		if (it == _atlasLookup.end())
-			return nullptr;
-		return it->second;
+			return false;
+		out = it->second;
+		return true;
 	}
 
-	bool VoxelStore::HasBlock(std::string name) const
+	bool VoxelStore::TryGetAtlasTexture(const AtlasTextureName& name, std::shared_ptr<Drawing::Image2DArray>& out) const
+	{
+		auto it = _atlasLookup.find(name.AtlasName);
+		if (it == _atlasLookup.end())
+			return false;
+
+		out = it->second->GetImageFromType(name.AtlasType);
+		return true;
+	}
+
+	bool VoxelStore::HasBlock(const std::string& name) const
 	{
 		auto it = _descriptionLookup.find(name);
 		return it != _descriptionLookup.end() && it->second < _descriptions.size();
 	}
 
-	const VoxelBlock* VoxelStore::GetBlock(std::string name) const
+	const VoxelBlock* VoxelStore::GetBlock(const std::string& name) const
 	{
 		auto lookupIt = _descriptionLookup.find(name);
 		if (lookupIt == _descriptionLookup.end())
@@ -453,7 +464,7 @@ namespace Voxel
 		return &_descriptions[id];
 	}
 
-	bool VoxelStore::TryGetDescription(std::string name, VoxelBlock& desc) const
+	bool VoxelStore::TryGetDescription(const std::string& name, VoxelBlock& desc) const
 	{
 		auto it = _descriptionLookup.find(name);
 		if (it == _descriptionLookup.end())
@@ -480,7 +491,7 @@ namespace Voxel
 		return out;
 	}
 
-	size_t VoxelStore::GetIDFor(std::string blockName) const
+	size_t VoxelStore::GetIDFor(const std::string& blockName) const
 	{
 		auto it = _descriptionLookup.find(blockName);
 		if (it != _descriptionLookup.end() && it->second < _descriptions.size())
@@ -489,7 +500,7 @@ namespace Voxel
 		return 0;
 	}
 
-	void VoxelStore::InitializeVoxelStore(std::string prestitchedDir, std::string blockDir, std::string faceTexDir, std::vector<UnStitchedAtlasSet> builtInAtlases)
+	void VoxelStore::InitializeVoxelStore(const std::string& prestitchedDir, const std::string& blockDir, const std::string& faceTexDir, std::vector<UnStitchedAtlasSet> builtInAtlases)
 	{
 		if (_instance)
 			return;

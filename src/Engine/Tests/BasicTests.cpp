@@ -13,43 +13,23 @@
 #include <SDL_image.h>
 #endif
 
-#include "TestHelper.h"
+#include <gtest/gtest.h>
 
-int CanPrint();
-int CanCreateFile();
-
-int SDL_Init_Test();
-
-
-int BasicTests(int argc, char* argv[])
-{
-	std::cout << "Basic Tests" << std::endl;
-	TRY_TEST(CanPrint);
-	TRY_TEST(CanCreateFile);
-	TRY_TEST(SDL_Init_Test);
-
-	return 0;
-}
-
-
-int CanPrint()
+TEST(BasicTests, CanPrint)
 {
 	std::cout << "Test Print" << std::endl;
-	return 0;
 }
 
-int CanCreateFile()
+TEST(BasicTests, CanCreateFile)
 {
 	std::ofstream file("test.txt", std::ios::trunc);
-	if (!file.good())
-		return 1;
-	if (!file.is_open())
-		return 2;
+	ASSERT_TRUE(file.good());
+	ASSERT_TRUE(file.is_open());
 	file << "Test File Writing" << std::endl;
-	return 0;
+	ASSERT_TRUE(file.good());
 }
 
-int SDL_Init_Test()
+TEST(BasicTests, SDL_Init_Test)
 {
 	struct SDLInitStruct
 	{
@@ -72,9 +52,9 @@ int SDL_Init_Test()
 
 	auto sdlInitResult = SDL_Init(flags);
 
-	TEST_ASSERT(sdlInitResult == 0);
-
-	return 0;
+	ASSERT_EQ(sdlInitResult, 0);
+	
+	SDL_Quit();
 }
 
 #endif

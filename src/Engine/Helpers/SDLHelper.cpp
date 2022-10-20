@@ -46,15 +46,6 @@ ConfigColor::operator SDL_Color()
 		return Color;
 }
 
-PointRect::PointRect(const DimensionRect & rect) : left(rect.x), top(rect.y), right(rect.x + rect.w), bottom(rect.y + rect.h)
-{
-}
-
-PointRect::operator DimensionRect()
-{
-	return { x1, y1, x2 - x1, y2 - y1 };
-}
-
 ConfigColor ConfigColorTemp::operator()(CommonResources *resources)
 {
 	return operator()(resources->UIConfig);

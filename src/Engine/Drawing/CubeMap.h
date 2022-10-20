@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Image.h"
+#include "Helpers/SDLHelper.h"
 
 #include <array>
 

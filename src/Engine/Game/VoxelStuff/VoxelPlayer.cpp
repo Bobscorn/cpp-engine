@@ -15,6 +15,12 @@
 #include <filesystem>
 #endif
 
+#ifdef CP_ENG_PLAYER_OUTPUT
+#define PLAYER_INFO(x) DINFO("Player: " + x)
+#else
+#define PLAYER_INFO(x) ((int)0)
+#endif
+
 #include "VoxelInteractable.h"
 #include "VoxelChunk.h"
 #include "VoxelWorld.h"
@@ -24,9 +30,9 @@ std::unique_ptr<btCapsuleShape> Voxel::VoxelPlayer::SweepCapsule = nullptr;
 std::unique_ptr<btCylinderShape> Voxel::VoxelPlayer::Capsule = nullptr;
 
 
-Voxel::VoxelPlayer::VoxelPlayer(G1::IGSpace *Container, CommonResources *resources, Voxel::VoxelWorld *world, Voxel::VoxelPlayerStuff stuff)
-	: IShape(Container)
-	, FullResourceHolder(resources)
+Voxel::VoxelPlayer::VoxelPlayer(G1::IShapeThings things, Voxel::VoxelWorld *world, Voxel::VoxelPlayerStuff stuff)
+	: IShape(things)
+	, FullResourceHolder(things.Resources)
 	, Entity(world)
 	, Cam(new Camera())
 	, m_FeetSource(Audio::CreateSauce())
@@ -107,16 +113,30 @@ void Voxel::VoxelPlayer::TakeKnockbackDirect(floaty3 knock_back)
 
 bool Voxel::VoxelPlayer::HitByProjectile(Projectile *proj, floaty3 hit_point)
 {
+	(void)proj;
+	(void)hit_point;
 	return true;
 }
 
 floaty3 Voxel::VoxelPlayer::GetCentre()
 {
-	return floaty3(m_Trans.getOrigin());
+	return floaty3(m_RigidBody->getWorldTransform().getOrigin());
+}
+
+void Voxel::VoxelPlayer::SetPosition(floaty3 pos)
+{
+	Cam->SetPosition(pos);
+	m_RigidBody->getWorldTransform().setOrigin(pos);
+}
+
+void Voxel::VoxelPlayer::SetVelocity(floaty3 newVel)
+{
+	m_RigidBody->setLinearVelocity(newVel);
 }
 
 bool Voxel::VoxelPlayer::Receive(Events::IEvent *event)
 {
+	(void)event;
 	return false;
 }
 
@@ -134,6 +154,7 @@ bool Voxel::VoxelPlayer::Receive(Event::WindowFocusEvent *e)
 
 bool Voxel::VoxelPlayer::Receive(Event::AfterPhysicsEvent *e)
 {
+	(void)e;
 	PROFILE_PUSH("Pervious Player AFE");
 	DoPhys();
 
@@ -190,7 +211,7 @@ bool Voxel::VoxelPlayer::Receive(Event::KeyInput *key)
 		{
 			if (CanJump())
 			{
-				DINFO("Jumped");
+				PLAYER_INFO("Jumped");
 				Jump({ 0.f, 4.f, 0.f });
 			}
 		}
@@ -303,6 +324,14 @@ bool Voxel::VoxelPlayer::Receive(Event::MouseButton *e)
 	return Events::RelevantEvent;
 }
 
+void Voxel::VoxelPlayer::Superseded()
+{
+	if (m_MouseIsLocked)
+	{
+		UnlockMouse();
+	}
+}
+
 bool Voxel::VoxelPlayer::Receive(Event::ResizeEvent *e)
 {
 	(void)e;
@@ -312,7 +341,7 @@ bool Voxel::VoxelPlayer::Receive(Event::ResizeEvent *e)
 
 void Voxel::VoxelPlayer::ShootTestRay(bool destroy)
 {
-	DINFO("Shooting pew pew ray");
+	PLAYER_INFO("Player: Shooting Test Ray");
 	btVector3 from = Cam->GetPosition();
 	btVector3 to = from + (Cam->GetLook() * ShootDistance);
 	btCollisionWorld::ClosestRayResultCallback rayboi(from, to);
@@ -354,7 +383,7 @@ void Voxel::VoxelPlayer::ShootTestRay(bool destroy)
 		}
 		else
 		{
-			DINFO("Didn't hit anything :(");
+			PLAYER_INFO("Player: Test Ray Didn't hit anything :(");
 		}
 	}
 }
@@ -396,7 +425,7 @@ bool Voxel::VoxelPlayer::ShootInteractRay()
 						for (auto &ontopof : m_PickupAblesOnTopOf)
 							if (pickup == ontopof)
 							{
-								DINFO("You're too fat to pick yourself up"); // Easter egg
+								PLAYER_INFO("You're too fat to pick yourself up"); // Easter egg
 								return true;
 							}
 						m_PickedUp = pickup->GetMe();
@@ -414,13 +443,13 @@ bool Voxel::VoxelPlayer::ShootInteractRay()
 
 void Voxel::VoxelPlayer::SpiritMode()
 {
-	DINFO("Spiriting");
+	PLAYER_INFO("Player: Spiriting");
 	m_IsSpirit = true;
 }
 
 void Voxel::VoxelPlayer::NormalMode()
 {
-	DINFO("Normaling");
+	PLAYER_INFO("Player: Despiriting");
 	m_IsSpirit = false;
 	m_RigidBody->setWorldTransform(btTransform(btQuaternion::getIdentity(), btVector3(Cam->GetPosition()) + btVector3(btScalar(0.0), btScalar(-0.45f * CapsuleHeight), btScalar(0.0))));
 }
@@ -433,9 +462,10 @@ void Voxel::VoxelPlayer::Jump(const btVector3 &jump)
 
 Voxel::VoxelPlayer::RayReturn Voxel::VoxelPlayer::FirstHit(float raylength)
 {
+	(void)raylength;
 	RayReturn out;
 	out.hold = nullptr;
-	DINFO("Shooting ray");
+	PLAYER_INFO("Player: Shooting ray");
 	btVector3 from = Cam->GetPosition();
 	btVector3 to = from + (Cam->GetLook() * ShootDistance);
 	btCollisionWorld::ClosestRayResultCallback rayboi(from, to);
@@ -512,7 +542,7 @@ void Voxel::VoxelPlayer::BreakBlock(RayReturn ray)
 void Voxel::VoxelPlayer::PlaceBlock(RayReturn ray)
 {
 	floaty3 pos{ ray.hitPoint + ray.normal * 0.25f };
-	auto thing = static_cast<Voxel::VoxelCube *>(ray.hold->Pointy);
+	//auto thing = static_cast<Voxel::VoxelCube *>(ray.hold->Pointy);
 	auto coord = m_World->GetBlockCoordFromPhys(pos);
 	m_World->ReplaceStaticCube(coord, VoxelStore::Instance().CreateCube(m_SelectedBlockID));
 }
@@ -526,6 +556,7 @@ void Voxel::VoxelPlayer::SetCrouchState(bool state)
 
 void Voxel::VoxelPlayer::DoWalkFrame(btScalar dt)
 {
+	(void)dt;
 	btVector3 walkdir = { 0.f, 0.f, 0.f };
 	if (forwardness)
 		walkdir += m_LookHorizontal * forwardness;
@@ -536,7 +567,7 @@ void Voxel::VoxelPlayer::DoWalkFrame(btScalar dt)
 		StampOnGround();
 		walkdir.normalize();
 	}
-	btVector3 final_vel = (walkdir * m_TotalWalkSpeed + walkdir * (btScalar)m_sprint * m_SprintMagnitude);
+	btVector3 final_vel = (walkdir * m_Stuff.MovementSpeed + walkdir * (btScalar)m_sprint * m_SprintMagnitude);
 	m_RigidBody->setLinearVelocity({ final_vel.x(), m_RigidBody->getLinearVelocity().y(), final_vel.z() });
 }
 
@@ -556,7 +587,7 @@ bool Voxel::VoxelPlayer::CanJump()
 
 void Voxel::VoxelPlayer::Die()
 {
-	DINFO("You died somehow");
+	PLAYER_INFO("Player: Placeholder death");
 }
 
 /*
@@ -668,7 +699,7 @@ void Voxel::VoxelPlayer::DoPickup()
 		for (auto &ontopof : m_PickupAblesOnTopOf)
 			if (m_PickedUp.get() == ontopof)
 			{
-				DINFO("Oh very clever, pick it up, and *then* hop on it, too bad"); // Easter egg
+				PLAYER_INFO("Oh very clever, pick it up, and *then* hop on it, too bad"); // Easter egg
 				ResetPickup();
 				return;
 			}
@@ -703,8 +734,8 @@ void Voxel::VoxelPlayer::DoPickup()
 		static float last_strength = 100.f;
 		static float last_camx = 0.f, last_camy = 0.f, last_camz = 0.f, last_px = 0.f, last_py = 0.f, last_pz = 0.f;
 		if (strength - 0.2f > last_strength)
-			DINFO("Got em with current: (" + std::to_string(last_camx) + ", " + std::to_string(last_camy) + ", " + std::to_string(last_camz) + "), (" + std::to_string(last_px) + ", " + std::to_string(last_py) + ", " + std::to_string(last_pz) + ")");
-		DINFO("Angular Velocity Strength: " + std::to_string(strength));
+			PLAYER_INFO("Got em with current: (" + std::to_string(last_camx) + ", " + std::to_string(last_camy) + ", " + std::to_string(last_camz) + "), (" + std::to_string(last_px) + ", " + std::to_string(last_py) + ", " + std::to_string(last_pz) + ")");
+		PLAYER_INFO("Angular Velocity Strength: " + std::to_string(strength));
 		last_strength = strength;
 		last_camx = camx; last_camy = camy; last_camz = camz;
 		last_px = px; last_py = py; last_pz = pz;*/
@@ -770,10 +801,10 @@ void Voxel::VoxelPlayer::UpdateCache()
 	if (m_Look.getY() < (1.f - SIMD_EPSILON))
 		m_LookHorizontal.normalize();
 
-	auto right = Cam->GetRight();
-	m_Right = right;
-	m_RightHorizontal.setX(right.x);
-	m_RightHorizontal.setZ(right.z);
+	auto rightDir = Cam->GetRight();
+	m_Right = rightDir;
+	m_RightHorizontal.setX(rightDir.x);
+	m_RightHorizontal.setZ(rightDir.z);
 	if (m_Right.getY() < (1.0 - SIMD_EPSILON))
 		m_RightHorizontal.normalize();
 }
@@ -967,20 +998,20 @@ void Voxel::VoxelPlayer::DoFeetRays()
 				EnableGroundPull();
 				//if (vel.getY() > 0.f)
 				//{
-				//	DINFO("Applied Slow Spring Force (GroundPull disabled)");
+				//	PLAYER_INFO("Applied Slow Spring Force (GroundPull disabled)");
 				//	RigidBody->applyCentralForce(GetRotatedForce({ 0.f, SpringKSlowUp * x, 0.f }));
 				//}
 				//else
 				//{
 					// Spring math
 				float springfac = GetSpringFactor(vel.getY());
-				DINFO("Applied Spring Force (fac: " + std::to_string(springfac) + ", GroundPull disabled)");
+				PLAYER_INFO("Applied Spring Force (fac: " + std::to_string(springfac) + ", GroundPull disabled)");
 				m_RigidBody->applyCentralForce(GetRotatedForce({ 0.f, SpringK * x * springfac, 0.f }));
 				//}
 			}
 			else
 			{
-				DINFO("Determinant Beyond Spring Zone, GroundPull is disabled, and y velocity is upwards");
+				PLAYER_INFO("Determinant Beyond Spring Zone, GroundPull is disabled, and y velocity is upwards");
 				m_OnGround = false;
 			}
 		}
@@ -1000,17 +1031,17 @@ void Voxel::VoxelPlayer::DoFeetRays()
 				if (fabsf(vel.y()) > MinVelForMinPullDown)
 				{
 					movedown = fminf(MaxPullDown, movedown);
-					DINFO("Pulled down Player by: " + std::to_string(movedown) + ", clipped");
+					PLAYER_INFO("Pulled down Player by: " + std::to_string(movedown) + ", clipped");
 				}
 				else
-					DINFO("Pulled down the Player by: " + std::to_string(movedown) + ", unclipped");
+					PLAYER_INFO("Pulled down the Player by: " + std::to_string(movedown) + ", unclipped");
 				trans.setOrigin(trans.getOrigin() + btVector3{ 0.f, -(movedown + 0.25f * DeadZoneLength), 0.f });
 				m_RigidBody->setWorldTransform(trans);
 				m_RigidBody->setLinearVelocity({ vel.x(), 0.f, vel.z() });
 				//}
 				//else
 				//{
-				//	DINFO("Did nothing as pulldown amount was too small (<" + std::to_string(MinPullDown));
+				//	PLAYER_INFO("Did nothing as pulldown amount was too small (<" + std::to_string(MinPullDown));
 				//}
 			}
 			else if (C < LegRayAmount)
@@ -1026,24 +1057,24 @@ void Voxel::VoxelPlayer::DoFeetRays()
 					auto trans = m_RigidBody->getWorldTransform();
 					trans.setOrigin(trans.getOrigin() - btVector3{ 0.f, x, 0.f });
 					m_RigidBody->setWorldTransform(trans);
-					DINFO("Did bounce fix");
+					PLAYER_INFO("Did bounce fix");
 				}
 				else
 				{
 					//btVector3 vel = RigidBody->getLinearVelocity();
 					//if (vel.getY() > 0.f)
 					//{
-					//	DINFO("Applied Slow Spring Force");
+					//	PLAYER_INFO("Applied Slow Spring Force");
 					//	RigidBody->applyCentralForce(GetRotatedForce({ 0.f, SpringKSlowUp * x, 0.f }));
 					//}
 					//else
 					//{
 					//	// Spring math
-					//	DINFO("Applied Normal Spring Force");
+					//	PLAYER_INFO("Applied Normal Spring Force");
 					//	RigidBody->applyCentralForce(GetRotatedForce({ 0.f, SpringK * x, 0.f }));
 					//}
 					float springfac = GetSpringFactor(m_RigidBody->getLinearVelocity().getY());
-					DINFO("Applied Spring Force (fac: " + std::to_string(springfac) + ")");
+					PLAYER_INFO("Applied Spring Force (fac: " + std::to_string(springfac) + ")");
 					m_RigidBody->applyCentralForce(GetRotatedForce({ 0.f, SpringK * x * springfac, 0.f }));
 				}
 			}
@@ -1053,7 +1084,7 @@ void Voxel::VoxelPlayer::DoFeetRays()
 				static float DeadZonedDeterminant = 1.1f;
 				if (LastDeadZoneUpdate != (*mResources->UpdateID - 1) || (determinant - 0.005f) > DeadZonedDeterminant || (determinant + 0.005f) < DeadZonedDeterminant)
 				{
-					DINFO("Dead Zoned with " + std::to_string(determinant));
+					PLAYER_INFO("Dead Zoned with " + std::to_string(determinant));
 					DeadZonedDeterminant = determinant;
 				}
 				LastDeadZoneUpdate = *mResources->UpdateID;
@@ -1067,7 +1098,7 @@ void Voxel::VoxelPlayer::DoFeetRays()
 	{
 		if (m_RigidBody->getGravity().length2() > (SIMD_EPSILON * SIMD_EPSILON))
 		{
-			DINFO("Disabling Gravity");
+			PLAYER_INFO("Disabling Gravity");
 			m_RigidBody->setGravity({ 0.f, 0.f, 0.f });
 			m_RigidBody->setFlags(m_RigidBody->getFlags() & (~BT_DISABLE_WORLD_GRAVITY));
 		}
@@ -1076,7 +1107,7 @@ void Voxel::VoxelPlayer::DoFeetRays()
 	{
 		if (m_RigidBody->getGravity() != btVector3{ 0.f, -9.8f, 0.f })
 		{
-			DINFO("Re-enabling Gravity");
+			PLAYER_INFO("Re-enabling Gravity");
 			m_RigidBody->setGravity({ 0.f, -9.8f, 0.f });
 			m_RigidBody->setFlags(m_RigidBody->getFlags() | BT_DISABLE_WORLD_GRAVITY);
 		}
@@ -1097,13 +1128,13 @@ btVector3 Voxel::VoxelPlayer::GetRotatedForce(btVector3 in)
 	btVector3 rotaxis = m_DeepestNormal.cross(norm);
 	btVector3 out = Matrixy4x4::RotationAxisR(floaty3{ rotaxis }, angle * RotateForceAmount).Transform(in);
 	if (dot < 0.99619469809174553229501040247389f)
-		DINFO("Input rotation: " + AsString(floaty3{ in }) + ", Norm: " + AsString(floaty3{ m_DeepestNormal }) + ", Rotated: " + AsString(floaty3{ out }));
+		PLAYER_INFO("Input rotation: " + AsString(floaty3{ in }) + ", Norm: " + AsString(floaty3{ m_DeepestNormal }) + ", Rotated: " + AsString(floaty3{ out }));
 	return out;
 }
 
 void Voxel::VoxelPlayer::DisableGroundPull()
 {
-	DINFO("Disabling Ground Pull");
+	PLAYER_INFO("Disabling Ground Pull");
 	m_DisableGroundPull = true;
 	m_PullTimer.Reset();
 	m_PullTimer.Start();
@@ -1114,12 +1145,12 @@ void Voxel::VoxelPlayer::EnableGroundPull()
 	m_PullTimer.Tick();
 	if (m_PullTimer.TotalTime() > MinPullStart)
 	{
-		DINFO("Enabling Ground pull");
+		PLAYER_INFO("Enabling Ground pull");
 		m_DisableGroundPull = false;
 	}
 	else
 	{
-		DINFO("Too early to enable ground pull");
+		PLAYER_INFO("Too early to enable ground pull");
 	}
 }
 
@@ -1341,7 +1372,7 @@ std::vector<Audio::ALBufferI> Voxel::VoxelPlayer::GetFootstepSounds()
 					}
 				}
 			}
-		DINFO("Loaded " + std::to_string(count) + " footstep sounds");
+		PLAYER_INFO("Loaded " + std::to_string(count) + " footstep sounds");
 	}
 	catch (const std::bad_alloc & e)
 	{

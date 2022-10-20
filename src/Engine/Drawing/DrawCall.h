@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "Math/matrix.h"
+
 #include "GeometryReference.h"
 #include "Material.h"
 #include "Mesh.h"

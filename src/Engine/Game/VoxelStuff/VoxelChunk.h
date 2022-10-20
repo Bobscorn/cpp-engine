@@ -2,8 +2,6 @@
 
 #include "VoxelValues.h"
 
-#include "Structure/BasicShapes.h"
-
 #include "VoxelTypes.h"
 #include "VoxelCube.h"
 #include "VoxelChunkCuller.h"
@@ -34,6 +32,19 @@ namespace std
 			return out;
 		}
 	};
+
+	template<>
+	struct hash<Voxel::ChunkBlockCoord>
+	{
+		inline size_t operator()(const Voxel::ChunkBlockCoord& in) const
+		{
+			size_t out = 0;
+			out |= (((size_t)in.x + (size_t)LLONG_MAX) >> 42) >> 42;
+			out |= (((size_t)in.y + (size_t)LLONG_MAX) >> 42) << 21;
+			out |= (((size_t)in.z + (size_t)LLONG_MAX) >> 42) << 42;
+			return out;
+		}
+	};
 }
 
 namespace Voxel
@@ -45,10 +56,8 @@ namespace Voxel
 		size_t ID;
 	};
 
-	using ChunkBlockKey = ChunkCoord;
-
 	typedef std::array<std::array<std::array<BlockData, Voxel::Chunk_Size>, Voxel::Chunk_Height>, Voxel::Chunk_Size> RawChunkData;
-	typedef std::unordered_map<ChunkBlockKey, BlockData> RawChunkDataMap;
+	typedef std::unordered_map<ChunkBlockCoord, BlockData> RawChunkDataMap;
 
 	RawChunkData ConvertMapToData(const RawChunkDataMap& m);
 
@@ -84,10 +93,16 @@ namespace Voxel
 
 		//inline operator std::array<std::array<std::array<std::unique_ptr<Voxel::ICube>, Chunk_Size>, Chunk_Height>, Chunk_Size> &const() { return m_Data; }
 		
-		void set(size_t x, size_t y, size_t z, std::unique_ptr<Voxel::ICube> val);
-		void create(size_t x, size_t y, size_t z);
+		void set(uint32_t x, uint32_t y, uint32_t z, std::unique_ptr<Voxel::ICube> val);
+		void set(ChunkBlockCoord coord, std::unique_ptr<Voxel::ICube> val);
+		void create(uint32_t x, uint32_t y, uint32_t z);
 
-		ICube* get(size_t x, size_t y, size_t z);
+		ICube* get(uint32_t x, uint32_t y, uint32_t z);
+		ICube* get(ChunkBlockCoord coord);
+		ChunkCoord GetCoord() const;
+
+		// Use with caution, will remove the block from this chunk
+		std::unique_ptr<ICube> take(ChunkBlockCoord coord);
 
 		void SetTo(RawChunkData data);
 
@@ -100,7 +115,7 @@ namespace Voxel
 		std::unique_ptr<ChunkyFrustumCuller> CreateCuller(floaty3 origin);
 
 		ChunkData m_Data;
-		std::vector<ChunkBlockKey> m_UpdateBlocks;
+		std::vector<ChunkBlockCoord> m_UpdateBlocks;
 		floaty3 m_Origin;
 		VoxelWorld *m_World = nullptr;
 		ChunkCoord m_Coord;

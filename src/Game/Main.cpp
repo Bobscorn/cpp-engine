@@ -20,13 +20,8 @@
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
 
-#ifdef __linux__
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#else
-#include <SDL.h>
-#include <SDL_image.h>
-#endif
 
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -43,6 +38,8 @@
 #include <exception>
 #include <random>
 #include <sstream>
+
+#include "ParkourScene.h"
 
 #define _CHEATS_
 
@@ -118,8 +115,8 @@ void EventProc(const SDL_Event *e);
 #		define RUN_PROFILE_POP() g_Engine->Resources.Profile->Pop()
 #	endif
 #else
-#	define RUN_PROFILE_PUSH(x)
-#	define RUN_PROFILE_POP()
+#	define RUN_PROFILE_PUSH(x) ((int)0)
+#	define RUN_PROFILE_POP() ((int)0)
 #endif
 
 void Run()
@@ -252,9 +249,8 @@ int main(int argc, char *args[])
 		*/
 		
 		g_Engine = std::make_unique<Engine::GameEngine>();
+		g_Engine->SwitchScene(std::make_unique<Parkour::ParkourScene>(&g_Engine->Resources, 0));
 		DINFO("Yo whats popping my bois");
-		auto* chungo = new char[10]{ '0' };
-		delete[] chungo;
 		Run();
 	}
 	catch (Debug::GLExc &e)

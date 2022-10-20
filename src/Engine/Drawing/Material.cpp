@@ -8,9 +8,13 @@
 #include "Program.h"
 
 #include "Helpers/StringHelper.h"
+#include "Math/floaty.h"
+#include "Math/inty.h"
 
 namespace Drawing
 {
+	using namespace Vector;
+	
 	std::unique_ptr<MaterialStore> MaterialStore::_instance = nullptr;
 	MaterialStore::Accessor MaterialStore::Instance{};
 
@@ -43,12 +47,49 @@ namespace Drawing
 	template inty2 MaterialProperty::as<inty2>() const;
 	template int MaterialProperty::as<int>() const;
 
-	std::vector<char> Material::ToByteForm()
+	const ProgramReference& Material::GetProgram() const
 	{
-		auto prog = Program.GetProgram();
+		return m_Program;
+	}
+
+	void Material::SetProgram(ProgramReference program)
+	{
+		m_Program = std::move(program);
+		m_Dirty = true;
+	}
+
+	const std::unordered_map<std::string, TextureReference>& Material::GetTextures() const
+	{
+		return m_Textures;
+	}
+
+	void Material::SetTexture(const std::string& name, TextureReference tex)
+	{
+		m_Textures[name] = std::move(tex);
+		m_Dirty = true;
+	}
+
+	const std::unordered_map<std::string, MaterialProperty>& Material::GetProperties() const
+	{
+		return m_Properties;
+	}
+
+	void Material::SetProperty(const std::string& name, MaterialProperty prop)
+	{
+		m_Properties[name] = std::move(prop);
+		m_Dirty = true;
+	}
+
+	const std::vector<char>& Material::ToByteForm()
+	{
+		if (!m_Dirty)
+			return m_CachedByteForm;
+		auto prog = m_Program.GetProgram();
 		if (!prog)
-			return std::vector<char>{};
-		return ConvertBytesViaDescription(*this, prog->GetMatDesc());
+			return m_CachedByteForm;
+		m_CachedByteForm = ConvertBytesViaDescription(*this, prog->GetMatDesc());
+		m_Dirty = false;
+		return m_CachedByteForm;
 	}
 
 	std::vector<char> Material::ConvertBytesViaDescription(const Material& mat, const MaterialDescription& desc)
@@ -61,9 +102,9 @@ namespace Drawing
 			int size = MatSizeToInt(prop.size) * 4;
 			if (bytes.size() < offset + size)
 				bytes.resize(offset + size);
-			auto it = mat.Properties.find(prop.name);
+			auto it = mat.m_Properties.find(prop.name);
 			
-			auto value = (it != mat.Properties.end() ? it->second.data : prop.data);
+			auto value = (it != mat.m_Properties.end() ? it->second.data : prop.data);
 
 			memcpy(bytes.data() + offset, &value[0], size);
 			offset += size;
@@ -79,39 +120,110 @@ namespace Drawing
 		return bytes;
 	}
 
+	Material Material::Clone() const
+	{
+		return *this;
+	}
+
+	Material Material::CloneWithProperty(const std::string& name, MaterialProperty prop) const
+	{
+		Material newMat = *this;
+		newMat.SetProperty(name, std::move(prop));
+		return newMat;
+	}
+
+	Material Material::CloneWithTexture(const std::string& name, TextureReference texRef) const
+	{
+		Material newMat = *this;
+		newMat.SetTexture(name, std::move(texRef));
+		return newMat;
+	}
+
+	Material& Material::WithProperty(const std::string& name, MaterialProperty prop)
+	{
+		SetProperty(name, prop);
+		return *this;
+	}
+
+	Material& Material::WithTexture(const std::string& name, TextureReference texRef)
+	{
+		SetTexture(name, std::move(texRef));
+		return *this;
+	}
+
 	Material SerializableMaterial::ToMaterial() const
 	{
-		Material mat;
-		mat.Program = ProgramReference(ProgramName);
+		auto prog = ProgramReference(ProgramName);
+		std::unordered_map<std::string, TextureReference> textures;
 		for (int i = 0; i < Textures.size(); ++i)
-			mat.Textures[Textures[i].first] = Textures[i].second;
+		{
+			// Handle special case Voxel Atlas textures
+			auto& name = Textures[i].second;
+			if (name.size() > 6 && name.rfind("atlas-", 0) == 0)
+			{
+				Voxel::AtlasType type = Voxel::AtlasType::DIFFUSE;
+				std::string atlasName = name.substr(5);
+				if (name.compare(name.length() - 8, 8, "-diffuse") == 0)
+				{
+					atlasName = atlasName.substr(0, atlasName.length() - 8);
+					type = Voxel::AtlasType::DIFFUSE;
+				}
+				else if (name.compare(name.length() - 7, 7, "-normal") == 0)
+				{
+					atlasName = atlasName.substr(0, atlasName.length() - 7);
+					type = Voxel::AtlasType::NORMAL;
+				}
+				else if (name.compare(name.length() - 9, 9, "-specular") == 0)
+				{
+					atlasName = atlasName.substr(0, atlasName.length() - 9);
+					type = Voxel::AtlasType::SPECULAR;
+				}
+				else if (name.compare(name.length() - 9, 9, "-emissive") == 0)
+				{
+					atlasName = atlasName.substr(0, atlasName.length() - 9);
+					type = Voxel::AtlasType::EMISSIVE;
+				}
+				else if (name.compare(name.length() - 8, 8, "-ambient") == 0)
+				{
+					atlasName = atlasName.substr(0, atlasName.length() - 8);
+					type = Voxel::AtlasType::AMBIENT; // Emissive and Ambient are the same
+				}
+				else if (name.compare(name.length() - 5, 5, "-bump") == 0)
+				{
+					atlasName = atlasName.substr(0, atlasName.length() - 5);
+					type = Voxel::AtlasType::BUMP;
+				}
+				else
+				{
+					DWARNING("When Deserializing material found atlas texture reference without a proper suffix! Valid suffixes are: -diffuse -normal -specular -emissive or -bump");
+				}
+				if (atlasName.size() && atlasName[0] == '-')
+					atlasName = atlasName.substr(1);
+				textures[Textures[i].first] = TextureReference(Voxel::AtlasTextureName{ std::move(atlasName), type });
+				continue;
+			}
+
+			// Not an atlas texture :(
+			textures[Textures[i].first] = Textures[i].second;
+		}
+
+		std::unordered_map<std::string, MaterialProperty> properties;
 		for (int i = 0; i < Properties.size(); ++i)
-			mat.Properties[Properties[i].name] = Properties[i];
-		return mat;
+			properties[Properties[i].name] = Properties[i];
+		return Material(std::move(prog), std::move(textures), std::move(properties));
 	}
 
 	void MaterialStore::LoadMaterial(const SerializableMaterial& smat)
 	{
-		if (_store.find(smat.MaterialName) != _store.end())
+		auto it = _store.find(smat.MaterialName);
+		if (it != _store.end())
+		{
+			DINFO("Overwriting material '" + smat.MaterialName + "'");
+			*it->second = smat.ToMaterial();
 			return;
-
-		std::shared_ptr<Material> mat = std::make_shared<Material>();
-
-		mat->Program = ProgramReference(smat.ProgramName);
-		
-		for (int i = 0; i < smat.Properties.size(); ++i)
-		{
-			auto& prop = smat.Properties[i];
-			mat->Properties[prop.name] = prop;
 		}
-
-		for (int i = 0; i < smat.Textures.size(); ++i)
-		{
-			auto& tex = smat.Textures[i];
-			mat->Textures[tex.first] = TextureReference(tex.second);
-		}
-
-		_store.emplace(smat.MaterialName, std::move(mat));
+				
+		_store.emplace(smat.MaterialName, std::make_shared<Material>(smat.ToMaterial()));
 	}
 
 	void MaterialStore::LoadMaterial(std::string fileName)
@@ -257,12 +369,29 @@ namespace Drawing
 		LoadMaterialDirectory(materialDirectory);
 	}
 
-	std::shared_ptr<Material> MaterialStore::GetMaterial(std::string name)
+	void MaterialStore::Reload(std::string materialDirectory, std::vector<SerializableMaterial> builtIns)
+	{
+		for (int i = 0; i < builtIns.size(); ++i)
+		{
+			LoadMaterial(builtIns[i]);
+		}
+		LoadMaterialDirectory(materialDirectory);
+	}
+
+	std::shared_ptr<Material> MaterialStore::GetMaterial(const std::string& name) const
 	{
 		auto it = _store.find(name);
 		if (it == _store.end())
+		{
+			DWARNING("Could not find material '" + name + "'!");
 			return nullptr;
+		}
 		return it->second;
+	}
+
+	std::shared_ptr<Material> MaterialStore::operator[](const std::string& name) const
+	{
+		return GetMaterial(name);
 	}
 
 	void MaterialStore::InitializeStore(std::string materialDirectory, std::vector<SerializableMaterial> builtIns)

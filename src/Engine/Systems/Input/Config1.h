@@ -85,11 +85,11 @@ namespace Config1
 		inline float GetNormalMarginSize() const { return NormalMargin * MarginScale; }
 		inline float GetBigMarginSize() const { return BigMargin * MarginScale; }
 		
-		SDLW::Font *RegisterNewTextFormat(Stringy Name, SDLW::FontDesc fd);
-		SDLW::Font *GetTextFormat(Stringy Name);
+		SDLW::Font *RegisterNewTextFormat(const Stringy& Name, SDLW::FontDesc fd);
+		SDLW::Font *GetTextFormat(const Stringy& Name);
 
-		SDL_Color RegisterNewBrush(Stringy Name, SDL_Color);
-		SDL_Color GetBrush(Stringy Name);
+		SDL_Color RegisterNewBrush(const Stringy& Name, SDL_Color color);
+		SDL_Color GetBrush(const Stringy& Name);
 
 	private:
 		void ResizeFonts(float scalechange = 0.f);

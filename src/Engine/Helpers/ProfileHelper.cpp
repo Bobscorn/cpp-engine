@@ -8,6 +8,7 @@
 #include <functional>
 #include <algorithm>
 
+#ifdef EC_PROFILE
 constexpr float OtherThreshold = 0.001f;
 
 bool TimedEvent::operator==(const TimedEvent& other) const
@@ -74,7 +75,6 @@ void TimedEvent::AggregateOntoThis(TimedEvent& other, TimedEvent& parent)
 	parent.ChildEvents.erase(parent.ChildEvents.begin() + siblingIndex);	
 }
 
-#ifdef EC_PROFILE
 ProfileMcGee::ProfileMcGee(ProfileOptions options) : m_Options(options)
 {
 	m_TimerBoi.Reset();

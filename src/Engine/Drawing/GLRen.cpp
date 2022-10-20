@@ -78,6 +78,10 @@ void GLRen::SetTransform(Matrixy2x3 trans)
 
 void GLRen::SetScissorRect(GLint x, GLint y, GLint width, GLint height)
 {
+	(void)x;
+	(void)y;
+	(void)width;
+	(void)height;
 	DWARNING("Scissor Rect not implemented yet");
 }
 
@@ -126,7 +130,7 @@ const Light *GLRen::GetLight(unsigned int Index) const
 
 Drawing::DrawCall GLRen::CreateDrawCall(std::vector<FullVertex> vertices, std::vector<unsigned int> indices, Material mat, Matrixy4x4 * matrix)
 {
-	DINFO("Supplying Material to CreateDrawCall deprecated");
+	DWARNING("Supplying Material to CreateDrawCall deprecated");
 	Drawing::DrawCall out;
 	out.Geometry = AddGeometry(std::move(vertices), std::move(indices));
 	out.Matrix = matrix;
@@ -1021,11 +1025,17 @@ void GLRen::FillVertices(std::vector<floaty2> vertices, floaty4 color)
 
 void GLRen::DrawVertices(std::vector<floaty2> vertices, floaty4 color, GLenum mode)
 {
+	(void)vertices;
+	(void)color;
+	(void)mode;
 	DWARNING("Fucka de you, no draw vertices for you");
 }
 
 void GLRen::FillVertices(std::vector<floaty2> vertices, floaty4 color, GLenum mode)
 {
+	(void)vertices;
+	(void)color;
+	(void)mode;
 	DWARNING("Fucka de you, no fill vertices for you");
 }
 

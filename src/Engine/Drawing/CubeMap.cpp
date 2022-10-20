@@ -77,10 +77,10 @@ namespace Drawing
 
 		bool redo = px->w != _width || px->h != _height;
 
-		size_t new_width = px->w;
-		size_t new_height = px->h;
+		GLuint new_width = px->w;
+		GLuint new_height = px->h;
 		for (int i = 0; i < 6; ++i)
-			if (indexToFace(i)->w != new_width || indexToFace(i)->h != new_height)
+			if ((GLuint)indexToFace(i)->w != new_width || (GLuint)indexToFace(i)->h != new_height)
 			{
 				DERROR("Given surfaces of different sizes!");
 				return;
@@ -114,12 +114,12 @@ namespace Drawing
 		}
 		else if (HasLoadedGL())
 		{
-			glTextureSubImage3D(_tex, 0, 0, 0, 0, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)px->pixels);
-			glTextureSubImage3D(_tex, 0, 0, 0, 1, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)nx->pixels);
-			glTextureSubImage3D(_tex, 0, 0, 0, 2, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)py->pixels);
-			glTextureSubImage3D(_tex, 0, 0, 0, 3, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)ny->pixels);
-			glTextureSubImage3D(_tex, 0, 0, 0, 4, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)pz->pixels);
-			glTextureSubImage3D(_tex, 0, 0, 0, 5, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)nz->pixels);
+			glTextureSubImage3D(_tex, 0, 0, 0, 0, (GLsizei)_width, (GLsizei)_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)px->pixels);
+			glTextureSubImage3D(_tex, 0, 0, 0, 1, (GLsizei)_width, (GLsizei)_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)nx->pixels);
+			glTextureSubImage3D(_tex, 0, 0, 0, 2, (GLsizei)_width, (GLsizei)_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)py->pixels);
+			glTextureSubImage3D(_tex, 0, 0, 0, 3, (GLsizei)_width, (GLsizei)_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)ny->pixels);
+			glTextureSubImage3D(_tex, 0, 0, 0, 4, (GLsizei)_width, (GLsizei)_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)pz->pixels);
+			glTextureSubImage3D(_tex, 0, 0, 0, 5, (GLsizei)_width, (GLsizei)_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)nz->pixels);
 		}
 	}
 	

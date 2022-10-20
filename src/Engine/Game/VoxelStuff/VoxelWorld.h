@@ -30,11 +30,12 @@ namespace Voxel
 	struct IChunkLoader
 	{
 		virtual RawChunkDataMap LoadChunk(int64_t x, int64_t y, int64_t z) = 0;
+		inline RawChunkDataMap LoadChunk(ChunkCoord coord) { return LoadChunk(coord.X, coord.Y, coord.Z); }
 	};
 
 	struct IChunkUnloader
 	{
-		virtual void UnloadChunk(std::unique_ptr<ChunkyBoi> &&chunk) = 0;
+		virtual void UnloadChunk(std::unique_ptr<ChunkyBoi> chunk) = 0;
 	};
 
 	struct LoadingStuff
@@ -69,9 +70,9 @@ namespace Voxel
 
 	// VoxelWorld is a class designed to load*, unload chunks, and displace the physics world in order to keep the player at the centre of world
 	// *Loading is not done in this class
-	struct VoxelWorld : G1::IShape, Events::IEventListenerT<Events::AfterPhysicsEvent>
+	struct VoxelWorld : G1::IShape, Events::IEventListenerT<Events::AfterPhysicsEvent>, IChunkUnloader
 	{
-		VoxelWorld(G1::IGSpace *container, CommonResources *resources, WorldStuff stuff);
+		VoxelWorld(G1::IShapeThings things, WorldStuff stuff);
 		~VoxelWorld();
 
 		// Update is the main method of the dynamic world centre
@@ -88,6 +89,7 @@ namespace Voxel
 
 		// Static Modification
 		void ReplaceStaticCube(BlockCoord coord, std::unique_ptr<ICube> cube);
+		void ReplaceStaticCube(BlockCoord coord, SerialBlock block);
 		void SetStaticCube(BlockCoord coord);
 
 		ICube* GetCubeAt(BlockCoord coord); // Get is thread-safe, modification via returned pointer not thread-safe
@@ -98,6 +100,7 @@ namespace Voxel
 		// Get the coords of a block/chunk given by position, in Displaced Physics space
 		BlockCoord GetBlockCoordFromPhys(floaty3 phys_pos);
 		ChunkCoord GetChunkCoordFromPhys(floaty3 phys_pos);
+		floaty3 GetPhysPosFromBlockCoord(BlockCoord coord);
 
 		// Dynamic Stuff
 		void AddEntity(std::unique_ptr<Entity> entity);
@@ -111,16 +114,26 @@ namespace Voxel
 		template<>
 		void AddProjectile<HitScanProjectile, floaty3, floaty3, Entity *, DamageDescription>(floaty3, floaty3, Entity *, DamageDescription);
 
+
+		// Chunk Unloading
+		void UnloadChunk(std::unique_ptr<ChunkyBoi> chunk) override;
+
 	protected:
 
 		WorldStuff m_Stuff;
 		std::shared_ptr<LoadingStuff> m_LoadingStuff;
 		std::thread m_LoadingThread;
-		mutable std::shared_mutex m_ChunksMutex;
+		mutable std::shared_mutex m_ChunksMutex; // Synchronise access to chunks to allow for reading from a separate loading thread
 
-		std::vector<ChunkCoord> m_Offsets;
+		// Store a list of pre-calculated offsets from the centre/player to load as the player/centre moves
+		std::vector<ChunkCoord> m_ChunkLoadingOffsets;
 
+		// Store the actual chunks in an unordered_map
+		// Storing them as unique_ptrs is perhaps not necessary
 		std::unordered_map<ChunkCoord, std::unique_ptr<ChunkyBoi>> m_Chunks;
+		
+		// Temporary measure to store changes and prevent them being unloaded
+		std::unordered_map<ChunkCoord, std::vector<std::pair<ChunkBlockCoord, std::unique_ptr<ICube>>>> m_BlockChanges;
 
 		std::unordered_map<Entity *, std::unique_ptr<Entity>> m_DynamicEntities;
 		std::vector<Entity *> m_ToRemoveEntities;
@@ -152,6 +165,7 @@ namespace Voxel
 		GLuint CreateIBO();
 		void UpdateInstanceStuff(const std::vector<ProjInstanceData> &data);
 
+		void ApplyChunkChanges();
 
 		void CheckLoadingThread();
 

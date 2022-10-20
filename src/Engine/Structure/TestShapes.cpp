@@ -228,6 +228,7 @@ bool Test::IControllerState::HasGravity()
 
 bool Test::WalkingState::Receive(Events::IEvent * e)
 {
+	(void)e;
 	return false;
 }
 

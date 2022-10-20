@@ -10,11 +10,11 @@ program: default-voxel-program
 textures:
   diffuse: atlas-global-diffuse
   specular: atlas-global-specular
-  ambient: atlas-ambient
-  opacity: atlas-opacity
-  specpower: atlas-specpower
+  ambient: custom-atlas-ambient
+  opacity: custom-atlas-opacity
+  specpower: custom-atlas-specpower
   normal: atlas-global-normal
-  emissive: atlas-emissive
+  emissive: atlas-global-emissive
   bump: atlas-global-bump
 
 # The children of the properties tag are iterated over
@@ -29,29 +29,29 @@ textures:
 # ie:
 # The name of the child is used as the name of the property,
 # The child is scanned for the 'type' tag expected either 'int' or 'float'
-# If the type is omitted, it is assumed as floating point
+# If the type is omitted, it is assumed as floating point, as it is here
 # And then the child is scanned for x/y/z/w or r/g/b/a, or u/v components containing their integral/floating point values
 properties:
     diffuse:
         size: 4
         r: 1.0
-        g: 0.3
-        b: 0.1
+        g: 1.0
+        b: 1.0
         a: 1.0
     specular:
         size: 4
-        r: 0.8
-        g: 0.8
-        b: 0.8
-        a: 3.0
+        r: 0.25
+        g: 0.25
+        b: 0.25
+        a: 25.0
     ambient:
         size: 4
-        r: 0.1
-        g: 0.1
-        b: 0.1
+        r: 0.05
+        g: 0.05
+        b: 0.05
         a: 1.0
-    tex-bitmap:
+    tex-bitmap: # tex-bitmap is the decimal number that represents the bitmask of textures used
         size: 1
         type: int
-        x: 100
+        x: 36
 # and so on

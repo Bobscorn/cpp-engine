@@ -3,7 +3,8 @@
 
 #include "Helpers/TransferHelper.h"
 #include "Helpers/PointerHelper.h"
-#include "Helpers/VectorHelper.h"
+
+#include "Math/floaty.h"
 
 #include "Helpers/DebugHelper.h"
 #include "Systems/Events/Events.h"
@@ -70,8 +71,8 @@ namespace UI1
 			return depth;
 		}
 		
-		inline bool OnTop(UIElement *child) { return child == Children.back(); }
-		inline bool AtBottom(UIElement *child) { return child == Children.front(); }
+		inline bool OnTop(UIElement *child) { return Children.size() && child == Children.back(); }
+		inline bool AtBottom(UIElement *child) { return Children.size() && child == Children.front(); }
 
 	public:
 		unsigned int Depth;
@@ -178,7 +179,7 @@ namespace UI1
 		virtual void ComputePosition(Matrixy2x3 accumulated) = 0; // Assumed that this method will properly update all matrices, and any children that need to be
 		virtual void ChildAdded(UIElement *el) = 0;
 		virtual void ChildrenAdded(std::vector<UIElement*> els) = 0;
-		virtual void RootPosition() = 0; // Called by the Root whenever Positioning 
+		virtual void RootPosition() = 0; // Called by the Root whenever being Positioned by it
 		virtual void ChildNeedsUpdate() { if (Parent) ComputePosition(Parent->GetChildMatrix()); else ComputePosition(Matrixy2x3::Identity()); }
 		
 
@@ -228,7 +229,7 @@ namespace UI1
 		inline bool operator() (const UIFloatElement* e, const UIFloatElement* e2) const { return e->Depth < e2->Depth; }
 	};
 
-	class RootElement : public UIElement, InputAttach::IAttachable, public Events::IEventListenerT<Events::ResizeWindowEvent, Events::WindowFocusEvent>
+	class RootElement : public UIElement, public InputAttach::IAttachable, public Events::IEventListenerT<Events::ResizeWindowEvent, Events::WindowFocusEvent>
 	{
 		using UIElement::BeforeDraw;
 		std::vector<UIFloatElement*> FloatElements;
@@ -245,7 +246,7 @@ namespace UI1
 		bool DoHover = true;
 		bool DoMouseMovement = true;
 	public:
-		RootElement(CommonResources *resources) { this->Root = this; SetResources(resources); resources->InputAttachment->Add(this); resources->Event->Add(this); }
+		RootElement(CommonResources *resources, bool attach = false) { this->Root = this; SetResources(resources); if (attach) resources->InputAttachment->Add(this); resources->Event->Add(this); }
 
 		// Another reminder to call this and any UIElement Initialize methods *AFTER* you add *ALL* children
 		Debug::DebugReturn Initialize() { ComputePositions(); return true; }

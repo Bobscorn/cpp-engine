@@ -5,6 +5,8 @@
 #include "Systems/Events/Events.h"
 #include "Helpers/DebugHelper.h"
 
+#include <SDL2/SDL.h>
+
 Listener::KeyListener::KeyListener(size_t count, Input::Key * codes) : IEventListener(std::vector<Events::Event>(1, Events::KeyEvent)), KeyStates()
 {
 	for (size_t i = count; i-- > 0; )

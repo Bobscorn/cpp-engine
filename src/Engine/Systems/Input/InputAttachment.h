@@ -19,15 +19,15 @@ namespace InputAttach
 		virtual ~IAttachable();
 
 		// Input methods
-		virtual bool Receive(Event::KeyInput *e) = 0;
-		virtual bool Receive(Event::MouseMove *e) = 0;
-		virtual bool Receive(Event::MouseButton *e) = 0;
-		virtual bool Receive(Event::MouseWheel *e) = 0;
-		virtual bool Receive(Event::MouseWheelButton *e) = 0;
+		inline virtual bool Receive(Event::KeyInput* e) { (void)e;  return false; }
+		inline virtual bool Receive(Event::MouseMove* e) { (void)e; return false; }
+		inline virtual bool Receive(Event::MouseButton* e) { (void)e; return false; }
+		inline virtual bool Receive(Event::MouseWheel* e) { (void)e; return false; }
+		inline virtual bool Receive(Event::MouseWheelButton* e) { (void)e; return false; };
 
 		// Attachment event methods
-		virtual void Reinstated() = 0;
-		virtual void Superseded() = 0;
+		inline virtual void Reinstated() {}
+		inline virtual void Superseded() {}
 
 		virtual Stringy GetName() const = 0;
 	};

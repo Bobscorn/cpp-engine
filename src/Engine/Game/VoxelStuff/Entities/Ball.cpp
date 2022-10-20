@@ -41,6 +41,8 @@ void Voxel::Entities::Ball::AfterDraw()
 
 bool Voxel::Entities::Ball::HitByProjectile(Projectile *proj, floaty3 hit_point)
 {
+	(void)proj;
+	(void)hit_point;
 	return true;
 }
 

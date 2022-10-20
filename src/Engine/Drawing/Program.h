@@ -75,6 +75,8 @@ namespace Drawing
 		GLuint _matBufBinding;
 
 		GLVertexArray _inputVAO;
+		GeometryDescription _lastGeoDesc;
+		const VertexBuffer* _lastVertexBuffer;
 
 		std::vector<BoundTextureMapping> _textureMappings;
 
@@ -89,12 +91,14 @@ namespace Drawing
 
 		inline const MaterialDescription& GetMatDesc() const { return _matDesc; }
 
+		inline const std::string& GetName() const { return _desc.ProgramName; }
+
 		bool CanBindTo(const VertexBuffer& buf) const; // Checks whether this Program can bind to a VertexBuffer (whether they have compatible GeometryDescriptions)
 		void BindTo(const VertexBuffer& buf); // Configures the Input VAO to point to a given VertexBuffer 
 
 		inline void BindVAO() { CHECK_GL_ERR("Before Binding VAO"); glBindVertexArray(_inputVAO.Get()); CHECK_GL_ERR("After Binding VAO"); }
 
-		void SetMaterial(const Material& material);
+		void SetMaterial(Material& material);
 
 		inline const std::vector<BoundTextureMapping>& GetTexMappings() const { return _textureMappings; }
 	};

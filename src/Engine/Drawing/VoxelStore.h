@@ -30,12 +30,15 @@
 #include <string>
 #include <unordered_map>
 
-#include "Helpers/VectorHelper.h"
+#include "Math/floaty.h"
 
 #include "Drawing/Texture.h"
 #include "Drawing/Image2DArray.h"
 
 #include "Game/VoxelStuff/VoxelCube.h"
+#include "Game/VoxelStuff/VoxelTypes.h"
+
+#include "AtlasTypes.h"
 
 namespace Voxel
 {
@@ -43,34 +46,6 @@ namespace Voxel
 	// All face textures are assumed to be this size
 	constexpr int DefaultFaceSize = 1024;
 	constexpr int DefaultAtlasLayerFaceCount = 1;
-
-	enum class BlockFace
-	{
-		UP = 0,
-		POS_Y = 0,
-		FORWARD = 1,
-		NEG_Z = 1,
-		RIGHT = 2,
-		POS_X = 2,
-		DOWN = 3,
-		NEG_Y = 3,
-		BACK = 4,
-		POS_Z = 4,
-		LEFT = 5,
-		NEG_X = 5,
-	};
-
-	enum class AtlasType
-	{
-		DIFFUSE = 0,
-		SPECULAR = 1,
-		EMISSIVE = 2,
-		NORMAL = 3,
-		BUMP = 4,
-		OTHER = 5,
-	};
-	
-	constexpr std::array<AtlasType, 5> AtlasTypes{ AtlasType::DIFFUSE, AtlasType::SPECULAR, AtlasType::EMISSIVE, AtlasType::NORMAL, AtlasType::BUMP };
 
 	struct FaceTexCoord
 	{
@@ -198,16 +173,16 @@ namespace Voxel
 		std::vector<VoxelBlock> _descriptions;
 		std::vector<BlockDescription> _unstitchedDescriptions;
 
-		void LoadAtlas(std::string path);
-		void LoadBlockFile(std::string path);
-		void LoadAtlasDirectory(std::string directory);
-		void LoadBlockDirectory(std::string directory);
+		void LoadAtlas(const std::string& path);
+		void LoadBlockFile(const std::string& path);
+		void LoadAtlasDirectory(const std::string& directory);
+		void LoadBlockDirectory(const std::string& directory);
 
-		void StitchUnstitched(std::string faceTexDir);
+		void StitchUnstitched(const std::string& faceTexDir);
 
 		void CheckForNoAtlasses() const;
 
-		VoxelBlock& GetOrCreateBlock(std::string blockName);
+		VoxelBlock& GetOrCreateBlock(const std::string& blockName);
 	public:
 		/**
 		* Instantiates, loads and stitches voxel atlases from disk.
@@ -216,11 +191,11 @@ namespace Voxel
 		* When stitching atlases, the texture files described in Block Descriptions are assumed to be stored in faceTexDir (faceTexDir is pre-pended to non-absolute texture filenames)
 		* Also Stitches any atlases in builtInAtlases. (Uses faceTexDir for textures)
 		*/
-		VoxelStore(std::string prestitchedDirectory, std::string blockDirectory, std::string faceTexDir, std::vector<UnStitchedAtlasSet> builtInAtlases = std::vector<UnStitchedAtlasSet>());
+		VoxelStore(const std::string& prestitchedDirectory, const std::string& blockDirectory, const std::string& faceTexDir, std::vector<UnStitchedAtlasSet> builtInAtlases = std::vector<UnStitchedAtlasSet>());
 
 
-		void StitchAndLoadAtlas(const UnStitchedAtlasSet& set, std::string faceTexDir);
-		StitchedAtlasSet StichAtlas(const UnStitchedAtlasSet& set, std::string faceTexDir);
+		void StitchAndLoadAtlas(const UnStitchedAtlasSet& set, const std::string& faceTexDir);
+		StitchedAtlasSet StichAtlas(const UnStitchedAtlasSet& set, const std::string& faceTexDir);
 
 		/**
 		* Partially Loads a BlockDescription into a VoxelBlock.
@@ -229,17 +204,18 @@ namespace Voxel
 		*/
 		void LoadBlock(const BlockDescription& desc);
 
-		std::shared_ptr<StitchedAtlasSet> GetAtlas(std::string name) const;
+		bool TryGetAtlas(const std::string& name, std::shared_ptr<StitchedAtlasSet>& out) const;
+		bool TryGetAtlasTexture(const AtlasTextureName& name, std::shared_ptr<Drawing::Image2DArray>& out) const;
 		
-		bool HasBlock(std::string name) const;
-		const VoxelBlock* GetBlock(std::string name) const; // Return value should not be kept
-		bool TryGetDescription(std::string name, VoxelBlock& desc) const;
+		bool HasBlock(const std::string& name) const;
+		const VoxelBlock* GetBlock(const std::string& name) const; // Return value should not be kept
+		bool TryGetDescription(const std::string& name, VoxelBlock& desc) const;
 		bool TryGetDescription(size_t ID, VoxelBlock& desc) const;
 		VoxelBlock GetDescOrEmpty(size_t ID) const; // Returns either the description for the ID, or the description for 'empty' if not possible
 
-		size_t GetIDFor(std::string blockName) const;
+		size_t GetIDFor(const std::string& blockName) const;
 
-		static void InitializeVoxelStore(std::string prestitchedDir, std::string blockDir, std::string faceTexDir, std::vector<UnStitchedAtlasSet> builtInAtlases = std::vector<UnStitchedAtlasSet>());
+		static void InitializeVoxelStore(const std::string& prestitchedDir, const std::string& blockDir, const std::string& faceTexDir, std::vector<UnStitchedAtlasSet> builtInAtlases = std::vector<UnStitchedAtlasSet>());
 
 		std::unique_ptr<ICube> CreateCube(size_t ID) const;
 		inline std::unique_ptr<ICube> CreateCube(std::string name) const { return CreateCube(GetIDFor(name)); }

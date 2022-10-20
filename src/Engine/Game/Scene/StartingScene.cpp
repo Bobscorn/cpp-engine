@@ -1,13 +1,15 @@
 #include "StartingScene.h"
 
-#include <Helpers/StringHelper.h>
+#include "Helpers/StringHelper.h"
 
-Scene::StartingScene::StartingScene(CommonResources * resources)
+#include "Systems/Execution/Engine.h"
+
+Scene::StartingScene::StartingScene(CommonResources* resources)
 	: FullResourceHolder(resources)
 	, UIRoot(resources)
 	, Faderer(resources, 1.f)
 	, Title(resources, "Encapsulated")
-	, UIContainer(resources)
+	, UIContainer(resources, "background.jpeg", UI1I::ButtonyContainer::CENTRE_ALIGN, UI1I::ButtonyContainer::CENTRE_ALIGN)
 	, NewGameButton(resources, "NEW GAME", Requests::Request("NewGame"))
 	, ContinueButton(resources, "CONTINUE", Requests::Request("ContinueGame"))
 	, LoadButton(resources, "LOAD", Requests::Request("LoadGame"))
@@ -114,7 +116,7 @@ void Scene::StartingScene::NewGame()
 
 void Scene::StartingScene::ActuallyDoNewGame()
 {
-	mResources->Scene->SwitchScene(Stageboi.release());
+	mResources->Engine->SwitchScene(std::move(Stageboi));
 	DINFO("Wooo new game time");
 }
 

@@ -1,7 +1,9 @@
 #pragma once
 
-#include "Helpers/VectorHelper.h"
+#include "Math/floaty.h"
+#include "Math/matrix.h"
 #include "Helpers/DrawingHelper.h"
+#include "Helpers/PointerHelper.h"
 
 #include "Drawing/Graphics2D.h"
 #include "Drawing/Graphics3D.h"
@@ -89,7 +91,9 @@ struct TexScaleDesc
 
 struct TextureManager : Drawing::ITextureGuy
 {
-	TextureManager(CommonResources *resources, std::shared_ptr<Drawing::SDLImage> defaulttex, GLProgram &program) : m_Program(program), m_TexScaleBuffer(InitTexScaleBuffer()), m_DefaultTex(defaulttex) {
+	TextureManager(CommonResources *resources, std::shared_ptr<Drawing::SDLImage> defaulttex, GLProgram &program) : m_Program(program), m_TexScaleBuffer(InitTexScaleBuffer()), m_DefaultTex(defaulttex) 
+	{
+		(void)resources;
 		// Set Default texture (at slot 0)
 		glUseProgram(program.Get());
 		InitializeLocations();

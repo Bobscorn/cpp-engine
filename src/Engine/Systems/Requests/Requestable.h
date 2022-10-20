@@ -56,6 +56,8 @@ namespace Requests
 		friend class Requester;
 	private:
 		Requester * master = nullptr;
+	protected:
+		inline std::add_cv<Requester*>::type GetMaster() const { return master; }
 	public:
 		virtual Debug::DebugReturn Request(Request& req) = 0;
 		virtual Stringy GetName() const = 0;

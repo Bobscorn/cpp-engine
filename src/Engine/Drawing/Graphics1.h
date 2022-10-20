@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <utility>
 
 #pragma warning(push, 0)
 #include <btBulletDynamicsCommon.h>
@@ -180,7 +181,7 @@ namespace G1
 		// AddChild Takes ownership of the lifetime of any supplied IShape pointer
 		inline Pointer::f_ptr<IShape> AddChild(IShape* toadd) { children.emplace_back(toadd); children.back()->Parent = this; return children.back(); }
 		template<class Shape, class ... Args>
-		inline Pointer::f_ptr<Shape> AddChild(Args... args) { children.emplace_back(new Shape(this->Container, this->mResources, args...)); children.back()->Parent = this; return (Pointer::f_ptr<IShape>(children.back()).SketchyCopy<Shape>()); }
+		inline Pointer::f_ptr<Shape> AddChild(std::string name, Args... args) { children.emplace_back(new Shape(G1::IShapeThings{ this->Container, this->mResources, name }, std::forward<Args>(args)...)); children.back()->Parent = this; return (Pointer::f_ptr<IShape>(children.back()).SketchyCopy<Shape>()); }
 		inline bool RemoveChild(IShape *culprit) { for (size_t i = children.size(); i-- > 0;) if (children[i].get() == culprit) { std::swap(children[i], children.back()); children.pop_back(); return true; } return false; }
 		std::vector<selfish_ptr<IShape>> children;
 		inline std::vector<selfish_ptr<IShape>>& Children() { return children; }
@@ -332,6 +333,7 @@ namespace G1
 
 		const static std::string RootShapeName;
 
+		IShape* GetRootShape();
 		IShape *FindShapeyRaw(std::string name);
 		Pointer::observing_ptr<IShape> FindShapey(std::string);
 		Pointer::f_ptr<IShape> FindShapeFPtr(std::string name);

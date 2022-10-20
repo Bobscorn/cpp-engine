@@ -393,3 +393,13 @@ This means if you have installed packages into more than one directory, you can 
 Otherwise for platforms like linux, you will likely not have to build these yourself, and can instead install them using your package manager.
 CMake should find installed packages as per normal.
     
+
+As for dlls, or .so files for linux, SDL2, glew and yaml are easily installed using $<TARGET_RUNTIME_DLLS>, which is done by the example game supplied.
+However for the others, you will have to supply a method of installing them yourself, possibly simply manually copying them.
+This required dlls are from zlib, assimp and openal.
+As for linux, if you are using installed packages, you should not need to install them at all.
+For source builds of dependencies for linux, you can either: install them to the system, or use rpath to specify the location of the libraries.
+
+There is WIP support for cmake copying those dlls by hand, but don't expect it to scale or respond to differently named dlls.
+
+

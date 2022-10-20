@@ -52,7 +52,7 @@ namespace Scene
 		virtual void BeforeDraw() override;
 		virtual void Draw() override;
 		virtual void AfterDraw() override;
-		inline virtual IScene * Clone() override { return new StageScene(mResources); }
+		inline virtual std::unique_ptr<IScene> Clone() override { return std::make_unique<StageScene>(mResources); }
 
 		// IStageManager
 		virtual void ChangeStageTo(Stringy newstagename) override;

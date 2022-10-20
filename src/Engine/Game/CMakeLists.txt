@@ -2,16 +2,11 @@
 # 
 # We are only defining tests in this file
 
-# Create test source list into TestsSrcs using "MyTests.cpp" as the driver file
-create_test_sourcelist(TestSrcs
-	MyTests.cpp
-	GameEngine.cpp
-)
-
 # Add test executable
-add_executable(MyTests ${TestSrcs})
-
-message("Test sources: ${TestSrcs}")
+add_executable(MyTests 
+	"GameEngine.cpp"
+    "VoxelStuff/VoxelTypes.cpp"
+)
 
 set_target_properties(MyTests
 	PROPERTIES
@@ -24,12 +19,9 @@ set_target_properties(MyTests
 target_compile_definitions(MyTests PUBLIC CPP_ENGINE_TESTS=1)
 
 target_include_directories(MyTests PRIVATE $<TARGET_PROPERTY:cpp_engine_lib,INCLUDE_DIRECTORIES>)
+target_link_libraries(MyTests PRIVATE cpp_engine_lib)
+target_link_libraries(MyTests PRIVATE GTest::gtest_main)
 
-# Go through test sources and add tests
-set(TestsToRun ${TestSrcs})
-remove(TestsToRun MyTests.cpp)
+include(GoogleTest)
+gtest_discover_tests(MyTests)
 
-foreach (test ${TestsToRun})
-	get_filename_component(test_name ${test} NAME_WE)
-	add_test(NAME ${test_name} COMMAND MyTests ${test_name})
-endforeach()

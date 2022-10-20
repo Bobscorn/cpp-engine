@@ -1,0 +1,199 @@
+# Processed using YAML
+# None of these properties need be ordered
+# The 'name' property is the name of the program, that will be displayed, and the name that Materials will use to link to this program
+name: default-voxel-program
+
+# the 'lightbuf' property is the name of the OpenGL GLSL buffer that contains Lights
+lightbuf: Lights
+
+# The 'materialbuf' property is the name of the OpenGL GLSL buffer that contains the Material
+# This GLSL buffer should ONLY contain the Material
+materialbuf: MaterialBuffer
+
+# The 'material' property is the layout of the Material Buffer of this program
+# It contains a set of properties that make up the material buffer
+# If for example you had a material in glsl as such:
+# struct Material
+# {
+#   vec4 Diffuse;
+#   vec4 Specular;
+#   float IOR;
+# }
+# The corresponding yaml would be:
+# material:
+#    properties:
+#        - 
+#            name: diffuse
+#            size: 4
+#            type: float
+#            default:
+#                x: 0
+#                y: 0
+#                z: 0
+#                w: 0
+#        -
+#            name: specular
+#            size: 4
+#            type: float
+#            default:
+#                x: 0
+#                y: 0
+#                z: 0
+#                w: 0
+#        -
+#            name: IOR
+#            size: 1
+#            type: float
+#            default:
+#                x: 1
+#
+# The material property also contains any textures that are used after the 'properties' sub-property like this:
+#    textures:
+#    -
+#        mat_name: diffuse
+#        gl_name: DiffuseTexture
+# 
+material:
+    properties:
+    -
+        name: ambient
+        size: 4
+        type: float
+        default:
+            x: 0.1
+            y: 0.1
+            z: 0.1
+            w: 1.0
+    -
+        name: emissive
+        size: 4
+        type: float
+        default:
+            x: 0
+            y: 0
+            z: 0
+            w: 0
+    -
+        name: diffuse
+        size: 4
+        type: float
+        default:
+            x: 0.7
+            y: 0.7
+            z: 0.7
+            w: 1.0
+    -
+        name: specular
+        size: 4
+        type: float
+        default:
+            x: 0.7
+            y: 0.7
+            z: 0.7
+            w: 1.0
+    -
+        name: IOR
+        size: 1
+        type: float
+        default:
+            x: 1
+    -
+        name: tex-bitmap
+        size: 1
+        type: int
+        default:
+            x: 0
+    -
+        name: padding
+        size: 2
+        type: float
+        default:
+            x: 0
+            y: 0
+
+textures:
+-
+    mat-name: diffuse
+    gl-name: DiffuseTexture
+-
+    mat-name: specular
+    gl-name: SpecularTexture
+-
+    mat-name: opacity
+    gl-name: OpacityTexture
+-
+    mat-name: ambient
+    gl-name: AmbientTexture
+-
+    mat-name: emissive
+    gl-name: EmissiveTexture
+-
+    mat-name: normal
+    gl-name: NormalTexture
+-
+    mat-name: bump
+    gl-name: BumpTexture
+
+# The 'perobjectbuf' property is the name of the OpenGL GLSL buffer that contains the WorldView and WorldViewProj matrices
+# Currently a program must contain a buffer with just the WorldView and WorldViewProj as follows:
+# uniform PerObject
+# {
+#    mat4 WorldView;
+#    mat4 WorldViewProj;
+# };
+perobjectbuf: PerObject
+
+# The 'shaders' property contains a list/map of shader file names with the type of shader after a colon
+# for example to specify a program's vertex shader (which is required by non-compute programs) you would have:
+# shaders: { my_vertex_program.glvs: VERTEX }
+# Specifying that the Vertex shader is the glsl code in 'my_vertex_program.glvs'
+# The possible types of Shaders are: VERTEX, GEOMETRY, FRAGMENT, TESS_CONTROL and TESS_EVAL
+# Only the vertex shader is required, however you'll need a fragment shader to have anything appear on the screen
+shaders:
+{
+    default_voxel_vertex.glvs: VERTEX,
+    default_voxel_fragment.glfs: FRAGMENT
+}
+
+# The 'geometry' property describes the order and size of vertex components like positions and normals
+# Order and size for positions is required
+# Everything else (normals, tangents, binormals and texture coords) are optional
+# Possible component types:
+# normal, binormal, tangent, tex
+# Order starts at 0, which is usually the position component
+# Size is essentially the dimensionality of the component
+# Size of 2 means a 2D vector, floaty2/vec2
+# Size of 3 means a 3D vector, floaty3/vec3
+# Size of 4 means a 4D vector, floaty4/vec4
+# Specify each component as a child property of the geometry property
+# Specify the order and size of each component as a child of that component's property
+geometry:
+    position: # Position is required
+        # Order starts at one and determines the order of components
+        order: 1
+        # Size determines how many 4 byte values there are (ie. number of floating points) 3 means its a 3D (x,y,z) position vector
+        size: 3 
+    normal: # Normals are optional
+        order: 2
+        size: 3
+    binormal: # Binormals are optional
+        order: 3
+        size: 3
+    tangent: # Tangents are optional
+        order: 4
+        size: 3
+    tex: # Tex coords are optional
+        order: 5
+        size: 3
+
+# Tell the renderer what the name of sampler2D(s) are
+# possible types are: diffuse, opacity, ambient, emissive, specular, specpower, normal, bump
+textures:
+    diffuse: DiffuseTexture
+    specular: SpecularTexture
+    opacity: OpacityTexture
+    ambient: AmbientTexture
+    emissive: EmissiveTexture
+    specpower: SpecularPowerTexture
+    normal: NormalTexture
+    bump: BumpTexture

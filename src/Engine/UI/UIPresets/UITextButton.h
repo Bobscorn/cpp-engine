@@ -1,10 +1,10 @@
 #pragma once
 
-#include <UI/UI1.h>
-#include <UI/UIPositioner.h>
-#include <Systems/Events/EventsBase.h>
-#include <Systems/Input/Config1.h>
-#include <Drawing/TextDrawing.h>
+#include "UI/UI1.h"
+#include "UI/UIPositioner.h"
+#include "Systems/Events/EventsBase.h"
+#include "Systems/Input/Config1.h"
+#include "Drawing/TextDrawing.h"
 
 namespace UI1I
 {

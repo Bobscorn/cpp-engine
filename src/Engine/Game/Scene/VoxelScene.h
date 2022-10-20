@@ -14,7 +14,7 @@
 
 namespace Voxel
 {
-	struct TheBoi : Voxel::IWorldUpdater, Voxel::IChunkLoader, Voxel::IChunkUnloader
+	struct DefaultWorldLoader : Voxel::IWorldUpdater, Voxel::IChunkLoader, Voxel::IChunkUnloader
 	{
 		// Inherited via IWorldUpdater
 		virtual void DisplaceWorld(floaty3 by) override;
@@ -23,7 +23,7 @@ namespace Voxel
 		virtual RawChunkDataMap LoadChunk(int64_t x, int64_t y, int64_t z) override;
 
 		// Inherited via IChunkUnloader
-		virtual void UnloadChunk(std::unique_ptr<ChunkyBoi> &&chunk) override;
+		virtual void UnloadChunk(std::unique_ptr<ChunkyBoi> chunk) override;
 	};
 
 	class VoxelScene : FullResourceHolder, public Scene::IScene
@@ -40,7 +40,7 @@ namespace Voxel
 		void Draw() override;
 		void AfterDraw() override;
 
-		IScene *Clone() override;
+		std::unique_ptr<IScene> Clone() override;
 
 	protected:
 
@@ -49,7 +49,7 @@ namespace Voxel
 
 		// The world
 		Pointer::f_ptr<Voxel::VoxelWorld> m_World;
-		TheBoi m_Boi;
+		DefaultWorldLoader m_Boi;
 
 		// Player
 		Pointer::f_ptr<Voxel::VoxelPlayer> m_Player;

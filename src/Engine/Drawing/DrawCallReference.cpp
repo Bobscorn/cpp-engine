@@ -36,4 +36,10 @@ namespace Drawing
 		_key = key;
 		_ren = ren;
 	}
+	const DrawCallv2* DrawCallReference::GetDrawCall() const
+	{
+		if (_ren)
+			return _ren->GetDrawCall(_key);
+		return nullptr;
+	}
 }

@@ -43,17 +43,10 @@ void UI1I::ButtonyContainer::IDraw()
 void UI1I::ButtonyContainer::ComputePosition(Matrixy2x3 accumulated)
 {
 	UpdateImageScale();
-	float ass = mResources->UIConfig->GetBigMarginSize();
 
-	// Calculate Total Height
-	float TotalHeight{ 0.f };
-	for (auto& butt : Buttons)
-		TotalHeight += butt->GetHeight();
-
-	//float ydisplace = (float(*mResources->WindowHeight) - TotalHeight) * 0.5f;
-
-	accumulated = accumulated * Matrixy2x3::Translation((3.f * ass) - *mResources->HalfWindowWidth, 0.f);// ydisplace);
-	float y = TotalHeight * 0.5f;
+	auto start = GetAlignmentPosition();
+	accumulated = accumulated * Matrixy2x3::Translation(start.x, 0.f);
+	float y = start.y;
 	for (auto& button : Buttons)
 	{
 		button->PreComputePosition();
@@ -86,6 +79,47 @@ void UI1I::ButtonyContainer::UpdateImageTrans()
 		ImageTrans = Matrixy2x3::Scale({ Scale, Scale });
 		ImageTrans = ImageTrans * Matrixy2x3::Translation(TransX, TransY);
 	}
+}
+
+floaty2 UI1I::ButtonyContainer::GetAlignmentPosition()
+{
+	floaty2 out;
+	float margin_size = mResources->UIConfig->GetBigMarginSize();
+	if (X_Align == LEFT_ALIGN)
+		out.x = -(float)*mResources->WindowWidth + margin_size * 3.f;
+	else if (X_Align == RIGHT_ALIGN)
+	{
+		float max_width = 0.f;
+		for (auto& button : Buttons)
+			max_width = fmaxf(max_width, button->GetWidth());
+
+		out.x = (float)*mResources->WindowWidth - margin_size * 3.f - max_width;
+	}
+	else
+	{
+		float max_width = 0.f;
+		for (auto& button : Buttons)
+			max_width = fmaxf(max_width, button->GetWidth());
+		out.x = -(max_width * 0.5f);
+	}
+	if (Y_Align == TOP_ALIGN)
+		out.x = (float)*mResources->WindowHeight - margin_size * 3.f;
+	else if (Y_Align == BOTTOM_ALIGN)
+	{
+		float TotalHeight{ 0.f };
+		for (auto& butt : Buttons)
+			TotalHeight += butt->GetHeight();
+
+		out.y = -(float)*mResources->WindowHeight + margin_size * 3.f + TotalHeight;
+	}
+	else
+	{
+		float TotalHeight{ 0.f };
+		for (auto& butt : Buttons)
+			TotalHeight += butt->GetHeight();
+		out.y = TotalHeight * 0.5f;
+	}
+	return out;
 }
 
 Debug::DebugReturn UI1I::TitleText::Initialize()

@@ -1,23 +1,25 @@
 #include "VoxelScene.h"
 
+#include <Structure/BasicShapes.h>
+
 #include "Game/VoxelStuff/Entities/Ball.h"
 
-#include "Game/VoxelStuff/SkyBoxShape.h"
+#include "Structure/Shapes/SkyBoxShape.h"
 
 Voxel::VoxelScene::VoxelScene(CommonResources *resources) 
 	: FullResourceHolder(resources)
 	, m_GSpace(resources)
-	, m_World(m_GSpace.FindShapeyRaw("")->AddChild<Voxel::VoxelWorld>(WorldStuff{ &m_Boi, &m_Boi, &m_Boi, 2, 1, 2 }))
-	, m_Player(m_GSpace.FindShapeyRaw("")->AddChild<Voxel::VoxelPlayer>(m_World.get(), VoxelPlayerStuff{ {0.f, 10.f, 0.f}, {0.f, 0.f, -1.f} }))
+	, m_World(m_GSpace.FindShapeyRaw("")->AddChild<Voxel::VoxelWorld>("Voxel World", WorldStuff{&m_Boi, &m_Boi, &m_Boi, 2, 1, 2}))
+	, m_Player(m_GSpace.FindShapeyRaw("")->AddChild<Voxel::VoxelPlayer>("Voxel Player", m_World.get(), VoxelPlayerStuff{{0.f, 10.f, 0.f}, {0.f, 0.f, -1.f}}))
 	, m_UI(resources)
 {
-	(void)m_GSpace.FindShapeyRaw("")->AddChild((G1::IShape *)new G1I::LightShape({ &m_GSpace, resources, "Rando Light" }, Light{ {10.f, 10.f, 0.f, 0.f}, {-0.7f, -0.7f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {1.f, 1.f, 1.f}, 0.f, {1.f, 0.f, 0.f}, 35.f, 1, LIGHT_DIRECTION, {0.f, 0.f} }));
-	//(void)m_GSpace.FindShapeyRaw("")->AddChild((G1::IShape *)new G1I::LightShape({ &m_GSpace, resources, "Rando Point Light" }, Light{ {0.f, 0.5f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {1.f, 1.f, 1.f}, 0.f, {0.1f, 0.5f, 0.f}, 35.f, 1, LIGHT_POINT, {0.f, 0.f} }));
+	(void)m_GSpace.FindShapeyRaw("")->AddChild(new G1I::LightShape({ &m_GSpace, resources, "Rando Light" }, Light{ {10.f, 10.f, 0.f, 0.f}, {-0.7f, -0.7f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {1.f, 1.f, 1.f}, 1.f, {1.f, 0.f, 0.f}, 0.f, 35.f, 1, LIGHT_DIRECTION, 0.f }));
+	(void)m_GSpace.FindShapeyRaw("")->AddChild((G1::IShape *)new G1I::LightShape({ &m_GSpace, resources, "Rando Point Light" }, Light{ {0.f, 0.5f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {0.f, 0.f, 0.f, 0.f}, {1.f, 1.f, 1.f}, 1.f, {0.1f, 0.5f, 0.f}, 0.f, 35.f, 1, LIGHT_POINT, 0.f }));
 
 	(void)m_GSpace.FindShapeyRaw("")->AddChild(new G1I::ProfilerShape({ &m_GSpace, resources, "Profiler McGee" }, { 10.0, false }));
 
 	(void)m_GSpace.FindShapeyRaw("")->AddChild(new G1I::GLRen2TestShape({ &m_GSpace, resources, "GLRen2 test" }));
-	(void)m_GSpace.FindShapeyRaw("")->AddChild(new SkyBoxShape({ &m_GSpace, resources, "Skybox Shape" }, "Textures/skybox", ".bmp"));
+	(void)m_GSpace.FindShapeyRaw("")->AddChild(new G1I::SkyBoxShape({ &m_GSpace, resources, "Skybox Shape" }, "Textures/skybox", ".bmp"));
 
 	m_UI.AddChildTop(&m_Crosshair);
 
@@ -65,26 +67,29 @@ void Voxel::VoxelScene::AfterDraw()
 	m_GSpace.AfterDraw();
 }
 
-Scene::IScene *Voxel::VoxelScene::Clone()
+std::unique_ptr<Scene::IScene> Voxel::VoxelScene::Clone()
 {
-	return nullptr;
+	return std::make_unique<VoxelScene>(mResources);
 }
 
-void Voxel::TheBoi::DisplaceWorld(floaty3 by)
+void Voxel::DefaultWorldLoader::DisplaceWorld(floaty3 by)
 {
+	(void)by;
 	// TODO: this shit
 }
 
-Voxel::RawChunkDataMap Voxel::TheBoi::LoadChunk(int64_t x, int64_t y, int64_t z)
+Voxel::RawChunkDataMap Voxel::DefaultWorldLoader::LoadChunk(int64_t x, int64_t y, int64_t z)
 {
+	(void)x;
+	(void)z;
 	if (y == 0)
 	{
 		Voxel::RawChunkDataMap map;
-		for (int x = 0; x < Chunk_Size; ++x)
+		for (unsigned int x_i = 0; x_i < Chunk_Size; ++x_i)
 		{
-			for (int z = 0; z < Chunk_Size; ++z)
+			for (unsigned int z_i = 0; z_i < Chunk_Size; ++z_i)
 			{
-				map[{x, 0, z}] = (x == z) ? BlockData{ 2 } : BlockData{ 1 };
+				map[{x_i, 0, z_i}] = BlockData{ 2 };
 			}
 		}
 		return map;
@@ -93,7 +98,8 @@ Voxel::RawChunkDataMap Voxel::TheBoi::LoadChunk(int64_t x, int64_t y, int64_t z)
 	return {};
 }
 
-void Voxel::TheBoi::UnloadChunk(std::unique_ptr<ChunkyBoi> &&chunk)
+void Voxel::DefaultWorldLoader::UnloadChunk(std::unique_ptr<ChunkyBoi> chunk)
 {
+	(void)chunk;
 	// TODO: this shit
 }

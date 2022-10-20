@@ -3,7 +3,17 @@
 #include "Systems/Timer/Timer.h"
 
 #ifdef EC_PROFILE
-#ifdef _DEBUG
+#ifdef NDEBUG
+#define PROFILE_PUSH(x) mResources->Profile->Push(x)
+#define PROFILE_PUSH_WITH(prof, x) prof->Push(x)
+#define PROFILE_PUSH_AGG(x) mResources->Profile->PushAggregate(x)
+#define PROFILE_PUSH_AGG_WITH(prof, x) prof->PushAggregate(x)
+#define PROFILE_POP() mResources->Profile->Pop()
+#define PROFILE_POP_WITH(prof) prof->Pop()
+
+#define PROFILE_EVENT(x, agg) ProfileEvent{ mResources->Profile, x, agg }
+#define PROFILE_EVENT_WITH(prof, x, agg) ProfileEvent{ prof, x, agg }
+#else
 #include "DebugHelper.h"
 #define PROFILE_PUSH(x) mResources->Profile->Push(x, __FUNCTION_NAME__, __LINE__)
 #define PROFILE_PUSH_WITH(prof, x) prof->Push(x, __FUNCTION_NAME__, __LINE__)
@@ -14,20 +24,17 @@
 
 #define PROFILE_EVENT(x, agg) ProfileEvent{ mResources->Profile, x, agg, __FUNCTION_NAME__, __LINE__ }
 #define PROFILE_EVENT_WITH(prof, x, agg) ProfileEvent{ prof, x, agg, __FUNCTION_NAME__, __LINE__ }
-#else
-#define PROFILE_PUSH(x) mResources->Profile->Push(x)
-#define PROFILE_PUSH_WITH(prof, x) prof->Push(x)
-#define PROFILE_PUSH_AGG(x) mResources->Profile->PushAggregate(x)
-#define PROFILE_PUSH_AGG_WITH(prof, x) prof->PushAggregate(x)
-#define PROFILE_POP() mResources->Profile->Pop()
-#define PROFILE_POP_WITH(prof) prof->Pop()
-
-#define PROFILE_EVENT(x, agg) ProfileEvent{ mResources->Profile, x, agg }
-#define PROFILE_EVENT_WITH(prof, x, agg) ProfileEvent{ prof, x, agg }
 #endif // _DEBUG
 #else
-#define PROFILE_PUSH(x) 
-#define PROFILE_POP()
+#define PROFILE_PUSH(x) ((int)0)
+#define PROFILE_POP() ((int)0)
+#define PROFILE_PUSH_WITH(prof, x) ((int)0)
+#define PROFILE_PUSH_AGG(x) ((int)0)
+#define PROFILE_PUSH_AGG_WITH(prof, x) ((int)0)
+#define PROFILE_POP_WITH(prof) ((int)0)
+
+#define PROFILE_EVENT(x, agg) ((int)0)
+#define PROFILE_EVENT_WITH(prof, x, agg) ((int)0)
 #endif // EC_PROFILE
 
 #ifdef EC_PROFILE

@@ -16,9 +16,10 @@ Engine::IEngine::IEngine() : Delta(0.0), TargetUpdateInterval(1.0 / 60.0), m_Ran
 	Resources.InputAttachment = &InpAtt; 
 	Resources.UpdateID = &CurrentUpdateID;
 	Resources.WorkingDirectory = "";
-	Resources.Scene = this;
+	Resources.Engine = this;
 	Resources.Event = this;
 	Resources.DeltaTime = &Delta;
+	Resources.Time = &Time;
 	Resources.TargetUpdateInterval = &TargetUpdateInterval;
 	timmy.Reset(); 
 	timmy.Start(); 
@@ -34,7 +35,7 @@ void Engine::IEngine::ApplyScene()
 		auto old_scene = CurrentScene.release();
 		if (old_scene)
 			EventManager::Remove(old_scene);
-		CurrentScene.reset(toSwitch);
+		CurrentScene = std::move(toSwitch);
 		auto success = CurrentScene->Initialize();
 		ENGINE_PROFILE_POP();
 		ENGINE_PROFILE_PUSH("SuccessPart");
@@ -66,18 +67,10 @@ void Engine::IEngine::ApplyScene()
 				}
 				else if (response == Debug::RetryID)
 				{
-					auto bad_scene = CurrentScene.release();
-					toSwitch = bad_scene->Clone();
+					toSwitch = CurrentScene->Clone();
+					CurrentScene = nullptr;
 					ApplyScene();
 
-					try
-					{
-						delete bad_scene;
-					}
-					catch (const std::exception &e)
-					{
-						DWARNING("a new scene failed to initialize, user asked for retry, old scene's deletion threw an exception: " + e.what());
-					}
 				}
 				else
 				{
@@ -157,7 +150,7 @@ Engine::IWindowEngine::IWindowEngine() : Win("", "Config/windowconfig.xml", SDL_
 	Resources.DpiScale = &DpiScale;
 	Resources.InverseDpiScale = &InvDpiScale;
 	Resources.MousePosition = &MousePos;
-	Resources.MouseChangedPosition = &MouseChanged;
+	Resources.MouseChangedPosition = &MouseMoved;
 	Resources.WindowFocused = &Window_Focused;
 
 	HalfWinWidth = ((float)Win.Width) * 0.5f;
@@ -175,10 +168,11 @@ void Engine::IWindowEngine::OnResize(int width, int height)
 
 	Ren.Resize((unsigned int)width, (unsigned int)height);
 
-	Event::ResizePreEvent asss(WindowSize, CurrentUpdateID);
+	auto winSize = Vector::inty2{ Win.GetWidth(), Win.GetHeight() };
+	Event::ResizePreEvent asss(winSize, CurrentUpdateID);
 	Send(&asss);
 
-	Event::ResizeEvent ass = Event::ResizeEvent(WindowSize, CurrentUpdateID);
+	Event::ResizeEvent ass = Event::ResizeEvent(winSize, CurrentUpdateID);
 	Send(&ass);
 }
 
@@ -203,7 +197,7 @@ void Engine::IWindowEngine::PreUpdate()
 	{
 		int x, y;
 		SDL_GetMouseState(&x, &y);
-		MouseChanged = (MousePos.x != x) || (MousePos.y != y);
+		MouseMoved = (MousePos.x != x) || (MousePos.y != y);
 		MousePos.x = x;
 		MousePos.y = y;
 	}

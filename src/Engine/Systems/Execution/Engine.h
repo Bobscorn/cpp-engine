@@ -14,8 +14,11 @@
 #include "Systems/Input/Config1.h"
 #include "Systems/Events/Events.h"
 #include "Systems/Timer/Timer.h"
+#include "Systems/Time/Time.h"
 
 #include "Drawing/GLRen.h"
+
+#include "Math/inty.h"
 
 #include "Scene.h"
 
@@ -43,12 +46,12 @@ namespace Engine
 	///   - Draw - D3D First, D2D Last (not forced)
 	///   - AfterDraw
 	///   - Present (Not an actual method, but the Swapchain->Present(1, 0))
-	struct IEngine : public Events::EventManager, public Scene::SceneManager
+	struct IEngine : public Events::EventManager
 	{
 		IEngine();
 		virtual ~IEngine() noexcept {};
 		
-		inline void SwitchScene(Scene::IScene *scene) override { toSwitch = scene; } // Switch to this scene at the end of the current update
+		inline void SwitchScene(std::unique_ptr<Scene::IScene> scene) { toSwitch = std::move(scene); } // Switch to this scene at the end of the current update
 
 		// Updating and Drawing functions
 		virtual void BeforeDraw()	= 0;
@@ -76,6 +79,7 @@ namespace Engine
 			ENGINE_PROFILE_POP();
 			timmy.Tick();
 			Delta = timmy.DeltaTime();
+			Time.SetNextDeltaTime((Time::TimeType)Delta);
 			//DINFO("Frame time: " + std::to_wstring(timmy.DeltaTime() * 1000.f) + L"ms");
 		}
 
@@ -92,17 +96,21 @@ namespace Engine
 		Stringy WorkingDir;
 		GameTimer timmy;
 		double Delta;
+		Time::Time Time;
 		double TargetUpdateInterval;
 		CommonResources Resources;
 		std::random_device m_RandomDevice;
 		std::mt19937_64 m_RandomGen;
 	private:
-		Scene::IScene *toSwitch = nullptr;
+		std::unique_ptr<Scene::IScene> toSwitch = nullptr;
 		bool NeedsQuit = false;
 	protected:				
 #ifdef EC_PROFILE
 		ProfileMcGee m_Profiler;
 #endif
+		std::unique_ptr<Scene::IScene> CurrentScene = nullptr;
+		Vector::inty2 MousePos;
+		bool MouseMoved;
 		unsigned int CurrentUpdateID = 1;
 
 		virtual void PreUpdate() {};

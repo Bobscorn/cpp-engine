@@ -6,12 +6,15 @@
 #include "Helpers/StringHelper.h"
 #include "Helpers/YAMLHelper.h"
 
+#include "Math/inty.h"
+
 #include "GLRen2.h"
 #include "BindingManager.h"
 
 namespace Drawing
 {
 	using namespace YAMLNames::Program;
+	using namespace Vector;
 
 	std::unique_ptr<ProgramStore> ProgramStore::_instance = nullptr;
 	ProgramStore::Accessor ProgramStore::Instance{};
@@ -67,7 +70,7 @@ namespace Drawing
 					auto fileName = dir_entry.path().string();
 					DINFO("Loading program: '" + fileName + "' from disk");
 
-					YAML::Node yaml = YAML::LoadFile(fileName);
+					YAML::Node yaml = YAML::LoadFile(fileName.c_str());
 
 					ProgramDescription desc;
 
@@ -612,6 +615,28 @@ namespace Drawing
 
 	void Program::BindTo(const VertexBuffer& buf)
 	{
+		if (buf.GetDescription() == _lastGeoDesc)
+		{
+			if (&buf == _lastVertexBuffer)
+				return;
+
+			// Just rebind to another VBO
+			glBindBuffer(GL_ARRAY_BUFFER, buf.GetVBO().Get());
+			int i = 0;
+			auto state = _inputVAO.GetState(i);
+			while (state.Enabled)
+			{
+				_inputVAO.SetState(i, state);
+
+				++i;
+				state = _inputVAO.GetState(i);
+			}
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			_lastVertexBuffer = &buf;
+			return;
+		}
+
 		_inputVAO.ResetState();
 
 		GLuint vertexAttrib = 0;
@@ -657,16 +682,18 @@ namespace Drawing
 			if (!found)
 				break;
 		}
+		_lastGeoDesc = desc;
+		_lastVertexBuffer = &buf;
 	}
 
-	void Program::SetMaterial(const Material& material)
+	void Program::SetMaterial(Material& material)
 	{
 		EnsureMaterialBuffer();
 
 		if (!_matBuffer)
 			return;
 
-		auto bytes = Material::ConvertBytesViaDescription(material, _matDesc);
+		const auto& bytes = material.ToByteForm();
 
 		glBindBuffer(GL_UNIFORM_BUFFER, _matBuffer.Get());
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, (GLsizeiptr)bytes.size(), (GLvoid*)bytes.data());

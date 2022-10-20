@@ -17,6 +17,10 @@
 
 namespace Drawing
 {
+	// Will verify that the surface given is of the specified format
+	// Will replace the surface with a copy of the specified format if it is not
+	void VerifySurfaceIsFormat(SDL_Surface** surf, Uint32 format);
+
 	class Image2DArray : public GLImage
 	{
 		std::vector<SDL_Surface*> _cpuSurfaces;
@@ -25,6 +29,7 @@ namespace Drawing
 		size_t _height;
 
 		SDL_Surface* CreateSurface();
+		void VerifySurfaceFormats();
 
 	public:
 		Image2DArray();
@@ -40,7 +45,6 @@ namespace Drawing
 
 		Image2DArray& operator=(Image2DArray&& other);
 		Image2DArray& operator=(const Image2DArray& other) = delete;
-
 
 		/**
 		* Copy pixels from an SDL_Surface to a specified layer.

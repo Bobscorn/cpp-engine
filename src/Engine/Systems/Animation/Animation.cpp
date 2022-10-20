@@ -14,7 +14,7 @@ Bezier::BinomialNumbers Bezier::Binomial;
 
 Animation::Framing::PositionFrames::PositionFrames(Interpolation::INTERPOLATE inter, std::vector<Frame<DOUBLE4>> frames, CommonResources * resources) : IFrames(inter, frames) 
 { 
-	Event::ResizeEvent ass({ (unsigned int)*resources->WindowWidth, (unsigned int)*resources->WindowHeight }, *resources->UpdateID); this->Receive(&ass);
+	Event::ResizeEvent ass({ (int)*resources->WindowWidth, (int)*resources->WindowHeight }, *resources->UpdateID); this->Receive(&ass);
 };
 
 Framing::InterpolatedFrame<Framing::PositionFrames::FrameType> Framing::PositionFrames::GetAt(double time)
@@ -51,12 +51,12 @@ Framing::InterpolatedFrame<Framing::PositionFrames::FrameType> Framing::Position
 
 Animation::Framing::WorldFrames2D::WorldFrames2D(Interpolation::INTERPOLATE inter, std::vector<Frame<Matrixy2x3>> frames, CommonResources * resources): IFrames(inter, frames) 
 {
-	resources->Event->Add(this); Event::ResizeEvent ass({ (unsigned int)*resources->WindowWidth, (unsigned int)*resources->WindowHeight }, *resources->UpdateID); this->Receive(&ass);
+	resources->Event->Add(this); Event::ResizeEvent ass({ (int)*resources->WindowWidth, (int)*resources->WindowHeight }, *resources->UpdateID); this->Receive(&ass);
 }
 
 void Animation::Framing::WorldFrames2D::Init(Interpolation::INTERPOLATE inter, std::vector<Frame<Matrixy2x3>> frames, CommonResources * resources)
 {
-	Frames = frames; Interpolation = inter; resources->Event->Add(this); Event::ResizeEvent ass({ (unsigned int)*resources->WindowWidth, (unsigned int)*resources->WindowHeight }, *resources->UpdateID); this->Receive(&ass);
+	Frames = frames; Interpolation = inter; resources->Event->Add(this); Event::ResizeEvent ass({ (int)*resources->WindowWidth, (int)*resources->WindowHeight }, *resources->UpdateID); this->Receive(&ass);
 }
 
 Framing::InterpolatedFrame<Framing::WorldFrames2D::FrameType> Framing::WorldFrames2D::GetAt(double time)

@@ -3,6 +3,7 @@
 namespace Drawing
 {
 	class DrawCallRenderer;
+	struct DrawCallv2;
 
 	class DrawCallReference
 	{
@@ -23,5 +24,7 @@ namespace Drawing
 		void Reset(size_t key = 0ull, DrawCallRenderer* ren = nullptr);
 
 		inline size_t GetKey() const { return _key; }
+
+		const DrawCallv2* GetDrawCall() const;
 	};
 }

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Helpers/VectorHelper.h"
+#include "Math/floaty.h"
+#include "Math/matrix.h"
 #include "Helpers/PointerHelper.h"
 
 #include "Drawing/Image.h"
@@ -115,12 +116,12 @@ struct FullVertex
 
 struct Light
 {
-	// Position for point and spot lights (World space).
+	// Position for point and spot lights (World space, must end with w = 1.f).
 	floaty4 PositionWS;
 
 	//--------------------------------------------------------------( 16 bytes )
 
-	// Direction for spot and directional lights (World space).
+	// Direction for spot and directional lights (World space, w is not used).
 	floaty4 DirectionWS;
 
 	//--------------------------------------------------------------( 16 bytes )
@@ -137,23 +138,26 @@ struct Light
 
 	// Color of the light. Diffuse and specular colors are not seperated.
 	floaty3 Color;
+
+	// The intensity of the Light
+	float Intensity;
+
+	//--------------------------------------------------------------( 16 bytes )
+	floaty3 Attenuation;
+
 	// The half angle of the spotlight cone. (in radians)
 	float SpotlightAngle;
 
-	//--------------------------------------------------------------( 16 bytes )
-
-	floaty3 Attenuation;
+	// -------------------------------------------------------------( 16 bytes )
 	// The range of the light.
 	float Range;
-
-	// -------------------------------------------------------------( 16 bytes )
 	// Disable or enable the light.
 	int Enabled;
 
 	// The type of the light.
 	unsigned int Type;
 
-	floaty2 Padding;
+	float Padding;
 	//--------------------------------------------------------------( 16 bytes )
 }; // 96 Bytes
 

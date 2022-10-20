@@ -2,11 +2,12 @@
 
 #include "EventsBase.h"
 #include "Converter.h"
-#include "Helpers/VectorHelper.h"
 #ifdef EC_PROFILE
 #include "Helpers/ProfileHelper.h"
 #endif
 #include "Helpers/DebugHelper.h"
+
+#include "Math/inty.h"
 
 #include <functional>
 #include <map>
@@ -443,8 +444,8 @@ namespace Event
 	struct ResizePreEvent : public Events::IEvent
 	{
 		constexpr static Events::Event MyType = Events::Event::ResizePreEvent;
-		constexpr ResizePreEvent(DOUBLE2 dims, unsigned int frameid = 0) : IEvent(MyType, frameid), Dimensions(dims) {}
-		DOUBLE2 Dimensions;
+		constexpr ResizePreEvent(Vector::inty2 dims, unsigned int frameid = 0) : IEvent(MyType, frameid), Dimensions(dims) {}
+		Vector::inty2 Dimensions;
 		virtual bool operator==(Events::IEvent *other) override;
 	};
 
@@ -453,9 +454,9 @@ namespace Event
 	struct ResizeEvent : public Events::IEvent
 	{
 		constexpr static Events::Event MyType = Events::Event::ResizeWindowEvent;
-		constexpr ResizeEvent(SizeU dims) : IEvent(MyType), Dimensions(dims) {}
-		constexpr ResizeEvent(SizeU dims, unsigned int frameid) : IEvent(MyType, frameid), Dimensions(dims) {}
-		SizeU Dimensions;
+		constexpr ResizeEvent(Vector::inty2 dims) : IEvent(MyType), Dimensions(dims) {}
+		constexpr ResizeEvent(Vector::inty2 dims, unsigned int frameid) : IEvent(MyType, frameid), Dimensions(dims) {}
+		Vector::inty2 Dimensions;
 		virtual bool operator==(Events::IEvent *other) override;
 	};
 

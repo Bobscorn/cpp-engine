@@ -1,31 +1,25 @@
 #pragma once
 
 #include "Helpers/DebugHelper.h"
+#include "Helpers/SDLHelper.h"
 
 #include "Systems/SDLWrapping/SDLWrappers.h"
 #include "Drawing/Image.h"
-
-#ifdef __linux__
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL.h>
-#else
-#include <SDL_ttf.h>
-#include <SDL.h>
-#endif
+#include "Math/floaty.h"
 
 struct TextDrawing : Drawing::SDLImage
 {
-	TextDrawing(CommonResources *resources, Stringy text, Stringy fontname, ConfigColorTemp color) : SDLImage({ resources, fontname + ':' + text }), Text(text), Color(color(resources)), FontName(fontname) { Update(); }
+	TextDrawing(CommonResources *resources, Stringy text, Stringy fontrefname, ConfigColorTemp color) : SDLImage({ resources, fontrefname + ':' + text }), Text(std::move(text)), Color(color(resources)), FontName(std::move(fontrefname)) { Update(); }
 	~TextDrawing() {}
 	
 	void Update() noexcept;
-	inline void SetFontName(Stringy fontname) { FontName = fontname; Update(); }
+	inline void SetFontName(Stringy fontname) { FontName = std::move(fontname); Update(); }
 	inline void SetColor(SDL_Color color) { Color = color; Update(); }
-	inline void SetColor(Stringy colorname) { Color = colorname; Update(); }
-	inline void SetText(Stringy text) { Text = text; Update(); }
+	inline void SetColor(Stringy colorname) { Color = std::move(colorname); Update(); }
+	inline void SetText(Stringy text) { Text = std::move(text); Update(); }
 	inline void SetColor(ConfigColor color) { Color = color; Update(); }
 
-	inline Stringy GetText() const noexcept { return Text; }
+	inline const Stringy& GetText() const noexcept { return Text; }
 
 protected:
 	Stringy FontName;

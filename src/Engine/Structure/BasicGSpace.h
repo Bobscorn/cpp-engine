@@ -30,7 +30,7 @@ namespace G1I
 			floaty3 B;
 			floaty3 Color2;
 
-			Line(floaty3 a, floaty3 b) : A(a), B(b) {}
+			Line(floaty3 a, floaty3 b) : A(a), B(b), Color1(0.f, 0.f, 0.f), Color2(0.f, 0.f, 0.f) {}
 			Line(const btVector3& a, const btVector3& b, const btVector3& color) : A(a.x(), a.y(), a.z()), B(b.x(), b.y(), b.z()), Color1(color.x(), color.y(), color.z()), Color2(color.x(), color.y(), color.z()) {}
 			Line(const btVector3& a, const btVector3& b, const btVector3& color1, const btVector3& color2) : A(a.x(), a.y(), a.z()), B(b.x(), b.y(), b.z()), Color1(color1.x(), color1.y(), color1.z()), Color2(color2.x(), color2.y(), color2.z())  {}
 
@@ -81,8 +81,8 @@ namespace G1I
 
 		void ImportFile(std::string FileName);
 
-		inline bool Receive(Events::IEvent *event) override { return false; }
-		inline bool Receive(Event::ResizeEvent *event) override;
+		inline bool Receive(Events::IEvent* event) override { (void)event; return false; }
+		bool Receive(Event::ResizeEvent *event) override;
 
 		virtual void BeforeDrawI() override;
 		virtual void DrawI() override;

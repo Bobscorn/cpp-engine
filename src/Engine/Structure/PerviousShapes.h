@@ -520,6 +520,7 @@ namespace Perviousity
 		template<class T>
 		void TurnOffPlatform(T *obj, CommonResources *resources)
 		{
+			(void)resources;
 			if constexpr (std::is_same<T, PerviousWall>::value)
 				obj->TurnOff();
 			else
@@ -895,7 +896,7 @@ namespace Perviousity
 
 		struct ToggleChain : IChainedPerviousObject
 		{
-			ToggleChain(G1::IShapeThings shapedesc, floaty3 pos, PerviousFormType type, IChainedPerviousObject *link = nullptr) : FullResourceHolder(shapedesc.Resources), IChainedPerviousObject(shapedesc, pos, type, link) {}
+			ToggleChain(G1::IShapeThings shapedesc, floaty3 pos, PerviousFormType type, IChainedPerviousObject *link = nullptr) : IChainedPerviousObject(shapedesc, pos, type, link) {}
 
 		protected:
 			inline virtual void DoAction(bool turnon) override
@@ -911,7 +912,7 @@ namespace Perviousity
 
 		struct CopyChain : IChainedPerviousObject
 		{
-			CopyChain(G1::IShapeThings shapedesc, floaty3 pos, PerviousFormType type, IChainedPerviousObject *link = nullptr) : FullResourceHolder(shapedesc.Resources), IChainedPerviousObject(shapedesc, pos, type, link) {}
+			CopyChain(G1::IShapeThings shapedesc, floaty3 pos, PerviousFormType type, IChainedPerviousObject *link = nullptr) : IChainedPerviousObject(shapedesc, pos, type, link) {}
 
 		protected:
 			inline virtual void DoAction(bool turnon) override
@@ -930,7 +931,7 @@ namespace Perviousity
 
 		struct InvertChain : IChainedPerviousObject
 		{
-			InvertChain(G1::IShapeThings shapedesc, floaty3 pos, PerviousFormType type, IChainedPerviousObject *link = nullptr) : FullResourceHolder(shapedesc.Resources), IChainedPerviousObject(shapedesc, pos, type, link) {}
+			InvertChain(G1::IShapeThings shapedesc, floaty3 pos, PerviousFormType type, IChainedPerviousObject *link = nullptr) : IChainedPerviousObject(shapedesc, pos, type, link) {}
 
 		protected:
 			inline virtual void DoAction(bool turnon) override

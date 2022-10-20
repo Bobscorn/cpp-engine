@@ -5,11 +5,11 @@
 
 #include "Systems/Events/PhysicsEvent.h"
 #include "Systems/Events/Events.h"
+#include "Systems/Time/Time.h"
 
 void G1I::PhysicsSpace::DoPhysics()
 {
-	PhysicsTimer.Tick();
-	SimulatePhysics(PhysicsTimer.DeltaTime());
+	SimulatePhysics((double)mResources->Time->GetFixedDeltaTime());
 	DoContactListen();
 }
 
@@ -93,9 +93,6 @@ G1I::PhysicsSpace::PhysicsSpace()
 
 	DynamicsWorld->setGravity({ 0.f, -9.8f, 0.f });
 	DynamicsWorld->getBroadphase()->getOverlappingPairCache()->setInternalGhostPairCallback(GhostCallback.get());
-
-	PhysicsTimer.Reset();
-	PhysicsTimer.Start();
 }
 
 void G1I::PhysicsSpace::RequestPhysicsCall(std::shared_ptr<btCollisionObject> body, int collisionFilterGroup, int collisionFilterMask)
@@ -173,20 +170,17 @@ Debug::DebugReturn G1I::PhysicsSpace::Request(Requests::Request& Action)
 {
 	if (Action.Name == "PausePhysics")
 	{
-		PhysicsTimer.Stop();
+		DWARNING("Pausing physics has been obsoleted!");
 		return true;
 	}
 	else if (Action.Name == "ResumePhysics")
 	{
-		PhysicsTimer.Start();
+		DWARNING("Pausing physics has been obsoleted!");
 		return true;
 	}
 	else if (Action.Name == "TogglePhysics")
 	{
-		if (PhysicsTimer.Stopped())
-			PhysicsTimer.Start();
-		else
-			PhysicsTimer.Stop();
+		DWARNING("Pausing physics has been obsoleted!");
 		return true;
 	}
 	return false;

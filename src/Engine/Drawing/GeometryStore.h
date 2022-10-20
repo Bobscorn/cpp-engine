@@ -49,7 +49,8 @@ namespace Drawing
 		// Sets the _instance static reference;
 		GeometryStore(std::string geometryDirectory, std::vector<RawMeshData> initialMeshes);
 
-		std::shared_ptr<Mesh> GetMesh(std::string meshName);
+		std::shared_ptr<Mesh> GetMesh(const std::string& meshName) const;
+		std::shared_ptr<Mesh> operator[](const std::string& meshName) const;
 
 		static void InitializeStore(std::string directory, std::vector<RawMeshData> initialMeshes);
 	};

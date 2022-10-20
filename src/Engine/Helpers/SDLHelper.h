@@ -21,57 +21,6 @@ namespace Config1
 
 struct CommonResources;
 
-/// Simple structs
-struct DimensionRect;
-
-//#pragma warning(disable:4201)
-struct PointRect
-{
-	union
-	{
-		struct
-		{
-			float x1, y1, x2, y2;
-		};
-		struct
-		{
-			float left, top, right, bottom;
-		};
-	};
-
-	PointRect() : x1(0.f), y1(0.f), x2(0.f), y2(0.f) {}
-	PointRect(float left, float top, float right, float bottom) : left(left), top(top), right(right), bottom(bottom) {}
-	PointRect(const DimensionRect &rect);
-
-	operator DimensionRect();
-};
-
-struct DimensionRect
-{
-	DimensionRect() {}
-	DimensionRect(float x, float y, float w, float h) : x(x), y(y), w(w), h(h) {}
-	DimensionRect(const PointRect &rect) : x(rect.x1), y(rect.y1), w(rect.x2 - rect.x1), h(rect.y2 - rect.y1) {}
-
-	inline DimensionRect &operator=(const PointRect &rect) { x = rect.x1; y = rect.y1; w = rect.x2 - rect.x1; h = rect.y2 - rect.y1; return *this; }
-
-	float x{ 0.f }, y{ 0.f }, w{ 0.f }, h{ 0.f };
-
-	inline operator PointRect() { return { x, y, x + w, y + h }; }
-};
-
-typedef DimensionRect Rect;
-
-/// Erroring
-
-inline std::string AsString(const PointRect &rect)
-{
-	return std::string("PRect(left: ") + std::to_string(rect.left) + ", top: " + std::to_string(rect.top) + ", right: " + std::to_string(rect.right) + ", bottom: " + std::to_string(rect.bottom) + ")";
-}
-
-inline std::string AsString(const DimensionRect &rect)
-{
-	return std::string("DRect(x: ") + std::to_string(rect.x) + ", y: " + std::to_string(rect.y) + ", width: " + std::to_string(rect.w) + ", height: " + std::to_string(rect.h) + ")";
-}
 
 /// Operators
 

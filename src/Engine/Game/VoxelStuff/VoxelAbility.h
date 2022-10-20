@@ -43,6 +43,8 @@ namespace Voxel
 
 	struct Effect
 	{
+		virtual ~Effect() = default;
+
 		virtual bool Keep() = 0; // Checks all effects are supposed to be there
 		virtual std::string GetName() = 0;
 		virtual size_t GetWeight() const = 0;
@@ -51,6 +53,8 @@ namespace Voxel
 
 	struct Ability
 	{
+		virtual ~Ability() = default;
+
 		virtual std::string GetName() const = 0;
 		virtual AbilityCastDescription CreateDescription() = 0;
 		virtual void Cast(const AbilityCastDescription &desc) = 0;

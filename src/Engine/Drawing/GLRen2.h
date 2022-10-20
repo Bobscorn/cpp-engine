@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <functional>
 
 #include "DrawCall.h"
 #include "DrawCallReference.h"
@@ -37,10 +38,15 @@ namespace Drawing
 
 		size_t _nextKey = 1;
 
+		std::unordered_map<ProgramReference, std::vector<std::reference_wrapper<const DrawCallv2>>> m_DrawCallGroups;
+		bool _drawCallsDirty = true;
+
+		void UpdateDrawCalls();
+
 		void UpdateLights(Matrixy4x4 view);
 
 		void UpdatePerObject(Matrixy4x4 world, Matrixy4x4 view, Matrixy4x4 proj);
-		void UpdateMaterial(Program& prog, const Material& mat);
+		void UpdateMaterial(Program& prog, Material& mat);
 		void UpdateTextures(Program& prog, const Material& mat);
 
 

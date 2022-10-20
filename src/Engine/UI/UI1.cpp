@@ -385,6 +385,12 @@ Debug::DebugReturn UI1::UIElement::AddChild(UINT depth, UIElement * e)
 
 	this->ChildAdded(e);
 
+	std::vector<UIElement*> old_children = std::move(e->Children);
+	for (auto& child : old_children)
+	{
+		e->AddChildBottom(child);
+	}
+
 	return d;
 }
 

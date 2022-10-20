@@ -69,9 +69,12 @@ namespace Drawing
         }
 
         if (mesh.VertexData.Description != _vertices.Description && _vertices.Vertices.size())
+        {
+            DERROR("Trying to add an incompatible mesh to a vertex buffer! (Geometry descriptions do not match)");
             return 0; // Maybe throw?
+        }
 
-        GLuint offset = (GLuint)_vertices.Vertices.size();
+        GLuint offset = (GLuint)_vertices.NumVertices();
         _vertices.Vertices.insert(_vertices.Vertices.end(), mesh.VertexData.Vertices.begin(), mesh.VertexData.Vertices.end());
 
         GLuint start = (GLuint)_indices.size();
@@ -80,8 +83,8 @@ namespace Drawing
         InternalMeshData data;
         data.Data.IndexOffset = offset;
         data.Data.IndexStart = start;
-        data.Data.IndicesCount = mesh.Indices.size();
-        data.VertexCount = mesh.VertexData.NumVertices();
+        data.Data.IndicesCount = (GLsizei)mesh.Indices.size();
+        data.VertexCount = (GLuint)mesh.VertexData.NumVertices();
         data.Key = _nextKey++;
 
         _meshOffsets.emplace_back(std::move(data));
