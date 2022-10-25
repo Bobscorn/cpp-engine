@@ -19,7 +19,7 @@ void Options::SliderOption::IDraw()
 	// Draw Name
 	float x = LocalBounds.left;
 	x += m_Active.Margin;
-	float y = LocalBounds.top - m_Active.Margin - m_Active.Border;
+	//float y = LocalBounds.top - m_Active.Margin - m_Active.Border;
 	float halfheight = 0.5f * (float)m_Name.GetHeight();
 	Ren->DrawImage(&m_Name, { x, 0.8f * halfheight, x + (float)m_Name.GetWidth(), -1.2f * halfheight });
 	x += (float)m_Name.GetWidth();
@@ -80,11 +80,13 @@ void Options::SliderOption::IDraw()
 
 bool Options::SliderOption::OnMouseLeftDown(floaty2 &coords)
 {
+	(void)coords;
 	return false;
 }
 
 bool Options::SliderOption::OnMouseLeftUp(floaty2 &coords)
 {
+	(void)coords;
 	return false;
 }
 
@@ -403,6 +405,6 @@ Options::DefaultOptionMenu::DefaultOptionMenu(CommonResources *resources) : Full
 	pane->AddOption(std::make_unique<SliderOption>(resources, OptionThings{ "Mouse Sensitivity", Config::KeyC{"MouseSensitivity"} }, SliderThings{ SliderThings::Arrows | SliderThings::Value, 150.f, 350.f, 5.f, false }));
 }
 
-TextInput::BaseInput::BaseInput(BaseInputThings things) : m_Things(things), m_CursorLocation(-1)
+TextInput::BaseInput::BaseInput(BaseInputThings things) : m_Things(things), m_CursorLocation((size_t) - 1)
 {
 }

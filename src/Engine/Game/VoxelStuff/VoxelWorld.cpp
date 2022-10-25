@@ -15,9 +15,9 @@
 #include <cstdlib>
 #include <execution>
 
-size_t GetBlockIdInWorld(const Voxel::VoxelWorld* world, Voxel::BlockCoord coord)
+Voxel::SerialBlock GetBlockIdInWorld(const Voxel::VoxelWorld* world, Voxel::BlockCoord coord)
 {
-	return world->GetCubeIdAt(coord);
+	return world->GetCubeDataAt(coord);
 }
 
 Voxel::VoxelWorld::VoxelWorld(G1::IShapeThings things, WorldStuff stuff)
@@ -40,7 +40,7 @@ Voxel::VoxelWorld::VoxelWorld(G1::IShapeThings things, WorldStuff stuff)
 
 	LoadingOtherStuff funcs;
 	funcs.GetBlockIdFunc = [this](BlockCoord coord) { return GetBlockIdInWorld(this, coord); };
-	funcs.GetChunkDataFunc = [gen = m_Stuff.m_ChunkLoader](ChunkCoord coord) -> Voxel::RawChunkData { if (!gen) return {}; return ConvertMapToData(gen->LoadChunk(coord.X, coord.Y, coord.Z)); };
+	funcs.GetChunkDataFunc = [gen = m_Stuff.m_ChunkLoader](ChunkCoord coord) -> std::unique_ptr<Voxel::ChunkData> { if (!gen) return {}; return ConvertMapToData(gen->LoadChunk(coord.X, coord.Y, coord.Z)); };
 	m_LoadingThread = std::thread(DoChunkLoading, m_LoadingStuff, std::move(funcs));
 }
 
@@ -498,7 +498,7 @@ bool Voxel::VoxelWorld::Receive(Event::AfterPhysicsEvent *event)
 	return true;
 }
 
-void Voxel::VoxelWorld::ReplaceStaticCube(BlockCoord coords, std::unique_ptr<ICube> cube)
+void Voxel::VoxelWorld::SetCube(BlockCoord coords, std::unique_ptr<ICube> cube)
 {
 	std::unique_lock lock(m_ChunksMutex);
 	auto it = m_Chunks.find(coords.Chunk);
@@ -508,24 +508,27 @@ void Voxel::VoxelWorld::ReplaceStaticCube(BlockCoord coords, std::unique_ptr<ICu
 	}
 	else
 	{
-		m_BlockChanges[coords.Chunk].emplace_back(std::make_pair(coords.Block, std::move(cube)));
+		m_UpdateBlockChanges[coords.Chunk].emplace_back(std::make_pair(coords.Block, std::move(cube)));
 	}
 }
 
-void Voxel::VoxelWorld::ReplaceStaticCube(BlockCoord coord, Voxel::SerialBlock block)
-{
-	auto thing = Voxel::VoxelStore::Instance().CreateCube(block.ID.ID);
-	ReplaceStaticCube(coord, std::move(thing));
-}
-
-void Voxel::VoxelWorld::SetStaticCube(BlockCoord coord)
+void Voxel::VoxelWorld::SetCube(BlockCoord coord, const Voxel::SerialBlock& block)
 {
 	std::unique_lock lock(m_ChunksMutex);
 	auto it = m_Chunks.find(coord.Chunk);
 	if (it != m_Chunks.end() && it->second)
 	{
-		it->second->create(coord.Block.x, coord.Block.y, coord.Block.z);
+		it->second->set(coord.Block, block);
 	}
+	else
+	{
+		m_BlockChanges[coord.Chunk].emplace_back(std::make_pair(coord.Block, block));
+	}
+}
+
+void Voxel::VoxelWorld::SetCube(BlockCoord coord, const NamedBlock& block)
+{
+	return SetCube(coord, SerialBlock{ VoxelStore::Instance().GetIDFor(block.Name), block.Data });
 }
 
 Voxel::ICube* Voxel::VoxelWorld::GetCubeAt(BlockCoord coord)
@@ -548,12 +551,15 @@ const Voxel::ICube* Voxel::VoxelWorld::GetCubeAt(BlockCoord coord) const
 	return nullptr;
 }
 
-size_t Voxel::VoxelWorld::GetCubeIdAt(BlockCoord coord) const
+Voxel::SerialBlock Voxel::VoxelWorld::GetCubeDataAt(BlockCoord coord) const
 {
-	auto ptr = GetCubeAt(coord);
-	if (!ptr)
-		return 0;
-	return Voxel::VoxelStore::Instance().GetIDFor(ptr->GetBlockName());
+	std::shared_lock lock(m_ChunksMutex);
+	auto it = m_Chunks.find(coord.Chunk);
+	if (it != m_Chunks.end() && it->second)
+	{
+		return it->second->get_data(coord.Block);
+	}
+	return VoxelStore::EmptyBlockData;
 }
 
 bool Voxel::VoxelWorld::IsCubeAt(BlockCoord coord) const
@@ -633,9 +639,8 @@ void Voxel::VoxelWorld::UnloadChunk(std::unique_ptr<ChunkyBoi> chunk)
 	// Rudimentary diff saving
 	auto chunkPos = chunk->GetCoord();
 	//DINFO("Unloading chunk (" + std::to_string(chunkPos.X) + ", " + std::to_string(chunkPos.Y) + ", " + std::to_string(chunkPos.Z) + ")");
-	auto gen = (m_Stuff.m_ChunkLoader ? m_Stuff.m_ChunkLoader->LoadChunk(chunkPos) : Voxel::RawChunkDataMap{});
+	auto generatedData = (m_Stuff.m_ChunkLoader ? m_Stuff.m_ChunkLoader->LoadChunk(chunkPos) : Voxel::RawChunkDataMap{});
 
-	auto& changes = m_BlockChanges[chunkPos];
 	for (unsigned int x = 0; x < Chunk_Size; ++x)
 	{
 		for (unsigned int y = 0; y < Chunk_Height; ++y)
@@ -643,17 +648,21 @@ void Voxel::VoxelWorld::UnloadChunk(std::unique_ptr<ChunkyBoi> chunk)
 			for (unsigned int z = 0; z < Chunk_Size; ++z)
 			{
 				auto key = ChunkBlockCoord{ x, y, z };
-				auto it = gen.find(key);
-				if (it == gen.end())
+				auto it = generatedData.find(key);
+				if (it == generatedData.end())
 				{
 					if (chunk->get(x, y, z) != nullptr)
 					{
-						changes.push_back(std::make_pair(key, std::move(chunk->take(key))));
+						m_UpdateBlockChanges[chunkPos].emplace_back(std::make_pair(key, std::move(chunk->take(key))));
+					}
+					else if (chunk->get_data(key).ID != 0)
+					{
+						m_BlockChanges[chunkPos].emplace_back(std::make_pair(key, chunk->get_data(key)));
 					}
 				}
-				else if (chunk->get(x, y, z)->GetBlockID() != it->second.ID)
+				else if (chunk->get_data(key) != it->second)
 				{
-					changes.push_back(std::make_pair(key, std::move(chunk->take(key))));
+					m_BlockChanges[chunkPos].emplace_back(std::make_pair(key, chunk->get_data(key)));
 				}
 			}
 		}
@@ -766,12 +775,14 @@ void Voxel::VoxelWorld::ApplyChunkChanges()
 
 void Voxel::VoxelWorld::CheckLoadingThread()
 {
-	Voxel::LoadedChunk chunkDat;
+	std::unique_ptr<Voxel::LoadedChunk> chunkDat;
 	while (m_LoadingStuff->Loaded.try_pop(chunkDat))
 	{
+		if (!chunkDat)
+			continue;
 		{
 			std::shared_lock lock(m_ChunksMutex);
-			auto it = m_Chunks.find(chunkDat.Coord);
+			auto it = m_Chunks.find(chunkDat->Coord);
 
 			// Skip if not an expected chunk (expected chunks are put into m_Chunks as nullptrs)
 			if (it == m_Chunks.end())
@@ -783,17 +794,30 @@ void Voxel::VoxelWorld::CheckLoadingThread()
 		}
 
 		std::unique_lock lock(m_ChunksMutex);
-		auto coord = chunkDat.Coord;
+		auto coord = chunkDat->Coord;
 		auto& chunk = m_Chunks[coord] = std::make_unique<ChunkyBoi>(GetContainer(), mResources, this, ChunkOrigin(coord), std::move(chunkDat));
-		auto it = m_BlockChanges.find(coord);
-		if (it != m_BlockChanges.end())
 		{
-			// Apply chunk changes
-			for (auto& change : it->second)
+			auto it = m_BlockChanges.find(coord);
+			if (it != m_BlockChanges.end())
 			{
-				chunk->set(change.first, std::move(change.second));
+				// Apply chunk changes
+				for (auto& change : it->second)
+				{
+					chunk->set(change.first, std::move(change.second));
+				}
+				m_BlockChanges.erase(it);
 			}
-			m_BlockChanges.erase(it);
+		}
+		{
+			auto it = m_UpdateBlockChanges.find(coord);
+			if (it != m_UpdateBlockChanges.end())
+			{
+				for (auto& change : it->second)
+				{
+					chunk->set(change.first, std::move(change.second));
+				}
+				m_UpdateBlockChanges.erase(it);
+			}
 		}
 	}
 }
@@ -879,7 +903,8 @@ void Voxel::DoChunkLoading(std::shared_ptr<LoadingStuff> stuff, LoadingOtherStuf
 		{
 			auto data = other.GetChunkDataFunc(toLoad);
 
-			auto loaded = Voxel::GenerateChunkMesh(data, toLoad, other.GetBlockIdFunc);
+			auto loaded = Voxel::GenerateChunkMesh(*data, toLoad, other.GetBlockIdFunc);
+			loaded->ChunkDat = std::move(*data);
 
 			stuff->Loaded.push(std::move(loaded));
 		}

@@ -12,7 +12,6 @@
 #include <climits>
 #include <type_traits>
 #include <thread>
-#include <functional>
 #include <memory>
 #include <atomic>
 #include <shared_mutex>
@@ -41,15 +40,15 @@ namespace Voxel
 	struct LoadingStuff
 	{
 		Threading::ThreadedQueue<ChunkCoord> ToLoad;
-		Threading::ThreadedQueue<LoadedChunk> Loaded;
+		Threading::ThreadedQueue<std::unique_ptr<LoadedChunk>> Loaded;
 		std::atomic<bool> QuitVal;
 	};
 
 	struct LoadingOtherStuff
 	{
 		// Must be a thread-safe function that determines whether there is a block at specified position
-		std::function<size_t(BlockCoord coord)> GetBlockIdFunc;
-		std::function<RawChunkData(ChunkCoord coord)> GetChunkDataFunc;
+		std::function<SerialBlock(BlockCoord coord)> GetBlockIdFunc;
+		std::function<std::unique_ptr<ChunkData>(ChunkCoord coord)> GetChunkDataFunc;
 	};
 
 	void DoChunkLoading(std::shared_ptr<LoadingStuff> stuff, LoadingOtherStuff other);
@@ -88,13 +87,13 @@ namespace Voxel
 		bool Receive(::Event::AfterPhysicsEvent *event) override;
 
 		// Static Modification
-		void ReplaceStaticCube(BlockCoord coord, std::unique_ptr<ICube> cube);
-		void ReplaceStaticCube(BlockCoord coord, SerialBlock block);
-		void SetStaticCube(BlockCoord coord);
+		void SetCube(BlockCoord coord, std::unique_ptr<ICube> cube);
+		void SetCube(BlockCoord coord, const SerialBlock& block);
+		void SetCube(BlockCoord coord, const NamedBlock& block);
 
 		ICube* GetCubeAt(BlockCoord coord); // Get is thread-safe, modification via returned pointer not thread-safe
 		const ICube* GetCubeAt(BlockCoord coord) const; // Thread-safe
-		size_t GetCubeIdAt(BlockCoord coord) const; // Thread-safe
+		SerialBlock GetCubeDataAt(BlockCoord coord) const; // Thread-safe
 		bool IsCubeAt(BlockCoord coord) const; // Thread-safe
 
 		// Get the coords of a block/chunk given by position, in Displaced Physics space
@@ -133,7 +132,8 @@ namespace Voxel
 		std::unordered_map<ChunkCoord, std::unique_ptr<ChunkyBoi>> m_Chunks;
 		
 		// Temporary measure to store changes and prevent them being unloaded
-		std::unordered_map<ChunkCoord, std::vector<std::pair<ChunkBlockCoord, std::unique_ptr<ICube>>>> m_BlockChanges;
+		std::unordered_map<ChunkCoord, std::vector<std::pair<ChunkBlockCoord, std::unique_ptr<ICube>>>> m_UpdateBlockChanges;
+		std::unordered_map<ChunkCoord, std::vector<std::pair<ChunkBlockCoord, SerialBlock>>> m_BlockChanges;
 
 		std::unordered_map<Entity *, std::unique_ptr<Entity>> m_DynamicEntities;
 		std::vector<Entity *> m_ToRemoveEntities;

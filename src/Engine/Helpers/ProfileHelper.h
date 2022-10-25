@@ -22,8 +22,8 @@
 #define PROFILE_POP() mResources->Profile->Pop(__FUNCTION_NAME__, __LINE__)
 #define PROFILE_POP_WITH(prof) prof->Pop(__FUNCTION_NAME__, __LINE__)
 
-#define PROFILE_EVENT(x, agg) ProfileEvent{ mResources->Profile, x, agg, __FUNCTION_NAME__, __LINE__ }
-#define PROFILE_EVENT_WITH(prof, x, agg) ProfileEvent{ prof, x, agg, __FUNCTION_NAME__, __LINE__ }
+#define PROFILE_EVENT(name, x, agg) auto name = ProfileEvent{ mResources->Profile, x, agg, __FUNCTION_NAME__, __LINE__ }
+#define PROFILE_EVENT_WITH(name, prof, x, agg) ProfileEvent{ prof, x, agg, __FUNCTION_NAME__, __LINE__ }
 #endif // _DEBUG
 #else
 #define PROFILE_PUSH(x) ((int)0)
@@ -33,8 +33,8 @@
 #define PROFILE_PUSH_AGG_WITH(prof, x) ((int)0)
 #define PROFILE_POP_WITH(prof) ((int)0)
 
-#define PROFILE_EVENT(x, agg) ((int)0)
-#define PROFILE_EVENT_WITH(prof, x, agg) ((int)0)
+#define PROFILE_EVENT(name, x, agg) ((int)0)
+#define PROFILE_EVENT_WITH(name, prof, x, agg) ((int)0)
 #endif // EC_PROFILE
 
 #ifdef EC_PROFILE

@@ -18,7 +18,7 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	: FullResourceHolder(resources)
 	, m_Level(level)
 	, m_GSpace(resources)
-	, m_WorldShape(m_GSpace.GetRootShape()->AddChild<Voxel::VoxelWorld>("Voxel World", Voxel::WorldStuff{&m_Loader, &m_Loader, nullptr, 5, 2, 5, 2}))
+	, m_WorldShape(m_GSpace.GetRootShape()->AddChild<Voxel::VoxelWorld>("Voxel World", Voxel::WorldStuff{&m_Loader, &m_Loader, nullptr, 1, 1, 1, 2}))
 	, m_PlayerShape(m_GSpace.GetRootShape()->AddChild<Voxel::VoxelPlayer>("Voxel Player", m_WorldShape.get(), Voxel::VoxelPlayerStuff()))
 	, m_LevelShape(m_GSpace.GetRootShape()->AddChild<ParkourLevelShape>("ParkourLevel Shape", Parkour::Levels[level]))
 	, m_GeneratorShape(m_GSpace.GetRootShape()->AddChild<ParkourGeneratorShape>("Parkour Generator", m_LevelShape, m_WorldShape))
@@ -83,12 +83,12 @@ bool Parkour::ParkourScene::Receive(Events::IEvent* event)
 		{
 			if (key_event->KeyCode == SDLK_EQUALS)
 			{
-				m_LightShape->GetLight()->Attenuation.y += 0.05;
+				m_LightShape->GetLight()->Attenuation.y += 0.05f;
 				DINFO("Increasing Attenuation by 0.05");
 			}
 			if (key_event->KeyCode == SDLK_MINUS)
 			{
-				m_LightShape->GetLight()->Attenuation.y -= 0.05;
+				m_LightShape->GetLight()->Attenuation.y -= 0.05f;
 				DINFO("Decreasing Attenuation by 0.05");
 			}
 			if (key_event->KeyCode == SDLK_q)

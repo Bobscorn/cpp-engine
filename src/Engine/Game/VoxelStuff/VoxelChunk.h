@@ -51,22 +51,15 @@ namespace Voxel
 {
 	struct VoxelWorld;
 
-	struct BlockData
-	{
-		size_t ID;
-	};
+	typedef std::unordered_map<ChunkBlockCoord, SerialBlock> RawChunkDataMap;
 
-	typedef std::array<std::array<std::array<BlockData, Voxel::Chunk_Size>, Voxel::Chunk_Height>, Voxel::Chunk_Size> RawChunkData;
-	typedef std::unordered_map<ChunkBlockCoord, BlockData> RawChunkDataMap;
-
-	RawChunkData ConvertMapToData(const RawChunkDataMap& m);
-
-	typedef std::array<std::array<std::array<std::unique_ptr<Voxel::ICube>, Chunk_Size>, Chunk_Height>, Chunk_Size> ChunkData;
+	typedef std::array<std::array<std::array<SerialBlock, Chunk_Size>, Chunk_Height>, Chunk_Size> ChunkData;
+	std::unique_ptr<ChunkData> ConvertMapToData(const RawChunkDataMap& m);
 
 	struct LoadedChunk
 	{
 		ChunkCoord Coord;
-		RawChunkData ChunkDat;
+		ChunkData ChunkDat;
 		std::unique_ptr<std::vector<floaty3>> PhysicsPositions;
 		std::unique_ptr<std::vector<unsigned int>> PhysicsIndices;
 		std::shared_ptr<btTriangleIndexVertexArray> PhysicsTriangles;
@@ -79,9 +72,8 @@ namespace Voxel
 	public:
 
 		ChunkyBoi(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 origin, ChunkCoord coord);
-		ChunkyBoi(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 origin, RawChunkData initial_dat, ChunkCoord coord);
 		ChunkyBoi(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 origin, RawChunkDataMap initial_dat, ChunkCoord coord);
-		ChunkyBoi(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, LoadedChunk preLoadedData);
+		ChunkyBoi(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, std::unique_ptr<LoadedChunk> preLoadedData);
 		~ChunkyBoi();
 
 		void BeforeDraw() override;
@@ -93,29 +85,34 @@ namespace Voxel
 
 		//inline operator std::array<std::array<std::array<std::unique_ptr<Voxel::ICube>, Chunk_Size>, Chunk_Height>, Chunk_Size> &const() { return m_Data; }
 		
+		// Will set the targetted block and add it to m_UpdateBlocks
 		void set(uint32_t x, uint32_t y, uint32_t z, std::unique_ptr<Voxel::ICube> val);
 		void set(ChunkBlockCoord coord, std::unique_ptr<Voxel::ICube> val);
-		void create(uint32_t x, uint32_t y, uint32_t z);
+
+		void set(ChunkBlockCoord coord, const SerialBlock& block);
 
 		ICube* get(uint32_t x, uint32_t y, uint32_t z);
 		ICube* get(ChunkBlockCoord coord);
+		SerialBlock get_data(ChunkBlockCoord coord) const;
 		ChunkCoord GetCoord() const;
 
 		// Use with caution, will remove the block from this chunk
 		std::unique_ptr<ICube> take(ChunkBlockCoord coord);
 
-		void SetTo(RawChunkData data);
+		void SetTo(std::unique_ptr<ChunkData> data);
 
-		void SetFrom(LoadedChunk preLoadedChunk, bool constructCubes = true);
+		void SetFrom(std::unique_ptr<LoadedChunk> preLoadedChunk, bool constructCubes = true);
 
 		void RecomputeMesh();
 
 	protected:
 		
+		std::string CreateChunkName(ChunkCoord coord);
+
 		std::unique_ptr<ChunkyFrustumCuller> CreateCuller(floaty3 origin);
 
 		ChunkData m_Data;
-		std::vector<ChunkBlockCoord> m_UpdateBlocks;
+		std::unordered_map<ChunkBlockCoord, std::unique_ptr<ICube>> m_UpdateBlocks;
 		floaty3 m_Origin;
 		VoxelWorld *m_World = nullptr;
 		ChunkCoord m_Coord;
@@ -140,6 +137,5 @@ namespace Voxel
 		bool m_Dirty = false;
 	};
 
-	LoadedChunk GenerateChunkMesh(const RawChunkData& chunk, ChunkCoord coord, std::function<size_t(BlockCoord)> isBlockFunc);
-	LoadedChunk GenerateChunkMesh(const ChunkData& chunk, ChunkCoord coord, std::function<size_t(BlockCoord)> isBlockFunc);
+	std::unique_ptr<LoadedChunk> GenerateChunkMesh(const ChunkData& chunk, ChunkCoord coord, std::function<SerialBlock(BlockCoord)> blockDataFunc);
 }

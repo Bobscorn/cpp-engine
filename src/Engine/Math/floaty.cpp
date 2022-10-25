@@ -9,7 +9,7 @@
 #include <SDL_pixels.h>
 
 floaty3::floaty3(const DOUBLE3& a)
-	: x(a.x), y(a.y), z(a.z)
+	: x((float)a.x), y((float)a.y), z((float)a.z)
 {
 }
 

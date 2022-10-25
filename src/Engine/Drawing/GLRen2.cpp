@@ -63,7 +63,7 @@ namespace Drawing
 
 			program->SetActive();
 
-			auto p = PROFILE_EVENT_WITH(g_Engine->Resources.Profile, "Program DrawCalls", true);
+			PROFILE_EVENT_WITH(p, g_Engine->Resources.Profile, "Program DrawCalls", true);
 			for (auto& drawcall_tmp : program_calls_pair.second)
 			{
 

@@ -28,7 +28,7 @@ namespace Voxel
 
 	struct ICube : virtual G1::IShape
 	{
-		ICube(VoxelWorld *world, std::string name) : m_World(world), m_Name(name) {}
+		ICube(VoxelWorld *world, SerialBlock block) : m_World(world), m_BlockData(block) {}
 
 		// Position in displaced physics space
 		virtual void BecomeDynamic(floaty3 pos) { (void)pos; };
@@ -36,23 +36,24 @@ namespace Voxel
 		// Position in absolute world space
 		virtual bool TryBecomeStatic(size_t x, size_t y, size_t z) { (void)x; (void)y; (void)z; return false; };
 
-		virtual void UpdatePosition(floaty3 new_position, size_t new_x, size_t new_y, size_t new_z, ChunkyFrustumCuller *new_culler) = 0;
+		virtual void UpdatePosition(floaty3 new_position, ChunkyFrustumCuller *new_culler) = 0;
 
 		inline VoxelWorld *GetWorld() const { return m_World; }
-		inline const std::string& GetBlockName() const { return m_Name; }
-		size_t GetBlockID() const;
+		const std::string& GetBlockName() const;
+		inline const CubeID& GetBlockID() const { return m_BlockData.ID; }
+		inline const SerialBlock& GetBlockData() const { return m_BlockData; }
 
 		virtual std::unique_ptr<ICube> Clone() const = 0;
 		inline virtual bool WantsUpdate() const { return false; }
 
 	protected:
 		VoxelWorld *m_World = nullptr;
-		std::string m_Name = "unnamed";
+		SerialBlock m_BlockData;
 	};
 
 	struct VoxelCube : ICube, virtual G1::IShape, BulletHelp::INothingInterface
 	{
-		VoxelCube(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 position, size_t x, size_t y, size_t z, std::string name);
+		VoxelCube(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 position, ChunkBlockCoord coord, SerialBlock block);
 		~VoxelCube();
 
 		virtual void BeforeDraw() override;
@@ -61,20 +62,16 @@ namespace Voxel
 		floaty3 GetPosition() const;
 
 		void SetCull(ChunkyFrustumCuller *chunkyboi);
-		void SetChunkPosition(size_t x, size_t y, size_t z);
 
-		virtual void UpdatePosition(floaty3 new_position, size_t new_x, size_t new_y, size_t new_z, ChunkyFrustumCuller *new_culler) override;
+		virtual void UpdatePosition(floaty3 new_position, ChunkyFrustumCuller *new_culler) override;
 		virtual std::unique_ptr<ICube> Clone() const override;
 
 	protected:
 
 		void ResetCuller();
-		
-		std::shared_ptr<btBoxShape> GetShape();
-		std::shared_ptr<btCollisionObject> GetBody(btCollisionShape *shape);
 
-		Matrixy4x4 m_Trans;
-		size_t m_X = 0, m_Y = 0, m_Z = 0;
+		floaty3 m_Position;
+		ChunkBlockCoord m_Coord;
 
 		//std::shared_ptr<btBoxShape> m_Shape;
 		//static std::weak_ptr<btBoxShape> s_Shape;
