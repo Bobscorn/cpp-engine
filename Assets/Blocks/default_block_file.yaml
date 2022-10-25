@@ -57,6 +57,14 @@ blocks:
 - 
     block-name: wood
     atlas: global
+    wants-update: false
+    faces:
+        pos-x: opaque
+        neg-x: opaque
+        pos-y: opaque
+        neg-y: opaque
+        pos-z: opaque
+        neg-z: opaque
     textures:
         diffuse:
             pos-x: wood_color.jpg

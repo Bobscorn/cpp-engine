@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Helpers/VectorHelper.h"
+#include <Helpers/VectorHelper.h>
 
-#include "Game/VoxelStuff/VoxelTypes.h"
+#include <Game/VoxelStuff/VoxelTypes.h>
 
 #include <vector>
 #include <unordered_map>
@@ -38,9 +38,9 @@ namespace Parkour
 	struct ParkourStep
 	{
 		ParkourStep() {}
-		ParkourStep(std::vector<std::pair<Voxel::SerialBlock, Vector::inty3>> blocks, std::vector<LookingPoint> exits) : Blocks(blocks), Exits(exits) {}
+		ParkourStep(std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>> blocks, std::vector<LookingPoint> exits) : Blocks(blocks), Exits(exits) {}
 
-		std::vector<std::pair<Voxel::SerialBlock, Vector::inty3>> Blocks;
+		std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>> Blocks;
 
 		std::vector<LookingPoint> Exits;
 	};
@@ -70,7 +70,7 @@ namespace Parkour
 	struct GeneratedParkour
 	{
 		GeneratedParkour() : Blocks(), EndPosition(0, 0, 0), EndDirection(ParkourForwardDirection) {}
-		std::unordered_map<Vector::inty3, Voxel::SerialBlock> Blocks;
+		std::unordered_map<Vector::inty3, Voxel::NamedBlock> Blocks;
 		Vector::inty3 EndPosition;
 		Voxel::BlockFace EndDirection;
 	};
@@ -99,3 +99,4 @@ namespace Parkour
 	Vector::inty3 BlockCoordTointy3(Voxel::BlockCoord pos);
 		
 }
+

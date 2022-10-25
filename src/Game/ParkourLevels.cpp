@@ -11,11 +11,11 @@ namespace Parkour
 		// O
 		const ParkourStep Long4LineStep =
 			ParkourStep{
-				std::vector<std::pair<Voxel::SerialBlock, Vector::inty3>>{
-					std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, 0 }),
-					std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, -1 }),
-					std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, -2 }),
-					std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, -3 }),
+				std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>>{
+					std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, 0 }),
+					std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, -1 }),
+					std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, -2 }),
+					std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, -3 }),
 				},
 				std::vector<LookingPoint>{ LookingPoint{ Vector::inty3{ 0, 0, -3 }, ParkourForwardDirection } }
 		};
@@ -27,13 +27,13 @@ namespace Parkour
 		//  O
 		const ParkourStep Fork2_2Step = ParkourStep
 		{
-			std::vector<std::pair<Voxel::SerialBlock, Vector::inty3>> {
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, 0 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, -1 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 1, 0, -2 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 1, 0, -3 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -1, 0, -2 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -1, 0, -3 }),
+			std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>> {
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, 0 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, -1 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 1, 0, -2 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 1, 0, -3 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -1, 0, -2 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -1, 0, -3 }),
 
 			},
 			std::vector<LookingPoint>{
@@ -48,11 +48,11 @@ namespace Parkour
 		//   O
 		const ParkourStep TriExitGaps = ParkourStep
 		{
-			std::vector<std::pair<Voxel::SerialBlock, Vector::inty3>>{
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, 0 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -2, 0, -1 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ +2, 0, -1 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, -2 }),
+			std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>>{
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, 0 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -2, 0, -1 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ +2, 0, -1 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, -2 }),
 			},
 			std::vector<LookingPoint>{
 				LookingPoint{ Vector::inty3(-2, 0, -1), ParkourLeftDirection },
@@ -67,13 +67,13 @@ namespace Parkour
 		// XX
 		const ParkourStep HolyStairs = ParkourStep
 		{
-			std::vector<std::pair<Voxel::SerialBlock, Vector::inty3>>{
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, 0 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, -1 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 1, -3 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 1, -4 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 2, -6 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 2, -7 }),
+			std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>>{
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, 0 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, -1 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 1, -3 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 1, -4 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 2, -6 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 2, -7 }),
 			},
 			std::vector<LookingPoint>{
 				LookingPoint{ Vector::inty3(0, 2, -7), ParkourForwardDirection }
@@ -88,13 +88,13 @@ namespace Parkour
 		// O
 		const ParkourStep CurvyStraightRight = ParkourStep
 		{
-			std::vector<std::pair<Voxel::SerialBlock, Vector::inty3>>{
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, 0 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 1, 0, -1 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 2, 0, -2 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 3, 0, -2 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 4, 0, -3 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 5, 0, -4 }),
+			std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>>{
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, 0 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 1, 0, -1 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 2, 0, -2 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 3, 0, -2 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 4, 0, -3 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 5, 0, -4 }),
 			},
 			std::vector<LookingPoint>{
 				LookingPoint{ Vector::inty3(5, 0, -4), ParkourForwardDirection }
@@ -109,13 +109,13 @@ namespace Parkour
 		//      O
 		const ParkourStep CurvyStraightLeft = ParkourStep
 		{
-			std::vector<std::pair<Voxel::SerialBlock, Vector::inty3>>{
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -0, 0, 0 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -1, 0, -1 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -2, 0, -2 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -3, 0, -2 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -4, 0, -3 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -5, 0, -4 }),
+			std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>>{
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -0, 0, 0 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -1, 0, -1 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -2, 0, -2 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -3, 0, -2 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -4, 0, -3 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -5, 0, -4 }),
 			},
 			std::vector<LookingPoint>{
 				LookingPoint{ Vector::inty3(-5, 0, -4), ParkourForwardDirection }
@@ -126,8 +126,8 @@ namespace Parkour
 		// O
 		const ParkourStep SingleBlockStep = ParkourStep
 		{
-			std::vector<std::pair<Voxel::SerialBlock, Vector::inty3>>{
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, 0 })
+			std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>>{
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, 0 })
 			},
 			std::vector<LookingPoint>{
 				LookingPoint{ Vector::inty3(0, 0, 0), ParkourForwardDirection },
@@ -140,10 +140,10 @@ namespace Parkour
 		// XOX
 		const ParkourStep TripleSidewaysStep = ParkourStep
 		{
-			std::vector<std::pair<Voxel::SerialBlock, Vector::inty3>>{
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, 0 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -1, 0, 0 }),
-				std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ +1, 0, 0 })
+			std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>>{
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, 0 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -1, 0, 0 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ +1, 0, 0 })
 			},
 			std::vector<LookingPoint>{
 				LookingPoint{ Vector::inty3(0, 0, 0), ParkourForwardDirection },

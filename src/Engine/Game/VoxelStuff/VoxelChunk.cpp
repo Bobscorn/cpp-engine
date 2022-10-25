@@ -10,6 +10,7 @@
 #include "Structure/BulletBitmasks.h"
 
 #include <algorithm>
+#include <cstring>
 
 constexpr floaty3 OriginFromCoord(Voxel::ChunkCoord coord)
 {
@@ -25,55 +26,32 @@ constexpr floaty3 PositionFromCoord(floaty3 origin, size_t x, size_t y, size_t z
 namespace Voxel
 {
 
-	Voxel::RawChunkData ConvertMapToData(const Voxel::RawChunkDataMap& map)
+	std::unique_ptr<Voxel::ChunkData> ConvertMapToData(const Voxel::RawChunkDataMap& map)
 	{
-		Voxel::RawChunkData data{};
+		auto data = std::make_unique<Voxel::ChunkData>();
 
 		for (auto& b : map)
 		{
 			auto& key = b.first;
-			data[key.x][key.y][key.z] = b.second;
+			(*data)[key.x][key.y][key.z] = b.second;
 		}
 
 		return data;
 	}
 
 	Voxel::ChunkyBoi::ChunkyBoi(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, ChunkCoord coord)
-		: G1::IShape(container)
+		: G1::IShape(container, CreateChunkName(coord))
 		, FullResourceHolder(resources)
 		, m_World(world)
 		, m_Culler(CreateCuller(m_Origin))
 		, m_Origin(origin)
 		, m_Coord(coord)
-	{
-	}
-
-	Voxel::ChunkyBoi::ChunkyBoi(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, RawChunkData initial_dat, ChunkCoord coord)
-		: G1::IShape(container)
-		, FullResourceHolder(resources)
-		, m_World(world)
-		, m_Culler(CreateCuller(m_Origin))
-		, m_Origin(origin)
 		, m_Data()
-		, m_Coord(coord)
 	{
-		PROFILE_PUSH("Creating Blocks");
-		for (uint32_t x = 0; x < Chunk_Size; ++x)
-		{
-			for (uint32_t y = 0; y < Chunk_Height; ++y)
-			{
-				for (uint32_t z = 0; z < Chunk_Size; ++z)
-				{
-					if (initial_dat[x][y][z].ID)
-						create(x, y, z);
-				}
-			}
-		}
-		PROFILE_POP();
 	}
 
 	Voxel::ChunkyBoi::ChunkyBoi(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, RawChunkDataMap initial_dat, ChunkCoord coord)
-		: G1::IShape(container, "Chunk (" + std::to_string(coord.X) + ", " + std::to_string(coord.Y) + ", " + std::to_string(coord.Z) + ")")
+		: G1::IShape(container, CreateChunkName(coord))
 		, FullResourceHolder(resources)
 		, m_World(world)
 		, m_Culler(CreateCuller(m_Origin))
@@ -92,28 +70,29 @@ namespace Voxel
 			}
 		}
 		PROFILE_POP();*/
-		SetFrom(GenerateChunkMesh(ConvertMapToData(initial_dat), coord, [world = this->m_World](BlockCoord coord) { return world->GetCubeIdAt(coord); }));
+		auto p = ConvertMapToData(initial_dat);
+		SetFrom(GenerateChunkMesh(*p, coord, [world = this->m_World](BlockCoord coord) { return world->GetCubeDataAt(coord); }));
 		PROFILE_PUSH("Submitting DrawCall");
 		auto name = std::string("Chunk (") + std::to_string(coord.X) + ", " + std::to_string(coord.Y) + ", " + std::to_string(coord.Z) + ")";
 		m_DrawCall = resources->Ren3v2->SubmitDrawCall(Drawing::DrawCallv2{ m_Mesh, m_Material, std::make_shared<Matrixy4x4>(Matrixy4x4::Translate(m_Origin)), name, true });
 		PROFILE_POP();
 	}
 
-	ChunkyBoi::ChunkyBoi(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, LoadedChunk preloadedStuff)
-		: G1::IShape(container, "Chunk (" + std::to_string(preloadedStuff.Coord.X) + ", " + std::to_string(preloadedStuff.Coord.Y) + ", " + std::to_string(preloadedStuff.Coord.Z) + ")")
+	ChunkyBoi::ChunkyBoi(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, std::unique_ptr<LoadedChunk> preloadedStuff)
+		: G1::IShape(container, CreateChunkName(preloadedStuff->Coord))
 		, FullResourceHolder(resources)
 		, m_World(world)
 		, m_Culler(CreateCuller(m_Origin))
 		, m_Origin(origin)
 		, m_Data()
 		, m_Material(Drawing::MaterialStore::Instance().GetMaterial("default-voxel-material"))
-		, m_Coord(preloadedStuff.Coord)
+		, m_Coord(preloadedStuff->Coord)
 		, m_Mesh()
 	{
 		SetFrom(std::move(preloadedStuff));
 		PROFILE_PUSH("Submitting DrawCall");
-		auto name = std::string("Chunk (") + std::to_string(m_Coord.X) + ", " + std::to_string(m_Coord.Y) + ", " + std::to_string(m_Coord.Z) + ")";
-		m_DrawCall = resources->Ren3v2->SubmitDrawCall(Drawing::DrawCallv2{ m_Mesh, m_Material, std::make_shared<Matrixy4x4>(Matrixy4x4::Translate(m_Origin)), name, true });
+		
+		m_DrawCall = resources->Ren3v2->SubmitDrawCall(Drawing::DrawCallv2{ m_Mesh, m_Material, std::make_shared<Matrixy4x4>(Matrixy4x4::Translate(m_Origin)), CreateChunkName(m_Coord), true});
 		PROFILE_POP();
 	}
 
@@ -130,11 +109,10 @@ namespace Voxel
 		if (m_Culler)
 			m_Culler->Flush();
 
-		for (auto& updateBlock : m_UpdateBlocks)
+		for (auto& updateBlockPair : m_UpdateBlocks)
 		{
-			auto& block = m_Data[updateBlock.x][updateBlock.y][updateBlock.z];
-			if (block)
-				block->BeforeDraw();
+			if (updateBlockPair.second)
+				updateBlockPair.second->BeforeDraw();
 		}
 
 		if (m_Dirty)
@@ -146,11 +124,10 @@ namespace Voxel
 
 	void Voxel::ChunkyBoi::AfterDraw()
 	{
-		for (auto& updateBlock : m_UpdateBlocks)
+		for (auto& updateBlockPair : m_UpdateBlocks)
 		{
-			auto& block = m_Data[updateBlock.x][updateBlock.y][updateBlock.z];
-			if (block)
-				block->AfterDraw();
+			if (updateBlockPair.second)
+				updateBlockPair.second->AfterDraw();
 		}
 	}
 
@@ -158,18 +135,6 @@ namespace Voxel
 	{
 		m_Origin = origin;
 		m_Culler = CreateCuller(m_Origin);
-		for (size_t x = 0; x < Chunk_Size; ++x)
-		{
-			for (size_t y = 0; y < Chunk_Height; ++y)
-			{
-				for (size_t z = 0; z < Chunk_Size; ++z)
-				{
-					auto& block = m_Data[x][y][z];
-					if (block)
-						block->UpdatePosition(PositionFromCoord(m_Origin, x, y, z), x, y, z, m_Culler.get());
-				}
-			}
-		}
 		m_Dirty = true;
 	}
 
@@ -181,15 +146,8 @@ namespace Voxel
 	void Voxel::ChunkyBoi::set(uint32_t x, uint32_t y, uint32_t z, std::unique_ptr<Voxel::ICube> val)
 	{
 		ChunkBlockCoord key{ x, y, z };
-		auto it = std::find_if(m_UpdateBlocks.begin(), m_UpdateBlocks.end(), [&key](ChunkBlockCoord a) { return a == key; });
-		if (it != m_UpdateBlocks.end())
-		{
-			std::swap(m_UpdateBlocks[std::distance(m_UpdateBlocks.begin(), it)], m_UpdateBlocks.back());
-			m_UpdateBlocks.pop_back();
-		}
-		m_Data[x][y][z] = std::move(val);
-		if (m_Data[x][y][z] && m_Data[x][y][z]->WantsUpdate())
-			m_UpdateBlocks.emplace_back(key);
+		m_Data[x][y][z] = val->GetBlockData();
+		m_UpdateBlocks[key] = std::move(val);
 		m_Dirty = true;
 	}
 
@@ -198,21 +156,28 @@ namespace Voxel
 		set(coord.x, coord.y, coord.z, std::move(val));
 	}
 
-	void Voxel::ChunkyBoi::create(uint32_t x, uint32_t y, uint32_t z)
+	void ChunkyBoi::set(ChunkBlockCoord coord, const SerialBlock& block)
 	{
-		set(x, y, z, std::make_unique<Voxel::VoxelCube>(this->Container, this->mResources, this->m_World, PositionFromCoord(m_Origin, x, y, z), x, y, z, "grass"));
+		m_Data[coord.x][coord.y][coord.z] = block;
+		m_Dirty = true;
 	}
 
 	Voxel::ICube* Voxel::ChunkyBoi::get(uint32_t x, uint32_t y, uint32_t z)
 	{
-		if (x >= Chunk_Size || y >= Chunk_Height || z >= Chunk_Size)
-			return nullptr;
-		return m_Data[x][y][z].get();
+		auto it = m_UpdateBlocks.find(ChunkBlockCoord{ x, y, z });
+		if (it != m_UpdateBlocks.end())
+			return it->second.get();
+		return nullptr;
 	}
 
 	ICube* ChunkyBoi::get(ChunkBlockCoord coord)
 	{
 		return get(coord.x, coord.y, coord.z);
+	}
+
+	SerialBlock ChunkyBoi::get_data(ChunkBlockCoord coord) const
+	{
+		return m_Data[coord.x][coord.y][coord.z];
 	}
 
 	ChunkCoord ChunkyBoi::GetCoord() const
@@ -222,10 +187,13 @@ namespace Voxel
 
 	std::unique_ptr<ICube> ChunkyBoi::take(ChunkBlockCoord coord)
 	{
-		return std::move(m_Data[coord.x][coord.y][coord.z]);
+		auto it = m_UpdateBlocks.find(coord);
+		if (it != m_UpdateBlocks.end())
+			return std::move(it->second);
+		return nullptr;
 	}
 
-	void Voxel::ChunkyBoi::SetTo(RawChunkData data)
+	void Voxel::ChunkyBoi::SetTo(std::unique_ptr<ChunkData> data)
 	{
 		(void)data;
 		// TODO: this method (or delete this method)
@@ -236,10 +204,12 @@ namespace Voxel
 		m_Dirty = true;
 	}
 
-	void ChunkyBoi::SetFrom(LoadedChunk preLoadedChunk, bool constructCubes)
+	void ChunkyBoi::SetFrom(std::unique_ptr<LoadedChunk> preLoadedChunk, bool constructCubes)
 	{
 		if (constructCubes)
 		{
+			m_Data = std::move(preLoadedChunk->ChunkDat);
+			auto& vox = Voxel::VoxelStore::Instance();
 			m_UpdateBlocks.clear();
 			for (unsigned int x = 0; x < Chunk_Size; ++x)
 			{
@@ -248,19 +218,21 @@ namespace Voxel
 					for (unsigned int z = 0; z < Chunk_Size; ++z)
 					{
 						auto& block = m_Data[x][y][z];
-						block = VoxelStore::Instance().CreateCube(preLoadedChunk.ChunkDat[x][y][z].ID);
-						if (block)
+						const VoxelBlock* desc;
+						if (vox.TryGetDescription(block.ID, desc) && desc->WantsUpdate)
 						{
-							if (block->WantsUpdate())
-								m_UpdateBlocks.emplace_back(ChunkBlockCoord{ x, y, z });
-							block->UpdatePosition(PositionFromCoord(m_Origin, x, y, z), x, y, z, nullptr);
+							auto tmp = vox.CreateCube(preLoadedChunk->ChunkDat[x][y][z]);
+							if (tmp)
+							{
+								m_UpdateBlocks[ChunkBlockCoord{ x,y,z }] = std::move(tmp);
+							}
 						}
 					}
 				}
 			}
 		}
 
-		auto m = Drawing::Mesh{ std::move(preLoadedChunk.Mesh), Drawing::MeshStorageType::DEDICATED_BUFFER };
+		auto m = Drawing::Mesh{ std::move(preLoadedChunk->Mesh), Drawing::MeshStorageType::DEDICATED_BUFFER };
 
 		if (m_Mesh)
 			*m_Mesh = std::move(m);
@@ -271,17 +243,17 @@ namespace Voxel
 			Container->RequestPhysicsRemoval(m_Body.get());
 		m_Body = nullptr;
 
-		if (preLoadedChunk.PhysicsIndices)
-			m_PhysIndices.swap(*preLoadedChunk.PhysicsIndices);
+		if (preLoadedChunk->PhysicsIndices)
+			m_PhysIndices.swap(*preLoadedChunk->PhysicsIndices);
 		else
 			m_PhysIndices.clear();
-		if (preLoadedChunk.PhysicsPositions)
-			m_PhysVertices.swap(*preLoadedChunk.PhysicsPositions);
+		if (preLoadedChunk->PhysicsPositions)
+			m_PhysVertices.swap(*preLoadedChunk->PhysicsPositions);
 		else
 			m_PhysVertices.clear();
 
-		m_MeshData = std::move(preLoadedChunk.PhysicsTriangles);
-		m_Shape = std::move(preLoadedChunk.PhysicsShape);
+		m_MeshData = std::move(preLoadedChunk->PhysicsTriangles);
+		m_Shape = std::move(preLoadedChunk->PhysicsShape);
 
 		if (m_Shape)
 		{
@@ -298,7 +270,7 @@ namespace Voxel
 			Container->RequestPhysicsCall(m_Body, ENVIRONMENT, PLAYER | ENTITY_GENERAL);
 		}
 
-		m_Coord = preLoadedChunk.Coord;
+		m_Coord = preLoadedChunk->Coord;
 	}
 
 	void Voxel::ChunkyBoi::RecomputeMesh()
@@ -311,7 +283,15 @@ namespace Voxel
 
 		auto& world = *m_World;
 
-		SetFrom(GenerateChunkMesh(m_Data, m_Coord, [&world](BlockCoord coord) { return world.GetCubeIdAt(coord); }), false);
+		SetFrom(GenerateChunkMesh(m_Data, m_Coord, [&world](BlockCoord coord) { return world.GetCubeDataAt(coord); }), false);
+	}
+
+	std::string ChunkyBoi::CreateChunkName(ChunkCoord coord)
+	{
+		std::string name{ 0, (char)0, std::allocator<char>() };
+		name.reserve(35);
+		name.append("Chunk (").append(std::to_string(coord.X)).append(", ").append(std::to_string(coord.Y)).append(", ").append(std::to_string(coord.Z)).append(")");
+		return name;
 	}
 
 	std::unique_ptr<ChunkyFrustumCuller> ChunkyBoi::CreateCuller(floaty3 origin)
@@ -319,16 +299,11 @@ namespace Voxel
 		return std::make_unique<ChunkyFrustumCuller>(origin, floaty3{ Voxel::Chunk_Size, Voxel::Chunk_Height, Voxel::Chunk_Size });
 	}
 
-	template<class T>
-	LoadedChunk GenerateChunkMeshT(const T& data, ChunkCoord coord, std::function<size_t(BlockCoord coord)> blockIdFunc)
+	std::unique_ptr<LoadedChunk> GenerateChunkMeshT(const ChunkData& data, ChunkCoord coord, std::function<SerialBlock(BlockCoord coord)> blockDataFunc)
 	{
-		static_assert(std::is_same_v<T, ChunkData> || std::is_same_v<T, RawChunkData>, "Hidden template function not being used with known classes");
-		constexpr bool isRaw = std::is_same_v<T, RawChunkData>;
-		Voxel::LoadedChunk chunk;
+		std::unique_ptr<Voxel::LoadedChunk> chunk = std::make_unique<Voxel::LoadedChunk>();
 
-		chunk.Coord = coord;
-		if constexpr (std::is_same_v<T, Voxel::RawChunkData>)
-			chunk.ChunkDat = data;
+		chunk->Coord = coord;
 
 		std::vector<Drawing::VoxelVertex> vertices;
 		std::vector<GLuint> indices;
@@ -378,17 +353,14 @@ namespace Voxel
 			return co;
 		};
 
+		auto& vox = Voxel::VoxelStore::Instance();
 
-		auto IsCubeAtFunc = [&blockIdFunc, &data, &convertRelToCoord, coord](int chunkRelativeX, int chunkRelativeY, int chunkRelativeZ)
+		auto cubeAtHasFace = [&blockDataFunc, &data, &convertRelToCoord, &vox, coord](int chunkRelativeX, int chunkRelativeY, int chunkRelativeZ, BlockFace face)
 		{
-			constexpr bool isRaw = std::is_same_v<T, RawChunkData>;
 			if (chunkRelativeX < 0 || chunkRelativeY < 0 || chunkRelativeZ < 0 ||
 				chunkRelativeX >= Chunk_Size || chunkRelativeY >= Chunk_Height || chunkRelativeZ >= Chunk_Size)
-				return VoxelStore::Instance().GetDescOrEmpty(blockIdFunc(convertRelToCoord(chunkRelativeX, chunkRelativeY, chunkRelativeZ))).isOpaque;
-			if constexpr (isRaw)
-				return VoxelStore::Instance().GetDescOrEmpty(data[chunkRelativeX][chunkRelativeY][chunkRelativeZ].ID).isOpaque;
-			else
-				return VoxelStore::Instance().GetDescOrEmpty(VoxelStore::Instance().GetIDFor(data[chunkRelativeX][chunkRelativeY][chunkRelativeZ] ? data[chunkRelativeX][chunkRelativeY][chunkRelativeZ]->GetBlockName() : "")).isOpaque;
+				return vox.GetDescOrEmpty(blockDataFunc(convertRelToCoord(chunkRelativeX, chunkRelativeY, chunkRelativeZ)).ID).FaceOpaqueness[(int)face] == FaceClosedNess::CLOSED_FACE;
+			return vox.GetDescOrEmpty(data[chunkRelativeX][chunkRelativeY][chunkRelativeZ].ID).FaceOpaqueness[(int)face] == FaceClosedNess::CLOSED_FACE;
 		};
 
 		auto origin = coord;
@@ -429,7 +401,7 @@ namespace Voxel
 			GLuint index5 = 3;
 			GLuint index6 = 0;
 
-			auto indexOffset = vertices.size();
+			GLuint indexOffset = (GLuint)vertices.size();
 
 			// insert indices
 			indices.emplace_back(index1 + indexOffset);
@@ -453,38 +425,34 @@ namespace Voxel
 			{
 				for (int z = 0; z < Chunk_Size; ++z)
 				{
-					size_t blockID;
-					if constexpr (isRaw)
-						blockID = data[x][y][z].ID;
-					else
-						blockID = VoxelStore::Instance().GetIDFor(data[x][y][z] ? data[x][y][z]->GetBlockName() : "");
-
-					if (blockID == 0)
+					auto& blockDat = data[x][y][z];
+					if (blockDat.ID == 0)
 						continue;
-
-					VoxelBlock desc = VoxelStore::Instance().GetDescOrEmpty(blockID);
+					const Voxel::VoxelBlock *desc;
+					if (!Voxel::VoxelStore::Instance().TryGetDescription(blockDat.ID, desc))
+						continue;
 
 					// go through neighbours check if there is a block there
 					// if there isn't add triangles to mesh
 
 					// -X
-					if (!IsCubeAtFunc(x - 1, y, z))
-						AddVerticesFunc(x, y, z, floaty3{ -1.f, 0.f, 0.f }, floaty3{ 0.f, 0.f, -1.f }, desc.FaceCoordsFor(BlockFace::NEG_X));
+					if (!cubeAtHasFace(x - 1, y, z, BlockFace::POS_X))
+						AddVerticesFunc(x, y, z, floaty3{ -1.f, 0.f, 0.f }, floaty3{ 0.f, 0.f, -1.f }, desc->FaceCoordsFor(BlockFace::NEG_X));
 					// +X
-					if (!IsCubeAtFunc(x + 1, y, z))
-						AddVerticesFunc(x, y, z, floaty3{ +1.f, 0.f, 0.f }, floaty3{ 0.f, 0.f, +1.f }, desc.FaceCoordsFor(BlockFace::POS_X));
+					if (!cubeAtHasFace(x + 1, y, z, BlockFace::NEG_X))
+						AddVerticesFunc(x, y, z, floaty3{ +1.f, 0.f, 0.f }, floaty3{ 0.f, 0.f, +1.f }, desc->FaceCoordsFor(BlockFace::POS_X));
 					// -Y
-					if (!IsCubeAtFunc(x, y - 1, z))
-						AddVerticesFunc(x, y, z, floaty3{ 0.f, -1.f, 0.f }, floaty3{ +1.f, 0.f, 0.f }, desc.FaceCoordsFor(BlockFace::NEG_Y));
+					if (!cubeAtHasFace(x, y - 1, z, BlockFace::POS_Y))
+						AddVerticesFunc(x, y, z, floaty3{ 0.f, -1.f, 0.f }, floaty3{ +1.f, 0.f, 0.f }, desc->FaceCoordsFor(BlockFace::NEG_Y));
 					// +Y
-					if (!IsCubeAtFunc(x, y + 1, z))
-						AddVerticesFunc(x, y, z, floaty3{ 0.f, +1.f, 0.f }, floaty3{ -1.f, 0.f, 0.f }, desc.FaceCoordsFor(BlockFace::POS_Y));
+					if (!cubeAtHasFace(x, y + 1, z, BlockFace::NEG_Y))
+						AddVerticesFunc(x, y, z, floaty3{ 0.f, +1.f, 0.f }, floaty3{ -1.f, 0.f, 0.f }, desc->FaceCoordsFor(BlockFace::POS_Y));
 					// -Z
-					if (!IsCubeAtFunc(x, y, z - 1))
-						AddVerticesFunc(x, y, z, floaty3{ 0.f, 0.f, -1.f }, floaty3{ +1.f, 0.f, 0.f }, desc.FaceCoordsFor(BlockFace::NEG_Z));
+					if (!cubeAtHasFace(x, y, z - 1, BlockFace::POS_Z))
+						AddVerticesFunc(x, y, z, floaty3{ 0.f, 0.f, -1.f }, floaty3{ +1.f, 0.f, 0.f }, desc->FaceCoordsFor(BlockFace::NEG_Z));
 					// +Z
-					if (!IsCubeAtFunc(x, y, z + 1))
-						AddVerticesFunc(x, y, z, floaty3{ 0.f, 0.f, +1.f }, floaty3{ -1.f, 0.f, 0.f }, desc.FaceCoordsFor(BlockFace::POS_Z));
+					if (!cubeAtHasFace(x, y, z + 1, BlockFace::NEG_Z))
+						AddVerticesFunc(x, y, z, floaty3{ 0.f, 0.f, +1.f }, floaty3{ -1.f, 0.f, 0.f }, desc->FaceCoordsFor(BlockFace::POS_Z));
 
 				}
 			}
@@ -495,8 +463,8 @@ namespace Voxel
 		// De Duplication
 		// v
 
-		chunk.Mesh = Drawing::RawMesh{ Drawing::VertexData::FromGeneric(Drawing::VoxelVertexDesc, vertices.begin(), vertices.end()), indices };
-		auto deDupedMesh = MeshHelp::DeDuplicateVertices(Drawing::MeshView<Drawing::VoxelVertex>(chunk.Mesh));
+		chunk->Mesh = Drawing::RawMesh{ Drawing::VertexData::FromGeneric(Drawing::VoxelVertexDesc, vertices.begin(), vertices.end()), indices };
+		auto deDupedMesh = MeshHelp::DeDuplicateVertices(Drawing::MeshView<Drawing::VoxelVertex>(chunk->Mesh));
 
 		// ^
 		// De Dup
@@ -507,34 +475,34 @@ namespace Voxel
 		{
 			size_t numVerts = deDupedMesh.VertexData.NumVertices();
 			// Copy vertices to permanent buffer
-			chunk.PhysicsPositions = std::make_unique<std::vector<floaty3>>();
-			chunk.PhysicsPositions->reserve(numVerts);
-			chunk.PhysicsIndices = std::make_unique<std::vector<unsigned int>>();
-			chunk.PhysicsIndices->reserve(deDupedMesh.Indices.size());
+			chunk->PhysicsPositions = std::make_unique<std::vector<floaty3>>();
+			chunk->PhysicsPositions->reserve(numVerts);
+			chunk->PhysicsIndices = std::make_unique<std::vector<unsigned int>>();
+			chunk->PhysicsIndices->reserve(deDupedMesh.Indices.size());
 
 			{
 				Drawing::MeshView<Drawing::VoxelVertex> view{ deDupedMesh };
 				for (size_t i = 0; i < numVerts; ++i)
 				{
-					chunk.PhysicsPositions->push_back(view[i].Position);
+					chunk->PhysicsPositions->push_back(view[i].Position);
 				}
-				chunk.PhysicsIndices->insert(chunk.PhysicsIndices->begin(), deDupedMesh.Indices.begin(), deDupedMesh.Indices.end());
+				chunk->PhysicsIndices->insert(chunk->PhysicsIndices->begin(), deDupedMesh.Indices.begin(), deDupedMesh.Indices.end());
 			}
 
 			btIndexedMesh indexMesh;
-			indexMesh.m_numTriangles = (int)chunk.PhysicsIndices->size() / 3;
-			indexMesh.m_triangleIndexBase = reinterpret_cast<const unsigned char*>(chunk.PhysicsIndices->data());
+			indexMesh.m_numTriangles = (int)chunk->PhysicsIndices->size() / 3;
+			indexMesh.m_triangleIndexBase = reinterpret_cast<const unsigned char*>(chunk->PhysicsIndices->data());
 			indexMesh.m_triangleIndexStride = sizeof(int) * 3;
 			indexMesh.m_numVertices = (int)numVerts;
-			indexMesh.m_vertexBase = reinterpret_cast<const unsigned char*>(chunk.PhysicsPositions->data());
+			indexMesh.m_vertexBase = reinterpret_cast<const unsigned char*>(chunk->PhysicsPositions->data());
 			indexMesh.m_vertexStride = sizeof(floaty3);
 			indexMesh.m_vertexType = PHY_FLOAT;
 
-			chunk.PhysicsTriangles = std::make_shared<btTriangleIndexVertexArray>();
+			chunk->PhysicsTriangles = std::make_shared<btTriangleIndexVertexArray>();
 
-			chunk.PhysicsTriangles->addIndexedMesh(indexMesh, PHY_INTEGER);
+			chunk->PhysicsTriangles->addIndexedMesh(indexMesh, PHY_INTEGER);
 
-			chunk.PhysicsShape = std::make_shared<btBvhTriangleMeshShape>(chunk.PhysicsTriangles.get(), true);
+			chunk->PhysicsShape = std::make_shared<btBvhTriangleMeshShape>(chunk->PhysicsTriangles.get(), true);
 		}
 
 		return chunk;
@@ -566,13 +534,8 @@ namespace Voxel
 		//	m_Mesh = std::make_shared<Drawing::Mesh>(std::move(mesh));
 	}
 
-	LoadedChunk GenerateChunkMesh(const RawChunkData& data, ChunkCoord coord, std::function<size_t(Voxel::BlockCoord coord)> blockIdFunc)
+	std::unique_ptr<LoadedChunk> GenerateChunkMesh(const ChunkData& data, ChunkCoord coord, std::function<SerialBlock(Voxel::BlockCoord coord)> blockDataFunc)
 	{
-		return GenerateChunkMeshT<RawChunkData>(data, coord, std::move(blockIdFunc));
-	}
-
-	LoadedChunk GenerateChunkMesh(const ChunkData& data, ChunkCoord coord, std::function<size_t(Voxel::BlockCoord coord)> blockIdFunc)
-	{
-		return GenerateChunkMeshT<ChunkData>(data, coord, std::move(blockIdFunc));
+		return GenerateChunkMeshT(data, coord, std::move(blockDataFunc));
 	}
 }

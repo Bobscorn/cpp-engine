@@ -3,11 +3,16 @@
 #include <filesystem>
 #include <algorithm>
 
+#pragma warning(push)
+#pragma warning(disable:4251 4275)
 #include <yaml-cpp/yaml.h>
+#pragma warning(pop)
 
 #include "Helpers/StringHelper.h"
 
 #include "Systems/Execution/Engine.h"
+
+const Voxel::SerialBlock Voxel::VoxelStore::EmptyBlockData = Voxel::SerialBlock{};
 
 namespace Voxel
 {
@@ -38,6 +43,34 @@ namespace Voxel
 
 	void VoxelStore::LoadBlockFile(const std::string& path)
 	{
+		/**
+		* Loads a YAML file into one or more BlockDescription(s).
+		* Expects a 'block' tag at the root that is a sequence.
+		* Each item in the sequence must contain:
+		* - block-name: [string block id]
+		* - atlas: [name of atlas containing textures]
+		* - wants-update: [true/false/1/0] (describes whether to instantiate an ICube from this block rather then leave as a SerialBlock
+		* EITHER:
+		* - faces: [opaque/semi-opaque/transparent]
+		* OR:
+		* - faces:
+		*   - pos-x: [opaque/semi-opaque/transparent]
+		*   - neg-x: [opaque/semi-opaque/transparent]
+		*   - pos-y: [opaque/semi-opaque/transparent]
+		*   - neg-y: [opaque/semi-opaque/transparent]
+		*   - pos-z: [opaque/semi-opaque/transparent]
+		*   - neg-z: [opaque/semi-opaque/transparent]
+		* EITHER:
+		* - textures: elsewhere (not currently implemented, this mode implies you will load the textures for this block in another way)
+		* OR:
+		* - textures:
+		*   - pos-x: [texture file name]
+		*   - neg-x: [texture file name]
+		*   - pos-y: [texture file name]
+		*   - neg-y: [texture file name]
+		*   - pos-z: [texture file name]
+		*   - neg-z: [texture file name]
+		*/
 		if (std::filesystem::exists(path))
 		{
 			try
@@ -68,7 +101,7 @@ namespace Voxel
 					auto name = node["block-name"];
 					if (!name || !name.IsScalar())
 					{
-						DINFO("Skipping sequence item without or with invalid 'block-name' tag");
+						DWARNING("Skipping sequence item without or with invalid 'block-name' tag");
 						continue;
 					}
 
@@ -77,19 +110,117 @@ namespace Voxel
 					auto atlasNode = node["atlas"];
 					if (!atlasNode || !atlasNode.IsScalar())
 					{
-						DINFO("Skipping block with no or invalid 'atlas' tag (currently all blocks are required to have an atlas tag, this may change when pre-stitched atlases are added)");
+						DWARNING("Skipping block with no or invalid 'atlas' tag (currently all blocks are required to have an atlas tag, this may change when pre-stitched atlases are added)");
 						continue;
 					}
 
 					desc.AtlasName = atlasNode.Scalar();
 
-					auto isOpaqueNode = node["opaque"];
-					desc.isOpaque = true;
-					if (isOpaqueNode && isOpaqueNode.IsScalar())
-						if (!StringHelper::IfBool(isOpaqueNode.Scalar(), &desc.isOpaque))
+					// SerialBlock loading:
+					desc.Data.ID = 0;
+					desc.Data.Data.Rotation = quat4::identity();
+					desc.WantsUpdate = false;
+
+					auto wantsUpdateNode = node["wants-update"];
+					if (wantsUpdateNode)
+					{
+						if (!wantsUpdateNode.IsScalar())
 						{
-							DINFO("Block '" + desc.Name + "' has invalid 'opaque' tag value of '" + isOpaqueNode.Scalar() + "'! (line " + std::to_string(isOpaqueNode.Mark().line) + " file '" + path + "')");
+							DWARNING("Block '" + desc.Name + "' has invalid 'wants-update' tag! If you supply the wants-update tag it must be a scalar! (Just a string!)");
 						}
+						else
+						{
+							auto& val = wantsUpdateNode.Scalar();
+							if (!StringHelper::IfBool(val, &desc.WantsUpdate))
+							{
+								DWARNING("Block '" + desc.Name + "' has invalid 'wants-update' value of '" + val + "' expected a boolean value!");
+							}
+						}
+					}
+
+					auto facesNode = node["faces"];
+					if (!facesNode)
+					{
+						DWARNING("Block '" + desc.Name + "' has no 'faces' tag! You must specify the opacity of all block's faces!");
+						continue;
+					}
+					if (facesNode.IsScalar())
+					{
+						auto setFaceFunc = [](FaceClosedNess& faceNess, FaceClosedNess val) { faceNess = val; };
+						auto setAllFacesFunc = [&desc, &setFaceFunc](FaceClosedNess opaqueNess) { std::for_each(desc.FaceOpaqueness.begin(), desc.FaceOpaqueness.end(), std::bind(setFaceFunc, std::placeholders::_1, opaqueNess));  };
+						auto& val = facesNode.Scalar();
+						if (val == "opaque")
+						{
+							setAllFacesFunc(FaceClosedNess::CLOSED_FACE);
+						}
+						else if (val == "semi-opaque")
+						{
+							setAllFacesFunc(FaceClosedNess::SEMI_CLOSED_FACE);
+						}
+						else if (val == "transparent")
+						{
+							setAllFacesFunc(FaceClosedNess::OPEN_FACE);
+						}
+						else
+						{
+							DWARNING("Block '" + desc.Name + "' has an invalid 'faces' tag! It must either be 'opaque', 'semi-opaque', 'transparent' or a map specifying this value per face! (via pos-x: neg-x: etc. children)");
+							continue;
+						}
+					}
+					else if (facesNode.IsMap())
+					{
+						auto setFaceFromNodeFunc = [&desc](const std::string& name, const YAML::Node& node, FaceClosedNess& face)
+						{
+							if (!node)
+							{
+								DWARNING("Block '" + desc.Name + "' has no '" + name + "' tag! (As a child of the faces tag)");
+								return false;
+							}
+							if (!node.IsScalar())
+							{
+								DWARNING("Block '" + desc.Name + "' has an invalid '" + name + "' tag! (As a child of the faces tag)");
+								return false;
+							}
+							auto& val = node.Scalar();
+							if (val == "opaque")
+								face = FaceClosedNess::CLOSED_FACE;
+							else if (val == "semi-opaque")
+								face = FaceClosedNess::SEMI_CLOSED_FACE;
+							else if (val == "transparent")
+								face = FaceClosedNess::OPEN_FACE;
+							else
+							{
+								DWARNING("Block '" + desc.Name + "' has tag '" + name + "' (child of faces tag) has unknown value of '" + val + "'!");
+								return false;
+							}
+
+							return true;
+						};
+
+						if (!setFaceFromNodeFunc("pos-x", facesNode["pos-x"], desc.FaceOpaqueness[(size_t)BlockFace::POS_X]))
+							continue;
+						if (!setFaceFromNodeFunc("neg-x", facesNode["neg-x"], desc.FaceOpaqueness[(size_t)BlockFace::NEG_X]))
+							continue;
+						if (!setFaceFromNodeFunc("pos-y", facesNode["pos-y"], desc.FaceOpaqueness[(size_t)BlockFace::POS_Y]))
+							continue;
+						if (!setFaceFromNodeFunc("neg-y", facesNode["neg-y"], desc.FaceOpaqueness[(size_t)BlockFace::NEG_Y]))
+							continue;
+						if (!setFaceFromNodeFunc("pos-z", facesNode["pos-z"], desc.FaceOpaqueness[(size_t)BlockFace::POS_Z]))
+							continue;
+						if (!setFaceFromNodeFunc("neg-z", facesNode["neg-z"], desc.FaceOpaqueness[(size_t)BlockFace::NEG_Z]))
+							continue;
+					}
+					else
+					{
+						DWARNING("Block '" + desc.Name + "' has invalid faces tag!");
+						continue;
+					}
+
+
+					// ^
+					// SerialBlock loading
+					// Textures
+					// v
 
 					auto tex = node["textures"];
 					if (!tex || (tex.IsScalar() && tex.Scalar() == "elsewhere"))
@@ -236,7 +367,7 @@ namespace Voxel
 
 	VoxelStore::VoxelStore(const std::string& prestitchedDirectory, const std::string& blockDirectory, const std::string& faceTexDir, std::vector<UnStitchedAtlasSet> builtInAtlases)
 	{
-		LoadBlock(BlockDescription{ "empty", "", false }); // Load empty block description first
+		LoadBlock(GetEmptyBlockDesc()); // Load empty block description first
 		LoadBlockDirectory(blockDirectory);
 		(void)prestitchedDirectory;//LoadAtlasDirectory(prestitchedDirectory); No! Not Yet My Boi! (not implemented)
 
@@ -420,7 +551,9 @@ namespace Voxel
 
 		auto& vox = _descriptions[index];
 		vox.Name = desc.Name;
-		vox.isOpaque = desc.isOpaque;
+		vox.BlockData = desc.Data;
+		vox.BlockData.ID = index;
+		vox.FaceOpaqueness = desc.FaceOpaqueness;
 		
 		// Set other properties for blocks here
 		// FaceTexCoords are set when loading an atlas
@@ -482,6 +615,24 @@ namespace Voxel
 		return true;
 	}
 
+	bool VoxelStore::TryGetDescription(const std::string& ID, const VoxelBlock*& desc) const
+	{
+		auto it = _descriptionLookup.find(ID);
+		if (it == _descriptionLookup.end())
+			return false;
+
+		return TryGetDescription(it->second, desc);
+	}
+
+	bool VoxelStore::TryGetDescription(size_t ID, const VoxelBlock*& desc) const
+	{
+		if (ID >= _descriptions.size())
+			return false;
+
+		desc = &_descriptions[ID];
+		return true;
+	}
+
 	VoxelBlock VoxelStore::GetDescOrEmpty(size_t ID) const
 	{
 		VoxelBlock out;
@@ -489,6 +640,11 @@ namespace Voxel
 			return EmptyBlock;
 
 		return out;
+	}
+
+	VoxelBlock VoxelStore::GetDescOrEmpty(const std::string& name) const
+	{
+		return GetDescOrEmpty(GetIDFor(name));
 	}
 
 	size_t VoxelStore::GetIDFor(const std::string& blockName) const
@@ -500,6 +656,14 @@ namespace Voxel
 		return 0;
 	}
 
+	const std::string& VoxelStore::GetNameOf(size_t ID) const
+	{
+		if (ID >= _descriptions.size())
+			return "unknown";
+
+		return _descriptions[ID].Name;
+	}
+
 	void VoxelStore::InitializeVoxelStore(const std::string& prestitchedDir, const std::string& blockDir, const std::string& faceTexDir, std::vector<UnStitchedAtlasSet> builtInAtlases)
 	{
 		if (_instance)
@@ -508,16 +672,36 @@ namespace Voxel
 		_instance = std::make_unique<VoxelStore>(prestitchedDir, blockDir, faceTexDir, builtInAtlases);
 	}
 
-	std::unique_ptr<ICube> VoxelStore::CreateCube(size_t ID) const
+	std::unique_ptr<ICube> VoxelStore::CreateCube(const SerialBlock& blockData) const
 	{
 		extern std::unique_ptr<Engine::IEngine> g_Engine;
 
-		if (ID == 0)
+		auto desc = GetDescOrEmpty(blockData.ID);
+		if (desc.WantsUpdate == false)
 			return nullptr;
 
-		VoxelBlock desc;
-		if (TryGetDescription(ID, desc))
-			return std::make_unique<VoxelCube>(nullptr, &g_Engine->Resources, nullptr, floaty3{ 0.f, 0.f, 0.f }, 0, 0, 0, desc.Name);
-		return nullptr;
+		return std::make_unique<VoxelCube>(nullptr, &g_Engine->Resources, nullptr, floaty3{ 0.f, 0.f, 0.f }, ChunkBlockCoord{}, blockData);
+	}
+
+	std::unique_ptr<ICube> VoxelStore::CreateCube(const std::string& blockName) const
+	{
+		return CreateCube(GetDescOrEmpty(blockName).BlockData);
+	}
+
+	BlockDescription GetEmptyBlockDesc()
+	{
+		BlockDescription desc;
+		desc.Name = "empty";
+		desc.AtlasName = "";
+		desc.Data.ID = 0;
+		desc.Data.Data.Rotation = quat4::identity();
+		desc.FaceOpaqueness = { FaceClosedNess::OPEN_FACE, FaceClosedNess::OPEN_FACE, FaceClosedNess::OPEN_FACE, FaceClosedNess::OPEN_FACE, FaceClosedNess::OPEN_FACE, FaceClosedNess::OPEN_FACE };
+		desc.WantsUpdate = false;
+		desc.DiffuseFaceTextures = { std::string(), std::string(), std::string(), std::string(), std::string(), std::string() };
+		desc.NormalFaceTextures = { std::string(), std::string(), std::string(), std::string(), std::string(), std::string() };
+		desc.BumpFaceTextures = { std::string(), std::string(), std::string(), std::string(), std::string(), std::string() };
+		desc.SpecularFaceTextures = { std::string(), std::string(), std::string(), std::string(), std::string(), std::string() };
+		desc.EmissiveFaceTextures = { std::string(), std::string(), std::string(), std::string(), std::string(), std::string() };
+		return desc;
 	}
 }

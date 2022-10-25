@@ -9,6 +9,7 @@
 #include <cmath>
 #include <ostream>
 #include <string>
+#include <array>
 
 namespace Voxel
 {
@@ -32,6 +33,13 @@ namespace Voxel
 		LEFT = 5,
 		Left = 5,
 		NEG_X = 5,
+	};
+
+	enum class FaceClosedNess
+	{
+		OPEN_FACE = 0,
+		SEMI_CLOSED_FACE = 1,
+		CLOSED_FACE = 2,
 	};
 	
 	/// <summary>
@@ -132,23 +140,32 @@ namespace Voxel
 	};
 
 
-	struct CubeID
-	{
-		CubeID() {}
-		CubeID(std::string id) : ID(std::move(id)) {}
-
-		std::string ID;
-	};
+	typedef size_t CubeID;
 
 	struct CubeData
 	{
 		quat4 Rotation;
-
 	};
 
 	struct SerialBlock
 	{
 		CubeID ID;
 		CubeData Data;
+
+		inline bool operator==(const SerialBlock& other) const
+		{
+			return ID == other.ID
+				&& Data.Rotation == other.Data.Rotation;
+		}
+
+		inline bool operator!=(const SerialBlock& other) const { return !(*this == other); }
 	};
+
+	struct NamedBlock
+	{
+		std::string Name;
+		CubeData Data;
+	};
+
+	
 }

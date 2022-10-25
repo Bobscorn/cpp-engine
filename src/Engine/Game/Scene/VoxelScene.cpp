@@ -3,6 +3,7 @@
 #include <Structure/BasicShapes.h>
 
 #include "Game/VoxelStuff/Entities/Ball.h"
+#include "Drawing/VoxelStore.h"
 
 #include "Structure/Shapes/SkyBoxShape.h"
 
@@ -89,7 +90,7 @@ Voxel::RawChunkDataMap Voxel::DefaultWorldLoader::LoadChunk(int64_t x, int64_t y
 		{
 			for (unsigned int z_i = 0; z_i < Chunk_Size; ++z_i)
 			{
-				map[{x_i, 0, z_i}] = BlockData{ 2 };
+				map[{x_i, 0, z_i}] = VoxelStore::Instance().GetDescOrEmpty("wood").BlockData;
 			}
 		}
 		return map;

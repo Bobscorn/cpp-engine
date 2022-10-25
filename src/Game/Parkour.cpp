@@ -106,7 +106,7 @@ namespace Parkour
 			auto step = pickStep(realSteps);
 			for (auto& block : step.Blocks)
 			{
-				Voxel::SerialBlock toAdd = block.first;
+				auto toAdd = block.first;
 				toAdd.Data.Rotation *= currentRotation;
 
 				auto pos = block.second;
@@ -256,7 +256,7 @@ TEST(GenerateParkourTests, SimpleGeneration)
 	{
 		ParkourGenerationInfo info;
 		ParkourStep step;
-		step.Blocks.emplace_back(std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
 		step.Exits.clear();
 		
 		info.UsableSteps.push_back(step);
@@ -274,7 +274,7 @@ TEST(GenerateParkourTests, SimpleGeneration)
 	{
 		ParkourGenerationInfo info;
 		ParkourStep step;
-		step.Blocks.emplace_back(std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(0, 0, 0)));
 		step.Exits.emplace_back(LookingPoint{ inty3(), ParkourForwardDirection});
 		
 		info.UsableSteps.push_back(step);
@@ -296,7 +296,7 @@ TEST(GenerateParkourTests, SimpleGeneration)
 	{
 		ParkourGenerationInfo info;
 		ParkourStep step;
-		step.Blocks.emplace_back(std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(0, 0, 0)));
 		step.Exits.emplace_back(LookingPoint{ inty3(), Voxel::BlockFace::Right });
 		
 		info.UsableSteps.push_back(step);
@@ -319,7 +319,7 @@ TEST(GenerateParkourTests, SimpleGeneration)
 	{
 		ParkourGenerationInfo info;
 		ParkourStep step;
-		step.Blocks.emplace_back(std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4::identity()}}, Vector::inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity()}}, Vector::inty3(0, 0, 0)));
 		step.Exits.emplace_back(LookingPoint{ inty3(), ParkourForwardDirection });
 
 		info.UsableSteps.push_back(step);
@@ -344,7 +344,7 @@ TEST(GenerateParkourTests, SimpleGeneration)
 	{
 		ParkourGenerationInfo info;
 		ParkourStep step;
-		step.Blocks.emplace_back(std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
 		step.Exits.emplace_back(LookingPoint{ inty3(), Voxel::BlockFace::POS_X});
 		
 		info.UsableSteps.push_back(step);
@@ -369,7 +369,7 @@ TEST(GenerateParkourTests, SimpleGeneration)
 	{
 		ParkourGenerationInfo info;
 		ParkourStep step;
-		step.Blocks.emplace_back(std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
 		step.Exits.emplace_back(LookingPoint{ inty3(), ParkourForwardDirection });
 
 		info.UsableSteps.push_back(step);
@@ -390,7 +390,7 @@ TEST(GenerateParkourTests, SimpleGeneration)
 	{
 		ParkourGenerationInfo info;
 		ParkourStep step;
-		step.Blocks.emplace_back(std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
 		step.Exits.emplace_back(LookingPoint{ inty3(), Voxel::BlockFace::NEG_X });
 
 		info.UsableSteps.push_back(step);
@@ -424,8 +424,8 @@ TEST(GenerateParkourTests, SimpleGeneration)
 	{
 		ParkourGenerationInfo info;
 		ParkourStep step;
-		step.Blocks.emplace_back(std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
-		step.Blocks.emplace_back(std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, -1)));
+		step.Blocks.emplace_back(std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, -1)));
 		step.Exits.emplace_back(LookingPoint{ inty3(0, 0, -1), ParkourForwardDirection });
 
 		info.UsableSteps.push_back(step);
@@ -438,7 +438,7 @@ TEST(GenerateParkourTests, SimpleGeneration)
 		EXPECT_EQ(parkour.Blocks.count(inty3(0, 0, -1)), 1);
 		EXPECT_EQ(parkour.Blocks.count(inty3(0, 0, -2)), 1);
 		EXPECT_EQ(parkour.Blocks.count(inty3(0, 0, -3)), 1);
-		EXPECT_TRUE(std::all_of(parkour.Blocks.begin(), parkour.Blocks.end(), [](const std::pair<const inty3, Voxel::SerialBlock>& block) { return block.second.Data.Rotation == quat4::identity(); }));
+		EXPECT_TRUE(std::all_of(parkour.Blocks.begin(), parkour.Blocks.end(), [](const std::pair<const inty3, Voxel::NamedBlock>& block) { return block.second.Data.Rotation == quat4::identity(); }));
 		EXPECT_EQ(parkour.EndPosition, inty3(0, 0, -4));
 		EXPECT_EQ(parkour.EndDirection, ParkourForwardDirection);
 	}
@@ -447,8 +447,8 @@ TEST(GenerateParkourTests, SimpleGeneration)
 	{
 		ParkourGenerationInfo info;
 		ParkourStep step;
-		step.Blocks.emplace_back(std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
-		step.Blocks.emplace_back(std::make_pair(Voxel::SerialBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, -1)));
+		step.Blocks.emplace_back(std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4() } }, Vector::inty3(0, 0, -1)));
 		step.Exits.emplace_back(LookingPoint{ inty3(0, 0, -1), Voxel::BlockFace::POS_X });
 
 		info.UsableSteps.push_back(step);
@@ -507,7 +507,7 @@ TEST(GenerateParkourTests, DistanceTests)
 	{
 		ParkourGenerationInfo info;
 		ParkourStep step;
-		step.Blocks.emplace_back(std::make_pair(SerialBlock{ "wood", CubeData{ quat4() } }, inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(NamedBlock{ "wood", CubeData{ quat4() } }, inty3(0, 0, 0)));
 		step.Exits.emplace_back(LookingPoint{ inty3(0, 0, 0), ParkourForwardDirection });
 		info.UsableSteps.push_back(step);
 		info.WeightedDistances.emplace_back(std::make_pair(1.f, 1));
@@ -525,7 +525,7 @@ TEST(GenerateParkourTests, DistanceTests)
 	{
 		ParkourGenerationInfo info;
 		ParkourStep step;
-		step.Blocks.emplace_back(std::make_pair(SerialBlock{ "wood", CubeData{ quat4() } }, inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(NamedBlock{ "wood", CubeData{ quat4() } }, inty3(0, 0, 0)));
 		step.Exits.emplace_back(LookingPoint{ inty3(0, 0, 0), ParkourForwardDirection });
 		info.UsableSteps.push_back(step);
 		info.WeightedDistances.emplace_back(std::make_pair(1.f, 1));
@@ -545,7 +545,7 @@ TEST(GenerateParkourTests, DistanceTests)
 	{
 		ParkourGenerationInfo info;
 		ParkourStep step;
-		step.Blocks.emplace_back(std::make_pair(SerialBlock{ "wood", CubeData{ quat4() } }, inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(NamedBlock{ "wood", CubeData{ quat4() } }, inty3(0, 0, 0)));
 		step.Exits.emplace_back(LookingPoint{ inty3(0, 0, 0), ParkourForwardDirection });
 		info.UsableSteps.push_back(step);
 		info.WeightedDistances.emplace_back(std::make_pair(0.5f, 1));
@@ -566,7 +566,7 @@ TEST(GenerateParkourTests, DistanceTests)
 	{
 		ParkourGenerationInfo info;
 		ParkourStep step;
-		step.Blocks.emplace_back(std::make_pair(SerialBlock{ "wood", CubeData{ quat4() } }, inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(NamedBlock{ "wood", CubeData{ quat4() } }, inty3(0, 0, 0)));
 		step.Exits.emplace_back(LookingPoint{ inty3(0, 0, 0), ParkourForwardDirection });
 		info.UsableSteps.push_back(step);
 		info.WeightedDistances.emplace_back(std::make_pair(0.333f, 1));
@@ -588,7 +588,7 @@ TEST(GenerateParkourTests, DistanceTests)
 	{
 		ParkourGenerationInfo info;
 		ParkourStep step;
-		step.Blocks.emplace_back(std::make_pair(SerialBlock{ "wood", CubeData{ quat4() } }, inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(NamedBlock{ "wood", CubeData{ quat4() } }, inty3(0, 0, 0)));
 		step.Exits.emplace_back(LookingPoint{ inty3(0, 0, 0), ParkourForwardDirection });
 		info.UsableSteps.push_back(step);
 		info.WeightedDistances.emplace_back(std::make_pair(0.5f, 1));
@@ -640,10 +640,10 @@ TEST(GenerateParkourTests, ComplexParkourTests)
 		ParkourGenerationInfo info;
 		ParkourStep step;
 
-		step.Blocks.emplace_back(std::make_pair(SerialBlock{ "wood", CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
-		step.Blocks.emplace_back(std::make_pair(SerialBlock{ "wood", CubeData{ quat4() } }, Vector::inty3(0, 0, -1)));
-		step.Blocks.emplace_back(std::make_pair(SerialBlock{ "wood", CubeData{ quat4() } }, Vector::inty3(0, 0, -2)));
-		step.Blocks.emplace_back(std::make_pair(SerialBlock{ "wood", CubeData{ quat4() } }, Vector::inty3(0, 0, -3)));
+		step.Blocks.emplace_back(std::make_pair(NamedBlock{ "wood", CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(NamedBlock{ "wood", CubeData{ quat4() } }, Vector::inty3(0, 0, -1)));
+		step.Blocks.emplace_back(std::make_pair(NamedBlock{ "wood", CubeData{ quat4() } }, Vector::inty3(0, 0, -2)));
+		step.Blocks.emplace_back(std::make_pair(NamedBlock{ "wood", CubeData{ quat4() } }, Vector::inty3(0, 0, -3)));
 		step.Exits.emplace_back(LookingPoint{ inty3(0, 0, -3), ParkourForwardDirection });
 		
 		info.UsableSteps.push_back(step);
@@ -657,7 +657,7 @@ TEST(GenerateParkourTests, ComplexParkourTests)
 		{
 			EXPECT_EQ(parkour.Blocks.count(inty3(0, 0, -i)), 1);
 		}
-		EXPECT_TRUE(std::all_of(parkour.Blocks.begin(), parkour.Blocks.end(), [](const std::pair<const inty3, Voxel::SerialBlock>& block) { return block.second.Data.Rotation == quat4::identity(); }));
+		EXPECT_TRUE(std::all_of(parkour.Blocks.begin(), parkour.Blocks.end(), [](const std::pair<const inty3, Voxel::NamedBlock>& block) { return block.second.Data.Rotation == quat4::identity(); }));
 		
 		EXPECT_EQ(parkour.EndPosition, inty3(0, 0, -20));
 		EXPECT_EQ(parkour.EndDirection, ParkourForwardDirection);
@@ -672,10 +672,10 @@ TEST(GenerateParkourTests, ComplexParkourTests)
 		ParkourGenerationInfo info;
 		ParkourStep step;
 
-		step.Blocks.emplace_back(std::make_pair(SerialBlock{ "wood", CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
-		step.Blocks.emplace_back(std::make_pair(SerialBlock{ "wood", CubeData{ quat4() } }, Vector::inty3(0, 0, -1)));
-		step.Blocks.emplace_back(std::make_pair(SerialBlock{ "wood", CubeData{ quat4() } }, Vector::inty3(0, 0, -2)));
-		step.Blocks.emplace_back(std::make_pair(SerialBlock{ "wood", CubeData{quat4()}}, Vector::inty3(1, 0, -2)));
+		step.Blocks.emplace_back(std::make_pair(NamedBlock{ "wood", CubeData{ quat4() } }, Vector::inty3(0, 0, 0)));
+		step.Blocks.emplace_back(std::make_pair(NamedBlock{ "wood", CubeData{ quat4() } }, Vector::inty3(0, 0, -1)));
+		step.Blocks.emplace_back(std::make_pair(NamedBlock{ "wood", CubeData{ quat4() } }, Vector::inty3(0, 0, -2)));
+		step.Blocks.emplace_back(std::make_pair(NamedBlock{ "wood", CubeData{quat4()}}, Vector::inty3(1, 0, -2)));
 		step.Exits.emplace_back(LookingPoint{ inty3(1, 0, -2), ParkourRightDirection });
 
 		info.UsableSteps.push_back(step);

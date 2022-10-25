@@ -28,6 +28,7 @@
 #include <array>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 
 #include "Math/floaty.h"
@@ -57,9 +58,11 @@ namespace Voxel
 	{
 		std::string Name;
 		std::string AtlasName;
-		bool isOpaque;
+		SerialBlock BlockData;
 
 		std::array<FaceTexCoord, 6> FaceTexCoords;
+		std::array<FaceClosedNess, 6> FaceOpaqueness;
+		bool WantsUpdate;
 
 		inline const FaceTexCoord& FaceCoordsFor(BlockFace face) const { return FaceTexCoords[(size_t)face]; }
 	};
@@ -99,7 +102,9 @@ namespace Voxel
 	{
 		std::string Name;
 		std::string AtlasName;
-		bool isOpaque;
+		SerialBlock Data;
+		std::array<FaceClosedNess, 6> FaceOpaqueness;
+		bool WantsUpdate;
 
 		std::array<std::string, 6> DiffuseFaceTextures;
 		std::array<std::string, 6> NormalFaceTextures;
@@ -125,6 +130,8 @@ namespace Voxel
 			}
 		}
 	};
+
+	BlockDescription GetEmptyBlockDesc();
 
 	struct UnStitchedAtlasSet
 	{
@@ -211,13 +218,19 @@ namespace Voxel
 		const VoxelBlock* GetBlock(const std::string& name) const; // Return value should not be kept
 		bool TryGetDescription(const std::string& name, VoxelBlock& desc) const;
 		bool TryGetDescription(size_t ID, VoxelBlock& desc) const;
+		bool TryGetDescription(const std::string& ID, const VoxelBlock*& desc) const;
+		bool TryGetDescription(size_t ID, const VoxelBlock*& desc) const;
 		VoxelBlock GetDescOrEmpty(size_t ID) const; // Returns either the description for the ID, or the description for 'empty' if not possible
+		VoxelBlock GetDescOrEmpty(const std::string& name) const;
 
 		size_t GetIDFor(const std::string& blockName) const;
+		const std::string& GetNameOf(size_t ID) const;
 
 		static void InitializeVoxelStore(const std::string& prestitchedDir, const std::string& blockDir, const std::string& faceTexDir, std::vector<UnStitchedAtlasSet> builtInAtlases = std::vector<UnStitchedAtlasSet>());
 
-		std::unique_ptr<ICube> CreateCube(size_t ID) const;
-		inline std::unique_ptr<ICube> CreateCube(std::string name) const { return CreateCube(GetIDFor(name)); }
+		std::unique_ptr<ICube> CreateCube(const SerialBlock& blockData) const;
+		std::unique_ptr<ICube> CreateCube(const std::string& blockName) const;
+
+		static const SerialBlock EmptyBlockData;
 	};
 }

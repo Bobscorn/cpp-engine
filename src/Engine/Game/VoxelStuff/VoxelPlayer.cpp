@@ -269,28 +269,28 @@ bool Voxel::VoxelPlayer::Receive(Event::KeyInput *key)
 	{
 		if (key->State)
 		{
-			m_SelectedBlockID = 1;
+			m_SelectedBlockName = "wood";
 		}
 	}
 	else if (key->KeyCode == SDLK_2)
 	{
 		if (key->State)
 		{
-			m_SelectedBlockID = 2;
+			m_SelectedBlockName = "grass";
 		}
 	}
 	else if (key->KeyCode == SDLK_3)
 	{
 		if (key->State)
 		{
-			m_SelectedBlockID = 3;
+			m_SelectedBlockName = "velvet";
 		}
 	}
 	else if (key->KeyCode == SDLK_4)
 	{
 		if (key->State)
 		{
-			m_SelectedBlockID = 4;
+			m_SelectedBlockName = "straw";
 		}
 	}
 
@@ -369,13 +369,13 @@ void Voxel::VoxelPlayer::ShootTestRay(bool destroy)
 						if (destroy)
 						{
 							auto coord = thing->GetWorld()->GetBlockCoordFromPhys(thing->GetPosition());
-							thing->GetWorld()->ReplaceStaticCube(coord, nullptr);
+							thing->GetWorld()->SetCube(coord, VoxelStore::EmptyBlockData);
 						}
 						else
 						{
 							floaty3 pos{ rayboi.m_hitPointWorld + rayboi.m_hitNormalWorld * 0.25f };
 							auto coord = thing->GetWorld()->GetBlockCoordFromPhys(pos);
-							thing->GetWorld()->SetStaticCube(coord);
+							thing->GetWorld()->SetCube(coord, VoxelStore::Instance().GetDescOrEmpty("wood").BlockData);
 						}
 					}
 				}
@@ -536,7 +536,7 @@ void Voxel::VoxelPlayer::BreakBlock(RayReturn ray)
 {
 	floaty3 pos{ ray.hitPoint - ray.normal * 0.25f };
 	auto coord = m_World->GetBlockCoordFromPhys(pos);
-	m_World->ReplaceStaticCube(coord, nullptr);
+	m_World->SetCube(coord, VoxelStore::EmptyBlockData);
 }
 
 void Voxel::VoxelPlayer::PlaceBlock(RayReturn ray)
@@ -544,7 +544,7 @@ void Voxel::VoxelPlayer::PlaceBlock(RayReturn ray)
 	floaty3 pos{ ray.hitPoint + ray.normal * 0.25f };
 	//auto thing = static_cast<Voxel::VoxelCube *>(ray.hold->Pointy);
 	auto coord = m_World->GetBlockCoordFromPhys(pos);
-	m_World->ReplaceStaticCube(coord, VoxelStore::Instance().CreateCube(m_SelectedBlockID));
+	m_World->SetCube(coord, VoxelStore::Instance().GetDescOrEmpty(m_SelectedBlockName).BlockData);
 }
 
 void Voxel::VoxelPlayer::SetCrouchState(bool state)

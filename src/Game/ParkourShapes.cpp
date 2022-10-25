@@ -58,7 +58,7 @@ void Parkour::ParkourGeneratorShape::Generate()
 	{
 		auto realPos = Parkour::inty3ToBlockCoord(block.first);
 		
-		m_WorldShape->ReplaceStaticCube(realPos, block.second);
+		m_WorldShape->SetCube(realPos, block.second);
 	}
 }
 
