@@ -5,7 +5,7 @@
 
 #include "VoxelWorld.h"
 #include "Drawing/VoxelStore.h"
-#include "Drawing/IRen3D.h"
+#include "Drawing/IRen3Dv2.h"
 
 #include "Structure/BulletBitmasks.h"
 

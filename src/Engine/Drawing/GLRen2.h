@@ -7,6 +7,7 @@
 #include "DrawCallReference.h"
 #include "Frustum.h"
 #include "IRen3D.h"
+#include "IRen3Dv2.h"
 
 #include "Helpers/VectorHelper.h"
 
