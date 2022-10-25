@@ -1,19 +1,19 @@
 
-#include "Helpers/StringHelper.h"
-#include "Helpers/VectorHelper.h"
-#include "Helpers/MathHelper.h"
-#include "Helpers/FileHelper.h"
-#include "Helpers/ProfileHelper.h"
+#include <Helpers/StringHelper.h>
+#include <Helpers/VectorHelper.h>
+#include <Helpers/MathHelper.h>
+#include <Helpers/FileHelper.h>
+#include <Helpers/ProfileHelper.h>
 
-#include "Game/GameEngine.h"
-#include "Systems/Events/Events.h"
-#include "Systems/Input/Input.h"
-#include "Systems/Input/Assimp.h"
-#include "Systems/Audio/Audio.h"
+#include <Game/GameEngine.h>
+#include <Systems/Events/Events.h>
+#include <Systems/Input/Input.h>
+#include <Systems/Input/Assimp.h>
+#include <Systems/Audio/Audio.h>
 
-#include "Systems/SDLWrapping/SDLWrappers.h"
+#include <Systems/SDLWrapping/SDLWrappers.h>
 
-#include "Config/Config.h"
+#include <Config/Config.h>
 
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>

@@ -51,7 +51,6 @@ Matrixy3x3 Matrixy3x3::RotationAxisNormR(floaty3 axis, float angle)
 {
 	float ca = cosf(angle);
 	float sa = sinf(angle);
-	float ta = tanf(angle);
 	float x = axis.x;
 	float y = axis.y;
 	float z = axis.z;

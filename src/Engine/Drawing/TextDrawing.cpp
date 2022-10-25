@@ -25,6 +25,7 @@ void TextDrawing::Update() noexcept
 
 floaty2 CharacterPosition(const SDLW::Font& font, std::string text, size_t index, float linespacing, float wraplength)
 {
+	(void)wraplength;
 	if (!font)
 		return { 0.f, 0.f };
 

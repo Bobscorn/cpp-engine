@@ -25,8 +25,8 @@ namespace Drawing
 	{
 		std::vector<SDL_Surface*> _cpuSurfaces;
 
-		size_t _width;
-		size_t _height;
+		GLsizei _width;
+		GLsizei _height;
 
 		SDL_Surface* CreateSurface();
 		void VerifySurfaceFormats();

@@ -41,7 +41,7 @@ namespace Drawing
 		format = nullptr;
 		
 		for (auto& t : _cpuTexs)
-			if (t->w != _width || t->h != _height)
+			if ((GLuint)t->w != _width || (GLuint)t->h != _height)
 				throw std::runtime_error("CubeMapTexture: One or more surfaces have different dimensions");
 	}
 	
@@ -67,6 +67,7 @@ namespace Drawing
 		{ 
 			switch (index)
 			{
+			default:
 			case 0: return px.Get(); case 1: return nx.Get(); case 2: return py.Get(); case 3: return ny.Get(); case 4: return pz.Get(); case 5: return nz.Get();
 			};
 		};
@@ -75,7 +76,7 @@ namespace Drawing
 			if (!indexToFace(i))
 				return;
 
-		bool redo = px->w != _width || px->h != _height;
+		bool redo = (GLuint)px->w != _width || (GLuint)px->h != _height;
 
 		GLuint new_width = px->w;
 		GLuint new_height = px->h;

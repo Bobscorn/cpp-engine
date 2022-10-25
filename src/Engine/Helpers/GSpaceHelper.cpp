@@ -753,6 +753,7 @@ bool Damn::Level1PerviousImporter::ImportNode(const PulledNode & node, const Pul
 
 void Damn::Level1PerviousImporter::Finalize(const PulledScene & scene, G1::IShape * target) noexcept
 {
+	(void)scene;
 	G1::IShapeThings ting = { target->GetContainer(), target->GetResources(), "Unnamed Wall" };
 
 	// Import the Activatables (walls) first
@@ -967,6 +968,7 @@ void Damn::Level1PerviousImporter::ImportGroupControl(size_t group_id, size_t pl
 
 void Damn::Level1PerviousImporter::ImportGroupWall(const PulledNode &wall, size_t group_id, size_t number, bool activated, const PulledScene &scene, G1::IShape *target) noexcept
 {
+	(void)target;
 	auto geosearch = scene.Geometries.find({ wall.GeoName, wall.MaterialName });
 
 	if (geosearch == scene.Geometries.end())
