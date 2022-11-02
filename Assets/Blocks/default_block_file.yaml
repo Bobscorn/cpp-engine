@@ -46,7 +46,7 @@ blocks:
     block-name: grass
     atlas: global
     wants-update: false
-    faces: transparent
+    faces: open
     mesh: half-cube
     textures:
         diffuse:
@@ -76,12 +76,12 @@ blocks:
     atlas: global
     wants-update: false
     faces:
-        pos-x: opaque
-        neg-x: opaque
-        pos-y: opaque
-        neg-y: opaque
-        pos-z: opaque
-        neg-z: opaque
+        pos-x: closed
+        neg-x: closed
+        pos-y: closed
+        neg-y: closed
+        pos-z: closed
+        neg-z: closed
     textures:
         diffuse:
             pos-x: wood_color.jpg

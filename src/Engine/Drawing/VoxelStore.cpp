@@ -189,21 +189,21 @@ namespace Voxel
 						auto setFaceFunc = [](FaceClosedNess& faceNess, FaceClosedNess val) { faceNess = val; };
 						auto setAllFacesFunc = [&desc, &setFaceFunc](FaceClosedNess opaqueNess) { std::for_each(desc.FaceOpaqueness.begin(), desc.FaceOpaqueness.end(), std::bind(setFaceFunc, std::placeholders::_1, opaqueNess));  };
 						auto& val = facesNode.Scalar();
-						if (val == "opaque")
+						if (val == "closed")
 						{
 							setAllFacesFunc(FaceClosedNess::CLOSED_FACE);
 						}
-						else if (val == "semi-opaque")
+						else if (val == "semi-closed" || val == "semi-open")
 						{
 							setAllFacesFunc(FaceClosedNess::SEMI_CLOSED_FACE);
 						}
-						else if (val == "transparent")
+						else if (val == "open")
 						{
 							setAllFacesFunc(FaceClosedNess::OPEN_FACE);
 						}
 						else
 						{
-							DWARNING("Block '" + desc.Name + "' has an invalid 'faces' tag! It must either be 'opaque', 'semi-opaque', 'transparent' or a map specifying this value per face! (via pos-x: neg-x: etc. children)");
+							DWARNING("Block '" + desc.Name + "' has an invalid 'faces' tag value of '" + val + "'!It must either be 'closed', 'semi-closed', 'semi-open', 'open' or a map specifying this value per face!(via pos - x: neg - x : etc.children)");
 							continue;
 						}
 					}
@@ -222,11 +222,11 @@ namespace Voxel
 								return false;
 							}
 							auto& val = node.Scalar();
-							if (val == "opaque")
+							if (val == "closed")
 								face = FaceClosedNess::CLOSED_FACE;
-							else if (val == "semi-opaque")
+							else if (val == "semi-closed" || val == "semi-open")
 								face = FaceClosedNess::SEMI_CLOSED_FACE;
-							else if (val == "transparent")
+							else if (val == "open")
 								face = FaceClosedNess::OPEN_FACE;
 							else
 							{
