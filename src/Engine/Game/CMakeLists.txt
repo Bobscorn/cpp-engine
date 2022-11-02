@@ -6,7 +6,7 @@
 add_executable(MyTests 
 	"GameEngine.cpp"
     "VoxelStuff/VoxelTypes.cpp"
- "VoxelStuff/VoxelGeometry.h")
+)
 
 set_target_properties(MyTests
 	PROPERTIES
