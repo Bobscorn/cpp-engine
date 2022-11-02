@@ -33,7 +33,7 @@ namespace Drawing
 
 	public:
 		Image2DArray();
-		Image2DArray(size_t width, size_t height, size_t initialLayers = 0);
+		Image2DArray(GLsizei width, GLsizei height, size_t initialLayers = 0);
 		Image2DArray(std::vector<SDL_Surface*>&& surfaces);
 		Image2DArray(Image2DArray&& other);
 

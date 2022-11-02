@@ -4,6 +4,7 @@
 #include "Helpers/ProfileHelper.h"
 
 #include "VoxelWorld.h"
+#include "VoxelTypes.h"
 #include "Drawing/VoxelStore.h"
 #include "Drawing/IRen3Dv2.h"
 
@@ -305,7 +306,7 @@ namespace Voxel
 
 		chunk->Coord = coord;
 
-		std::vector<Drawing::VoxelVertex> vertices;
+		std::vector<Voxel::VoxelVertex> vertices;
 		std::vector<GLuint> indices;
 
 		// Actual generate mesh
@@ -359,64 +360,38 @@ namespace Voxel
 		{
 			if (chunkRelativeX < 0 || chunkRelativeY < 0 || chunkRelativeZ < 0 ||
 				chunkRelativeX >= Chunk_Size || chunkRelativeY >= Chunk_Height || chunkRelativeZ >= Chunk_Size)
-				return vox.GetDescOrEmpty(blockDataFunc(convertRelToCoord(chunkRelativeX, chunkRelativeY, chunkRelativeZ)).ID).FaceOpaqueness[(int)face] == FaceClosedNess::CLOSED_FACE;
-			return vox.GetDescOrEmpty(data[chunkRelativeX][chunkRelativeY][chunkRelativeZ].ID).FaceOpaqueness[(int)face] == FaceClosedNess::CLOSED_FACE;
+				return vox.GetDescOrEmpty(blockDataFunc(convertRelToCoord(chunkRelativeX, chunkRelativeY, chunkRelativeZ)).ID)->FaceOpaqueness[(int)face] == FaceClosedNess::CLOSED_FACE;
+			return vox.GetDescOrEmpty(data[chunkRelativeX][chunkRelativeY][chunkRelativeZ].ID)->FaceOpaqueness[(int)face] == FaceClosedNess::CLOSED_FACE;
 		};
 
 		auto origin = coord;
 
-		auto AddVerticesFunc = [&vertices, &indices, origin](int chunkRelativeX, int chunkRelativeY, int chunkRelativeZ, floaty3 direction, floaty3 tangent, FaceTexCoord coords)
+		auto AddVerticesFunc = [&vertices, &indices, origin](const VoxelBlock* block, int chunkRelativeX, int chunkRelativeY, int chunkRelativeZ, BlockFace face)
 		{
-			auto binorm = direction.cross(tangent);
-
 			// Generate vertices
 			constexpr auto blockOffset = floaty3{ 0.5f * BlockSize, 0.5f * BlockSize, 0.5f * BlockSize }; // Offset necessary to make any origin cubes actually on the origin
 			auto base = floaty3{ (float)chunkRelativeX * BlockSize, (float)chunkRelativeY * BlockSize, (float)chunkRelativeZ * BlockSize } + blockOffset;
 
-			// Generative base vertex for copying
-			Drawing::VoxelVertex vert1{};
-			vert1.Position = base + direction * 0.5f * BlockSize + tangent * 0.5f * BlockSize + binorm * 0.5f * BlockSize;
-			vert1.Normal = direction;
-			vert1.Tangent = tangent;
-			vert1.Binormal = binorm;
-			vert1.TexCoord = coords.UpperTexCoord;
+			auto& verts = block->Mesh.FaceVertices[(size_t)face];
+			auto& block_indices = block->Mesh.FaceIndices[(size_t)face];
+			
+			auto rot = block->BlockData.Data.Rotation;
 
-			Drawing::VoxelVertex vert2 = vert1;
-			vert2.Position = base + direction * 0.5f * BlockSize + tangent * -0.5f * BlockSize + binorm * 0.5f * BlockSize;
-			vert2.TexCoord = coords.LowerTexCoord + floaty3{ 0.f, coords.UpperTexCoord.y - coords.LowerTexCoord.y, 0.f };
+			auto index_base = (unsigned int)vertices.size();
+			for (Voxel::VoxelVertex vert : verts)
+			{
+				vert.Position = rot.rotate(vert.Position);
+				vert.Normal = rot.rotate(vert.Normal);
+				vert.Tangent = rot.rotate(vert.Tangent);
+				vert.Binormal = rot.rotate(vert.Binormal);
+				vert.Position += base;
+				vertices.push_back(vert);
+			}
 
-			Drawing::VoxelVertex vert3 = vert1;
-			vert3.Position = base + direction * 0.5f * BlockSize + tangent * -0.5f * BlockSize + binorm * -0.5f * BlockSize;
-			vert3.TexCoord = coords.LowerTexCoord;
-
-			Drawing::VoxelVertex vert4 = vert1;
-			vert4.Position = base + direction * 0.5f * BlockSize + tangent * 0.5f * BlockSize + binorm * -0.5f * BlockSize;
-			vert4.TexCoord = coords.LowerTexCoord + floaty3{ coords.UpperTexCoord.x - coords.LowerTexCoord.x, 0.f, 0.f };
-
-			GLuint index1 = 0;
-			GLuint index2 = 1;
-			GLuint index3 = 2;
-
-			GLuint index4 = 2;
-			GLuint index5 = 3;
-			GLuint index6 = 0;
-
-			GLuint indexOffset = (GLuint)vertices.size();
-
-			// insert indices
-			indices.emplace_back(index1 + indexOffset);
-			indices.emplace_back(index2 + indexOffset);
-			indices.emplace_back(index3 + indexOffset);
-
-			indices.emplace_back(index4 + indexOffset);
-			indices.emplace_back(index5 + indexOffset);
-			indices.emplace_back(index6 + indexOffset);
-
-			// insert vertices
-			vertices.emplace_back(vert1);
-			vertices.emplace_back(vert2);
-			vertices.emplace_back(vert3);
-			vertices.emplace_back(vert4);
+			for (auto& index : block_indices)
+			{
+				indices.push_back(index + index_base);
+			}
 		};
 
 		for (int x = 0; x < Chunk_Size; ++x)
@@ -436,23 +411,23 @@ namespace Voxel
 					// if there isn't add triangles to mesh
 
 					// -X
-					if (!cubeAtHasFace(x - 1, y, z, BlockFace::POS_X))
-						AddVerticesFunc(x, y, z, floaty3{ -1.f, 0.f, 0.f }, floaty3{ 0.f, 0.f, -1.f }, desc->FaceCoordsFor(BlockFace::NEG_X));
+					if (desc->FaceOpaqueness[(size_t)BlockFace::NEG_X] == FaceClosedNess::OPEN_FACE || !cubeAtHasFace(x - 1, y, z, BlockFace::POS_X))
+						AddVerticesFunc(desc, x, y, z, BlockFace::NEG_X);
 					// +X
-					if (!cubeAtHasFace(x + 1, y, z, BlockFace::NEG_X))
-						AddVerticesFunc(x, y, z, floaty3{ +1.f, 0.f, 0.f }, floaty3{ 0.f, 0.f, +1.f }, desc->FaceCoordsFor(BlockFace::POS_X));
+					if (desc->FaceOpaqueness[(size_t)BlockFace::POS_X] == FaceClosedNess::OPEN_FACE || !cubeAtHasFace(x + 1, y, z, BlockFace::NEG_X))
+						AddVerticesFunc(desc, x, y, z, BlockFace::POS_X);
 					// -Y
-					if (!cubeAtHasFace(x, y - 1, z, BlockFace::POS_Y))
-						AddVerticesFunc(x, y, z, floaty3{ 0.f, -1.f, 0.f }, floaty3{ +1.f, 0.f, 0.f }, desc->FaceCoordsFor(BlockFace::NEG_Y));
+					if (desc->FaceOpaqueness[(size_t)BlockFace::NEG_Y] == FaceClosedNess::OPEN_FACE || !cubeAtHasFace(x, y - 1, z, BlockFace::POS_Y))
+						AddVerticesFunc(desc, x, y, z, BlockFace::NEG_Y);
 					// +Y
-					if (!cubeAtHasFace(x, y + 1, z, BlockFace::NEG_Y))
-						AddVerticesFunc(x, y, z, floaty3{ 0.f, +1.f, 0.f }, floaty3{ -1.f, 0.f, 0.f }, desc->FaceCoordsFor(BlockFace::POS_Y));
+					if (desc->FaceOpaqueness[(size_t)BlockFace::POS_Y] == FaceClosedNess::OPEN_FACE || !cubeAtHasFace(x, y + 1, z, BlockFace::NEG_Y))
+						AddVerticesFunc(desc, x, y, z, BlockFace::POS_Y);
 					// -Z
-					if (!cubeAtHasFace(x, y, z - 1, BlockFace::POS_Z))
-						AddVerticesFunc(x, y, z, floaty3{ 0.f, 0.f, -1.f }, floaty3{ +1.f, 0.f, 0.f }, desc->FaceCoordsFor(BlockFace::NEG_Z));
+					if (desc->FaceOpaqueness[(size_t)BlockFace::NEG_Z] == FaceClosedNess::OPEN_FACE || !cubeAtHasFace(x, y, z - 1, BlockFace::POS_Z))
+						AddVerticesFunc(desc, x, y, z, BlockFace::NEG_Z);
 					// +Z
-					if (!cubeAtHasFace(x, y, z + 1, BlockFace::NEG_Z))
-						AddVerticesFunc(x, y, z, floaty3{ 0.f, 0.f, +1.f }, floaty3{ -1.f, 0.f, 0.f }, desc->FaceCoordsFor(BlockFace::POS_Z));
+					if (desc->FaceOpaqueness[(size_t)BlockFace::POS_Z] == FaceClosedNess::OPEN_FACE || !cubeAtHasFace(x, y, z + 1, BlockFace::NEG_Z))
+						AddVerticesFunc(desc, x, y, z, BlockFace::POS_Z);
 
 				}
 			}
@@ -463,8 +438,8 @@ namespace Voxel
 		// De Duplication
 		// v
 
-		chunk->Mesh = Drawing::RawMesh{ Drawing::VertexData::FromGeneric(Drawing::VoxelVertexDesc, vertices.begin(), vertices.end()), indices };
-		auto deDupedMesh = MeshHelp::DeDuplicateVertices(Drawing::MeshView<Drawing::VoxelVertex>(chunk->Mesh));
+		chunk->Mesh = Drawing::RawMesh{ Drawing::VertexData::FromGeneric(Voxel::VoxelVertexDesc, vertices.begin(), vertices.end()), indices };
+		auto deDupedMesh = MeshHelp::DeDuplicateVertices(Drawing::MeshView<Voxel::VoxelVertex>(chunk->Mesh));
 
 		// ^
 		// De Dup
@@ -481,7 +456,7 @@ namespace Voxel
 			chunk->PhysicsIndices->reserve(deDupedMesh.Indices.size());
 
 			{
-				Drawing::MeshView<Drawing::VoxelVertex> view{ deDupedMesh };
+				Drawing::MeshView<Voxel::VoxelVertex> view{ deDupedMesh };
 				for (size_t i = 0; i < numVerts; ++i)
 				{
 					chunk->PhysicsPositions->push_back(view[i].Position);

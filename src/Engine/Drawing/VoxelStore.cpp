@@ -11,8 +11,27 @@
 #include "Helpers/StringHelper.h"
 
 #include "Systems/Execution/Engine.h"
+#include "Systems/Importing/SimpleMeshImport.h"
+
+#include "Game/VoxelStuff/VoxelTypes.h"
 
 const Voxel::SerialBlock Voxel::VoxelStore::EmptyBlockData = Voxel::SerialBlock{};
+
+/// <summary>
+/// LOADING BLOCKS:
+/// Information required:
+/// - Mesh
+/// - Textures
+/// - WantsUpdate
+/// - Name
+/// - AtlasName
+/// 3 Stages:
+/// - Load Blocks
+/// - Load Meshes
+/// - Load Atlas textures
+/// - Replace Block Vertices with Atlas-ed Mesh vertices
+/// 
+/// </summary>
 
 namespace Voxel
 {
@@ -21,6 +40,27 @@ namespace Voxel
 
 	const VoxelBlock VoxelStore::EmptyBlock = VoxelBlock{ };
 	const BlockDescription VoxelStore::EmptyBlockDesc = BlockDescription{};
+	const std::string VoxelStore::DefaultCubeMeshName = "default-cube";
+
+	std::vector<VoxelVertex> ConvertToVoxelVertices(const std::vector<FullVertex>& vertices)
+	{
+		std::vector<VoxelVertex> convertedVertices;
+		convertedVertices.reserve(vertices.size());
+
+		for (size_t i = 0; i < vertices.size(); ++i)
+		{
+			auto& inVert = vertices[i];
+			VoxelVertex vert;
+			vert.Position = inVert.PosL;
+			vert.Normal = inVert.NormalL;
+			vert.Binormal = inVert.BinormalL;
+			vert.Tangent = inVert.TangentL;
+			vert.TexCoord = floaty3{ inVert.Tex.x, inVert.Tex.y, 0.f };
+			convertedVertices.push_back(vert);
+		}
+
+		return convertedVertices;
+	}
 
 	void VoxelStore::LoadAtlas(const std::string& path)
 	{
@@ -149,21 +189,21 @@ namespace Voxel
 						auto setFaceFunc = [](FaceClosedNess& faceNess, FaceClosedNess val) { faceNess = val; };
 						auto setAllFacesFunc = [&desc, &setFaceFunc](FaceClosedNess opaqueNess) { std::for_each(desc.FaceOpaqueness.begin(), desc.FaceOpaqueness.end(), std::bind(setFaceFunc, std::placeholders::_1, opaqueNess));  };
 						auto& val = facesNode.Scalar();
-						if (val == "opaque")
+						if (val == "closed")
 						{
 							setAllFacesFunc(FaceClosedNess::CLOSED_FACE);
 						}
-						else if (val == "semi-opaque")
+						else if (val == "semi-closed" || val == "semi-open")
 						{
 							setAllFacesFunc(FaceClosedNess::SEMI_CLOSED_FACE);
 						}
-						else if (val == "transparent")
+						else if (val == "open")
 						{
 							setAllFacesFunc(FaceClosedNess::OPEN_FACE);
 						}
 						else
 						{
-							DWARNING("Block '" + desc.Name + "' has an invalid 'faces' tag! It must either be 'opaque', 'semi-opaque', 'transparent' or a map specifying this value per face! (via pos-x: neg-x: etc. children)");
+							DWARNING("Block '" + desc.Name + "' has an invalid 'faces' tag value of '" + val + "'! It must either be 'closed', 'semi-closed', 'semi-open', 'open' or a map specifying this value per face!(via pos - x: neg - x : etc.children)");
 							continue;
 						}
 					}
@@ -182,11 +222,11 @@ namespace Voxel
 								return false;
 							}
 							auto& val = node.Scalar();
-							if (val == "opaque")
+							if (val == "closed")
 								face = FaceClosedNess::CLOSED_FACE;
-							else if (val == "semi-opaque")
+							else if (val == "semi-closed" || val == "semi-open")
 								face = FaceClosedNess::SEMI_CLOSED_FACE;
-							else if (val == "transparent")
+							else if (val == "open")
 								face = FaceClosedNess::OPEN_FACE;
 							else
 							{
@@ -278,6 +318,21 @@ namespace Voxel
 						continue;
 					}
 
+					auto meshNode = node["mesh"];
+					desc.MeshName = DefaultCubeMeshName;
+					if (meshNode)
+					{
+						if (!meshNode.IsScalar())
+						{
+							DWARNING("Block '" + desc.Name + "' has invalid mesh tag!");
+							DWARNING("The mesh tag should just be a simple value! (like mesh: super_cube.dae");
+						}
+						else
+						{
+							desc.MeshName = meshNode.Scalar();
+						}
+					}
+
 					LoadBlock(desc);
 				}
 			}
@@ -332,6 +387,128 @@ namespace Voxel
 		}
 	}
 
+	void VoxelStore::LoadMeshFromFile(const std::string& path)
+	{
+		auto simpleMeshes = Importing::ImportAllSimpleMeshes(path);
+
+		if (!simpleMeshes.size())
+		{
+			DWARNING("Could not load meshes from file '" + path + "'");
+			return;
+		}
+
+		VoxelBlockMesh voxelVerts;
+
+		const static std::array<std::string, 6> blockFaceNames = { "pos-y", "neg-z", "pos-x", "neg-y", "pos-z", "neg-x" };
+		std::vector<int> remainingBlockFaceIndices = { 0, 1, 2, 3, 4, 5 };
+		for (auto& mesh : simpleMeshes)
+		{
+			if (remainingBlockFaceIndices.empty())
+				break;
+			for (int i = 0; i < remainingBlockFaceIndices.size(); ++i)
+			{
+				auto& blockFaceIndex = remainingBlockFaceIndices[i];
+				if (mesh.MeshName.rfind(blockFaceNames[blockFaceIndex]) == 0)
+				{
+					voxelVerts.FaceVertices[blockFaceIndex] = ConvertToVoxelVertices(mesh.Vertices);
+					voxelVerts.FaceIndices[blockFaceIndex] = mesh.Indices;
+
+					std::swap(remainingBlockFaceIndices[i], remainingBlockFaceIndices.back());
+					remainingBlockFaceIndices.pop_back();
+					break;
+				}
+			}
+		}
+
+		if (remainingBlockFaceIndices.size())
+		{
+			DWARNING("Mesh in file '" + path + "' does not contain 6 meshes of names 'pos-y', 'neg-z', 'pos-x', 'neg-y', 'pos-z' and 'neg-x'!");
+			return;
+		}
+
+		auto p = std::filesystem::path(path);
+		_voxelMeshLookup[p.stem().string()] = std::move(voxelVerts);
+	}
+
+	void VoxelStore::LoadMeshesFromDirectory(const std::string& path)
+	{
+		if (std::filesystem::exists(path))
+		{
+			if (std::filesystem::is_directory(path))
+			{
+				for (auto& item : std::filesystem::directory_iterator(path))
+				{
+					LoadMeshFromFile(item.path().string());
+				}
+			}
+			else
+			{
+				DWARNING("Given path '" + path + "' is not a directory!");
+			}
+		}
+		else
+		{
+			DWARNING("Given path '" + path + "' does not exist!");
+		}
+	}
+
+	void VoxelStore::LoadDefaultCube()
+	{
+		auto& mesh = _voxelMeshLookup[DefaultCubeMeshName];
+
+		auto addFaceVerts = [&mesh](BlockFace face)
+		{
+			auto direction = BlockFaceHelper::GetDirection(face);
+
+			auto tangent = BlockFaceHelper::GetTangentDirection(face);
+
+			auto binorm = direction.cross(tangent);
+			auto& vertices = mesh.FaceVertices[(size_t)face];
+			auto& indices = mesh.FaceIndices[(size_t)face];
+
+			// Generative base vertex for copying
+			Voxel::VoxelVertex vert1{};
+			vert1.Position = direction * 0.5f * BlockSize + tangent * 0.5f * BlockSize + binorm * 0.5f * BlockSize;
+			vert1.Normal = direction;
+			vert1.Tangent = tangent;
+			vert1.Binormal = binorm;
+			vert1.TexCoord = { 1.f, 1.f, 0.f };
+			Voxel::VoxelVertex vert2 = vert1;
+			vert2.Position = direction * 0.5f * BlockSize + tangent * -0.5f * BlockSize + binorm * 0.5f * BlockSize;
+			vert2.TexCoord = { 0.f, 1.f, 0.f };
+			Voxel::VoxelVertex vert3 = vert1;
+			vert3.Position = direction * 0.5f * BlockSize + tangent * -0.5f * BlockSize + binorm * -0.5f * BlockSize;
+			vert3.TexCoord = { 0.f, 0.f, 0.f };
+			Voxel::VoxelVertex vert4 = vert1;
+			vert4.Position = direction * 0.5f * BlockSize + tangent * 0.5f * BlockSize + binorm * -0.5f * BlockSize;
+			vert4.TexCoord = { 1.f, 0.f, 0.f };
+			GLuint index1 = 0;
+			GLuint index2 = 1;
+			GLuint index3 = 2;
+			GLuint index4 = 2;
+			GLuint index5 = 3;
+			GLuint index6 = 0;
+			GLuint indexOffset = (GLuint)vertices.size();
+			// insert indices
+			indices.emplace_back(index1 + indexOffset);
+			indices.emplace_back(index2 + indexOffset);
+			indices.emplace_back(index3 + indexOffset);
+			indices.emplace_back(index4 + indexOffset);
+			indices.emplace_back(index5 + indexOffset);
+			indices.emplace_back(index6 + indexOffset);
+			// insert vertices
+			vertices.emplace_back(vert1);
+			vertices.emplace_back(vert2);
+			vertices.emplace_back(vert3);
+			vertices.emplace_back(vert4);
+		};
+
+		for (auto& face : BlockFacesArray)
+		{
+			addFaceVerts(face);
+		}
+	}
+
 	void VoxelStore::StitchUnstitched(const std::string& faceTexDir)
 	{
 		// Currently this must be called once and must be called upon creation
@@ -365,9 +542,11 @@ namespace Voxel
 		return _descriptions[it->second];
 	}
 
-	VoxelStore::VoxelStore(const std::string& prestitchedDirectory, const std::string& blockDirectory, const std::string& faceTexDir, std::vector<UnStitchedAtlasSet> builtInAtlases)
+	VoxelStore::VoxelStore(const std::string& prestitchedDirectory, const std::string& blockDirectory, const std::string& faceTexDir, const std::string& meshDir, std::vector<UnStitchedAtlasSet> builtInAtlases)
 	{
 		LoadBlock(GetEmptyBlockDesc()); // Load empty block description first
+		LoadMeshesFromDirectory(meshDir);
+		LoadDefaultCube();
 		LoadBlockDirectory(blockDirectory);
 		(void)prestitchedDirectory;//LoadAtlasDirectory(prestitchedDirectory); No! Not Yet My Boi! (not implemented)
 
@@ -396,19 +575,29 @@ namespace Voxel
 
 		_atlasLookup[set.AtlasPrefix] = ptr;
 
-		for (auto& block : ptr->Blocks)
+		for (auto& desc : _descriptions)
 		{
-			auto& desc = GetOrCreateBlock(block.first);
-			
-			for (int i = 0; i < 6; ++i)
-				desc.FaceTexCoords[i] = block.second.FaceTexCoords[i];
+			if (desc.AtlasName == ptr->AtlasName)
+			{
+				for (int faceI = 0; faceI < 6; ++faceI)
+				{
+					if (!ptr->ContainsMappingFor(desc.DiffuseTexNames[faceI]))
+						continue;
+
+					for (int i = 0; i < desc.Mesh.FaceVertices[faceI].size(); ++i)
+					{
+						auto& vert = desc.Mesh.FaceVertices[faceI][i];
+						vert.TexCoord = ptr->ConvertTexCoords(desc.DiffuseTexNames[faceI], (floaty2)vert.TexCoord);
+					}
+				}
+			}
 		}
 	}
 
 	StitchedAtlasSet VoxelStore::StichAtlas(const UnStitchedAtlasSet& set, const std::string& faceTexDir)
 	{
 		if (set.Blocks.empty())
-			return StitchedAtlasSet{ set.AtlasPrefix, nullptr, nullptr, nullptr, nullptr, nullptr, std::unordered_map<std::string, VoxelBlock>{} };
+			return StitchedAtlasSet{ set.AtlasPrefix, nullptr, nullptr, nullptr, nullptr, nullptr, std::unordered_map<std::string, std::array<float, 5>>{} };
 
 		MidStitchData data{};
 		int faceSize = DefaultFaceSize;
@@ -424,7 +613,7 @@ namespace Voxel
 		stitched.EmissiveImage = std::make_shared<Drawing::Image2DArray>( (size_t)faceCount * faceSize + (faceCount - 1) * 2, (size_t)faceCount * faceSize + (faceCount - 1) * 2, 1 );
 		stitched.NormalImage = std::make_shared<Drawing::Image2DArray>( (size_t)faceCount * faceSize + (faceCount - 1) * 2, (size_t)faceCount * faceSize + (faceCount - 1) * 2, 1 );
 		stitched.BumpImage = std::make_shared<Drawing::Image2DArray>( (size_t)faceCount * faceSize + (faceCount - 1) * 2, (size_t)faceCount * faceSize + (faceCount - 1) * 2, 1 );
-		stitched.Blocks = std::unordered_map<std::string, VoxelBlock>();
+		stitched.FaceTextureLookup = std::unordered_map<std::string, std::array<float, 5>>();
 
 		auto& dif = stitched.DiffuseImage;
 		auto& norm = stitched.NormalImage;
@@ -450,14 +639,15 @@ namespace Voxel
 		};
 
 		auto addFaceFunc = [&data, &faceSize, &faceSizef, &faceCount, &atlasLayerSize, &faceTexDir, &dif, &norm, &bump, &spec, &emis, &getSurfaceFromFile]
-			(FaceTexCoord& face, 
-			const std::string& difFaceFile, 
-			const std::string& specFaceFile, 
-			const std::string& emisFaceFile, 
-			const std::string& normFaceFile, 
-			const std::string& bumpFaceFile)
+		(std::array<float, 5>& face,
+			const std::string& difFaceFile,
+			const std::string& specFaceFile,
+			const std::string& emisFaceFile,
+			const std::string& normFaceFile,
+			const std::string& bumpFaceFile,
+			bool exists)
 		{
-			SimpleSurface difFaceSurf = getSurfaceFromFile(difFaceFile);
+			SimpleSurface difFaceSurf = (exists ? nullptr : getSurfaceFromFile(difFaceFile));
 			SimpleSurface specFaceSurf = getSurfaceFromFile(specFaceFile);
 			SimpleSurface emisFaceSurf = getSurfaceFromFile(emisFaceFile);
 			SimpleSurface normFaceSurf = getSurfaceFromFile(normFaceFile);
@@ -472,8 +662,11 @@ namespace Voxel
 
 			auto doFaceThing = [&dst, &data, &faceSize, &faceCount](const std::shared_ptr<Drawing::Image2DArray>& img, const SimpleSurface& surface)
 			{
+				if (!surface)
+					return;
+
 				img->SetArea(surface.Get(), dst, data.curLayer);
-				
+
 				if (data.curX > 0)
 					img->SetArea(surface.Get(), SDL_Rect{ 0, 0, 1, faceSize }, SDL_Rect{ dst.x - 1, dst.y, 1, faceSize }, data.curLayer);
 				if (data.curY > 0)
@@ -490,21 +683,27 @@ namespace Voxel
 			doFaceThing(spec, specFaceSurf);
 			doFaceThing(emis, emisFaceSurf);
 
-			face.LowerTexCoord = { (float)dst.x / atlasLayerSize, (float)dst.y / atlasLayerSize, (float)data.curLayer };
-			face.UpperTexCoord = face.LowerTexCoord + floaty3{ faceSizef / atlasLayerSize, faceSizef / atlasLayerSize, 0.f };
-
-			if (++data.curX >= faceCount)
+			if (!exists)
 			{
-				data.curX = 0;
-				if (++data.curY >= faceCount)
+				face[0] = (float)dst.x / atlasLayerSize;
+				face[1] = (float)dst.y / atlasLayerSize;
+				face[2] = face[0] + faceSizef / atlasLayerSize;
+				face[3] = face[1] + faceSizef / atlasLayerSize;
+				face[4] = (float)data.curLayer;
+
+				if (++data.curX >= faceCount)
 				{
-					dif->AddLayer();
-					norm->AddLayer();
-					bump->AddLayer();
-					spec->AddLayer();
-					emis->AddLayer();
-					++data.curLayer;
-					data.curY = 0;
+					data.curX = 0;
+					if (++data.curY >= faceCount)
+					{
+						dif->AddLayer();
+						norm->AddLayer();
+						bump->AddLayer();
+						spec->AddLayer();
+						emis->AddLayer();
+						++data.curLayer;
+						data.curY = 0;
+					}
 				}
 			}
 		};
@@ -515,9 +714,17 @@ namespace Voxel
 
 			block.Name = desc.Name;
 			for (int j = 0; j < 6; ++j)
-				addFaceFunc(block.FaceTexCoords[j], desc.DiffuseFaceTextures[j], desc.SpecularFaceTextures[j], desc.EmissiveFaceTextures[j], desc.NormalFaceTextures[j], desc.BumpFaceTextures[j]);
-
-			stitched.Blocks[desc.Name] = block;
+			{
+				addFaceFunc(
+					stitched.FaceTextureLookup[desc.DiffuseFaceTextures[j]], 
+					desc.DiffuseFaceTextures[j], 
+					desc.SpecularFaceTextures[j],
+					desc.EmissiveFaceTextures[j], 
+					desc.NormalFaceTextures[j], 
+					desc.BumpFaceTextures[j],
+					stitched.FaceTextureLookup.count(desc.DiffuseFaceTextures[j])
+				);
+			}
 		}
 
 		stitched.DiffuseImage->LoadGL();
@@ -554,6 +761,15 @@ namespace Voxel
 		vox.BlockData = desc.Data;
 		vox.BlockData.ID = index;
 		vox.FaceOpaqueness = desc.FaceOpaqueness;
+		vox.MeshName = desc.MeshName;
+		vox.AtlasName = desc.AtlasName;
+		vox.DiffuseTexNames = desc.DiffuseFaceTextures;
+		
+		auto* mesh = GetBlockVertices(desc.MeshName);
+		if (mesh)
+		{
+			vox.Mesh = *mesh;
+		}
 		
 		// Set other properties for blocks here
 		// FaceTexCoords are set when loading an atlas
@@ -633,18 +849,36 @@ namespace Voxel
 		return true;
 	}
 
-	VoxelBlock VoxelStore::GetDescOrEmpty(size_t ID) const
+	const VoxelBlock* VoxelStore::GetDescOrEmpty(size_t ID) const
 	{
-		VoxelBlock out;
+		const VoxelBlock* out;
 		if (!TryGetDescription(ID, out))
-			return EmptyBlock;
+			return &EmptyBlock;
 
 		return out;
 	}
 
-	VoxelBlock VoxelStore::GetDescOrEmpty(const std::string& name) const
+	const VoxelBlock* VoxelStore::GetDescOrEmpty(const std::string& name) const
 	{
 		return GetDescOrEmpty(GetIDFor(name));
+	}
+
+	const VoxelBlockMesh* VoxelStore::GetBlockVertices(const std::string& name) const
+	{
+		if (auto it = _voxelMeshLookup.find(name); it != _voxelMeshLookup.end())
+		{
+			return &it->second;
+		}
+		return nullptr;
+	}
+
+	floaty3 VoxelStore::ConvertToAtlasTexCoords(const std::string& atlasName, const std::string& diffuseName, floaty2 uv) const
+	{
+		if (auto it = _atlasLookup.find(atlasName); it != _atlasLookup.end())
+		{
+			return it->second->ConvertTexCoords(diffuseName, uv);
+		}
+		return { 0.f, 0.f, 0.f };
 	}
 
 	size_t VoxelStore::GetIDFor(const std::string& blockName) const
@@ -658,26 +892,28 @@ namespace Voxel
 
 	const std::string& VoxelStore::GetNameOf(size_t ID) const
 	{
+		const static std::string unknown_string = "unknown";
+
 		if (ID >= _descriptions.size())
-			return "unknown";
+			return unknown_string;
 
 		return _descriptions[ID].Name;
 	}
 
-	void VoxelStore::InitializeVoxelStore(const std::string& prestitchedDir, const std::string& blockDir, const std::string& faceTexDir, std::vector<UnStitchedAtlasSet> builtInAtlases)
+	void VoxelStore::InitializeVoxelStore(const std::string& prestitchedDir, const std::string& blockDir, const std::string& faceTexDir, const std::string& meshDir, std::vector<UnStitchedAtlasSet> builtInAtlases)
 	{
 		if (_instance)
 			return;
 
-		_instance = std::make_unique<VoxelStore>(prestitchedDir, blockDir, faceTexDir, builtInAtlases);
+		_instance = std::make_unique<VoxelStore>(prestitchedDir, blockDir, faceTexDir, meshDir, builtInAtlases);
 	}
 
 	std::unique_ptr<ICube> VoxelStore::CreateCube(const SerialBlock& blockData) const
 	{
 		extern std::unique_ptr<Engine::IEngine> g_Engine;
 
-		auto desc = GetDescOrEmpty(blockData.ID);
-		if (desc.WantsUpdate == false)
+		auto* desc = GetDescOrEmpty(blockData.ID);
+		if (desc->WantsUpdate == false)
 			return nullptr;
 
 		return std::make_unique<VoxelCube>(nullptr, &g_Engine->Resources, nullptr, floaty3{ 0.f, 0.f, 0.f }, ChunkBlockCoord{}, blockData);
@@ -685,7 +921,7 @@ namespace Voxel
 
 	std::unique_ptr<ICube> VoxelStore::CreateCube(const std::string& blockName) const
 	{
-		return CreateCube(GetDescOrEmpty(blockName).BlockData);
+		return CreateCube(GetDescOrEmpty(blockName)->BlockData);
 	}
 
 	BlockDescription GetEmptyBlockDesc()
@@ -703,5 +939,19 @@ namespace Voxel
 		desc.SpecularFaceTextures = { std::string(), std::string(), std::string(), std::string(), std::string(), std::string() };
 		desc.EmissiveFaceTextures = { std::string(), std::string(), std::string(), std::string(), std::string(), std::string() };
 		return desc;
+	}
+
+	floaty3 StitchedAtlasSet::ConvertTexCoords(const std::string& diffuseName, floaty2 uvIn) const
+	{
+		auto it = FaceTextureLookup.find(diffuseName);
+		if (it == FaceTextureLookup.end())
+		{
+			DWARNING("Looking up unknown diffuse texture '" + diffuseName + "'!");
+			return { 0.f, 0.f, 0.f };
+		}
+
+		auto& stitchedLocation = it->second;
+		floaty2 stitchedDims = { stitchedLocation[2] - stitchedLocation[0], stitchedLocation[3] - stitchedLocation[1] };
+		return floaty3{ uvIn.x * stitchedDims.x + stitchedLocation[0], uvIn.y * stitchedDims.y + stitchedLocation[1], stitchedLocation[4] };
 	}
 }

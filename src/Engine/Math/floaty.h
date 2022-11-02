@@ -228,6 +228,8 @@ struct floaty3
 		return out;
 	};
 
+	inline operator floaty2() const { return floaty2{ x, y }; }
+
 	union
 	{
 		struct

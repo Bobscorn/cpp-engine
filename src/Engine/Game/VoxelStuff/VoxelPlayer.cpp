@@ -375,7 +375,7 @@ void Voxel::VoxelPlayer::ShootTestRay(bool destroy)
 						{
 							floaty3 pos{ rayboi.m_hitPointWorld + rayboi.m_hitNormalWorld * 0.25f };
 							auto coord = thing->GetWorld()->GetBlockCoordFromPhys(pos);
-							thing->GetWorld()->SetCube(coord, VoxelStore::Instance().GetDescOrEmpty("wood").BlockData);
+							thing->GetWorld()->SetCube(coord, VoxelStore::Instance().GetDescOrEmpty("wood")->BlockData);
 						}
 					}
 				}
@@ -544,7 +544,7 @@ void Voxel::VoxelPlayer::PlaceBlock(RayReturn ray)
 	floaty3 pos{ ray.hitPoint + ray.normal * 0.25f };
 	//auto thing = static_cast<Voxel::VoxelCube *>(ray.hold->Pointy);
 	auto coord = m_World->GetBlockCoordFromPhys(pos);
-	m_World->SetCube(coord, VoxelStore::Instance().GetDescOrEmpty(m_SelectedBlockName).BlockData);
+	m_World->SetCube(coord, VoxelStore::Instance().GetDescOrEmpty(m_SelectedBlockName)->BlockData);
 }
 
 void Voxel::VoxelPlayer::SetCrouchState(bool state)

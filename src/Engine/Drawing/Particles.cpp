@@ -325,7 +325,9 @@ void Particles::VelocityParticlePool::Remove(size_t index)
 	{
 		std::swap(m_ParticlesDraw[index], m_ParticlesDraw[i]);
 		std::swap(m_ParticlesBehaviour[index], m_ParticlesBehaviour[i]);
-		std::swap(m_DeadParticleFlags[index], m_DeadParticleFlags[i]);
+		auto tmp = m_DeadParticleFlags[index];
+		m_DeadParticleFlags[index] = m_DeadParticleFlags[i];
+		m_DeadParticleFlags[i] = tmp;
 	}
 
 	--m_ActiveCount;

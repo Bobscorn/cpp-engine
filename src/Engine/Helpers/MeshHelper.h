@@ -13,7 +13,7 @@ namespace MeshHelp
 	template<class T>
 	bool Approximately(const T& a, const T& b);
 
-	template<class T, typename = std::enable_if_t<std::is_same<Drawing::Full3DVertex, T>::value || std::is_same<Drawing::Regular2DVertex, T>::value || std::is_same<Drawing::VoxelVertex, T>::value>>
+	template<class T>
 	Drawing::RawMesh DeDuplicateVertices(Drawing::MeshView<T> mesh)
 	{
 		std::vector<T> uniqueVertices{};
