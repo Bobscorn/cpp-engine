@@ -203,7 +203,7 @@ namespace Voxel
 						}
 						else
 						{
-							DWARNING("Block '" + desc.Name + "' has an invalid 'faces' tag value of '" + val + "'!It must either be 'closed', 'semi-closed', 'semi-open', 'open' or a map specifying this value per face!(via pos - x: neg - x : etc.children)");
+							DWARNING("Block '" + desc.Name + "' has an invalid 'faces' tag value of '" + val + "'! It must either be 'closed', 'semi-closed', 'semi-open', 'open' or a map specifying this value per face!(via pos - x: neg - x : etc.children)");
 							continue;
 						}
 					}
