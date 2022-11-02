@@ -1,5 +1,23 @@
 #include "VoxelTypes.h"
 
+#include "Helpers/MeshHelper.h"
+
+const std::array<Voxel::BlockFace, 6> Voxel::BlockFacesArray = { Voxel::BlockFace::POS_Y, Voxel::BlockFace::NEG_Z, Voxel::BlockFace::POS_X, Voxel::BlockFace::NEG_Y, Voxel::BlockFace::POS_Z, Voxel::BlockFace::NEG_X };
+
+const char* Voxel::GetBlockFaceName(BlockFace face)
+{
+	switch (face)
+	{
+	default: return "Unknown";
+	case BlockFace::POS_Y: return "Positive Y (Up)";
+	case BlockFace::NEG_Z: return "Negative Z (Forward)";
+	case BlockFace::POS_X: return "Positive X (Right)";
+	case BlockFace::NEG_Y: return "Negative Y (Down)";
+	case BlockFace::POS_Z: return "Positive Z (Backward)";
+	case BlockFace::NEG_X: return "Negative X (Left)";
+	}
+}
+
 quat4 Voxel::GetWhatRotates(Voxel::BlockFace from, Voxel::BlockFace to)
 {
 	Vector::inty3 fromEulers;
@@ -79,6 +97,26 @@ Vector::inty3 Voxel::BlockFaceHelper::GetDirectionI(BlockFace face)
 	}
 }
 
+floaty3 Voxel::BlockFaceHelper::GetTangentDirection(BlockFace face)
+{
+	switch (face)
+	{
+	default:
+	case BlockFace::Up:
+		return floaty3{ +1.f, 0.f, 0.f };
+	case BlockFace::Down:
+		return floaty3{ -1.f, 0.f, 0.f };
+	case BlockFace::Left:
+		return floaty3{ 0.f, 0.f, +1.f };
+	case BlockFace::Right:
+		return floaty3{ 0.f, 0.f, -1.f };
+	case BlockFace::Forward:
+		return floaty3{ 0.f, +1.f, 0.f };
+	case BlockFace::Back:
+		return floaty3{ 0.f, -1.f, 0.f };
+	}
+}
+
 Voxel::BlockFace Voxel::BlockFaceHelper::GetNearest(floaty3 dir)
 {
 	floaty3 absDir = dir.as_abs();
@@ -147,6 +185,18 @@ Voxel::BlockCoord Voxel::BlockCoord::operator-(const BlockCoord& other) const
 Voxel::BlockCoord Voxel::BlockCoord::operator-() const
 {
 	return BlockCoord{ ChunkCoord{ 0, 0, 0 }, 0, 0, 0 } - *this;
+}
+
+namespace MeshHelp
+{
+	template<>
+	bool Approximately<Voxel::VoxelVertex>(const Voxel::VoxelVertex& a, const Voxel::VoxelVertex& b)
+	{
+		return Approximately(a.Position, b.Position)
+			&& Approximately(a.Normal, b.Normal);
+	}
+
+	template bool Approximately<Voxel::VoxelVertex>(const Voxel::VoxelVertex& a, const Voxel::VoxelVertex& b);
 }
 
 #ifdef CPP_ENGINE_TESTS

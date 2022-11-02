@@ -38,21 +38,38 @@
 # 'grass' and 'wood' have textures define elsewhere
 # 'velvet' and 'straw' have textures defined in this file
 #
-# In general it is better to use prestritched atlases, but for example 'velvet' and 'straw' do not.
+# As for textures, an ideal solution would be to use pre-stitched atlasses, but they haven't been implemented yet
 # Otherwise any number of these 'block files' can be defined and loaded in, they will all be loaded the same.
 
 blocks:
 -
     block-name: grass
     atlas: global
+    wants-update: false
+    faces: transparent
+    mesh: half-cube
     textures:
         diffuse:
-            pos-x: grass_px.jpg
-            neg-x: grass_nx.jpg
-            pos-y: grass_py.jpg
-            neg-y: grass_ny.jpg
-            pos-z: grass_pz.jpg
-            neg-z: grass_nz.jpg
+            pos-x: wood_color.jpg
+            neg-x: wood_color.jpg
+            pos-y: wood_color.jpg
+            neg-y: wood_color.jpg
+            pos-z: wood_color.jpg
+            neg-z: wood_color.jpg
+        normal:
+            pos-x: wood_normal.jpg
+            neg-x: wood_normal.jpg
+            pos-y: wood_normal.jpg
+            neg-y: wood_normal.jpg
+            pos-z: wood_normal.jpg
+            neg-z: wood_normal.jpg
+        bump:
+            pos-x: wood_displace.jpg
+            neg-x: wood_displace.jpg
+            pos-y: wood_displace.jpg
+            neg-y: wood_displace.jpg
+            pos-z: wood_displace.jpg
+            neg-z: wood_displace.jpg
     
 - 
     block-name: wood

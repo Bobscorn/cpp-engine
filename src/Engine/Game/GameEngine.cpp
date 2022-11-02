@@ -19,7 +19,7 @@ Engine::GameEngine::GameEngine() : IWindowEngine()
 	Drawing::VertexBuffer::InitializeStaticBuffer();
 	Drawing::MaterialStore::InitializeStore("Materials");
 	Drawing::ProgramStore::InitializeStore("Programs");
-	Voxel::VoxelStore::InitializeVoxelStore("PreStitched not implemented", "Blocks", "Textures");
+	Voxel::VoxelStore::InitializeVoxelStore("PreStitched not implemented", "Blocks", "Textures", "Meshes");
 	Drawing::TextureStore::InitializeStore("Textures");
 
 	// Generate a UV Sphere

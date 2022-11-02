@@ -54,17 +54,28 @@ namespace Voxel
 		floaty3 UpperTexCoord;
 	};
 
+	struct VoxelBlockMesh
+	{
+		std::array<std::vector<VoxelVertex>, 6> FaceVertices;
+		std::array<std::vector<unsigned int>, 6> FaceIndices;
+	};
+
 	struct VoxelBlock
 	{
 		std::string Name;
 		std::string AtlasName;
 		SerialBlock BlockData;
 
-		std::array<FaceTexCoord, 6> FaceTexCoords;
+		// VerticesID stores an ID into shared mesh geometry
+		// Vertices contains a copy of the shared mesh geometry with correct texture coords
+		std::string MeshName;
+		VoxelBlockMesh Mesh;
+
+		// Used as key into Atlas
+		std::array<std::string, 6> DiffuseTexNames;
+
 		std::array<FaceClosedNess, 6> FaceOpaqueness;
 		bool WantsUpdate;
-
-		inline const FaceTexCoord& FaceCoordsFor(BlockFace face) const { return FaceTexCoords[(size_t)face]; }
 	};
 
 	struct StitchedAtlasSet
@@ -76,8 +87,6 @@ namespace Voxel
 		std::shared_ptr<Drawing::Image2DArray> EmissiveImage;
 		std::shared_ptr<Drawing::Image2DArray> NormalImage;
 		std::shared_ptr<Drawing::Image2DArray> BumpImage;
-
-		std::unordered_map<std::string, VoxelBlock> Blocks;
 		
 		constexpr std::shared_ptr<Drawing::Image2DArray>& GetImageFromType(AtlasType type)
 		{
@@ -96,6 +105,22 @@ namespace Voxel
 				return BumpImage;
 			}
 		}
+
+		// Use to lookup where a particular set of images are stored within the atlas.
+		// 
+		// The std::array<float, 5> returned contains: ([0]: u-min, [1]: v-min, [2]: u-max, [3]: v-max, [4]: texture layer (usually the 3rd component of a texture2darray lookup))
+		// An example Atlas that stores 1 image per layer, with only 1 image, would look like:
+		// { "texture1": { (u-min): 0.f, (v-min): 0.f, (u-max): 1.f, (v-max): 1.f, (layer): 0.f} }
+		// An example Atlas that stores 4 images (in a 2x2) per layer, with 5 images would contain:
+		// { "texture1": { 0.f, 0.f, 0.5f, 0.5f, 0.f },
+		//   "texture2": { 0.5f, 0.f, 1.f, 0.5f, 0.f },
+		//   "texture3": { 0.f, 0.5f, 0.5f, 1.f, 0.f },
+		//   "texture4": { 0.5f, 0.5f, 1.f, 1.f, 0.f },
+		//   "texture5": { 0.f, 0.f, 0.5f, 0.5f, 1.f }  }
+		std::unordered_map<std::string, std::array<float, 5>> FaceTextureLookup;
+
+		floaty3 ConvertTexCoords(const std::string& diffuseTexName, floaty2 uvIn) const;
+		inline bool ContainsMappingFor(std::string diffuseTexName) const { return FaceTextureLookup.count(diffuseTexName); }
 	};
 
 	struct BlockDescription
@@ -105,6 +130,7 @@ namespace Voxel
 		SerialBlock Data;
 		std::array<FaceClosedNess, 6> FaceOpaqueness;
 		bool WantsUpdate;
+		std::string MeshName;
 
 		std::array<std::string, 6> DiffuseFaceTextures;
 		std::array<std::string, 6> NormalFaceTextures;
@@ -135,7 +161,7 @@ namespace Voxel
 
 	struct UnStitchedAtlasSet
 	{
-		// Prefix given to each sub-atlas (diffuse/normal/specular/emissive/bump)
+		// Prefix given to each sub-atlas (sub-atlasses being diffuse/normal/specular/emissive/bump)
 		std::string AtlasPrefix;
 		std::vector<BlockDescription> Blocks;
 	};
@@ -171,12 +197,14 @@ namespace Voxel
 
 		static const VoxelBlock EmptyBlock;
 		static const BlockDescription EmptyBlockDesc;
+		static const std::string DefaultCubeMeshName;
 
 	private:
 
 		std::vector<std::shared_ptr<StitchedAtlasSet>> _sets;
 		std::unordered_map<std::string, std::shared_ptr<StitchedAtlasSet>> _atlasLookup;
 		std::unordered_map<std::string, size_t> _descriptionLookup;
+		std::unordered_map<std::string, VoxelBlockMesh> _voxelMeshLookup;
 		std::vector<VoxelBlock> _descriptions;
 		std::vector<BlockDescription> _unstitchedDescriptions;
 
@@ -184,6 +212,9 @@ namespace Voxel
 		void LoadBlockFile(const std::string& path);
 		void LoadAtlasDirectory(const std::string& directory);
 		void LoadBlockDirectory(const std::string& directory);
+		void LoadMeshFromFile(const std::string& path);
+		void LoadMeshesFromDirectory(const std::string& path);
+		void LoadDefaultCube();
 
 		void StitchUnstitched(const std::string& faceTexDir);
 
@@ -198,7 +229,7 @@ namespace Voxel
 		* When stitching atlases, the texture files described in Block Descriptions are assumed to be stored in faceTexDir (faceTexDir is pre-pended to non-absolute texture filenames)
 		* Also Stitches any atlases in builtInAtlases. (Uses faceTexDir for textures)
 		*/
-		VoxelStore(const std::string& prestitchedDirectory, const std::string& blockDirectory, const std::string& faceTexDir, std::vector<UnStitchedAtlasSet> builtInAtlases = std::vector<UnStitchedAtlasSet>());
+		VoxelStore(const std::string& prestitchedDirectory, const std::string& blockDirectory, const std::string& faceTexDir, const std::string& meshDir, std::vector<UnStitchedAtlasSet> builtInAtlases = std::vector<UnStitchedAtlasSet>());
 
 
 		void StitchAndLoadAtlas(const UnStitchedAtlasSet& set, const std::string& faceTexDir);
@@ -220,13 +251,23 @@ namespace Voxel
 		bool TryGetDescription(size_t ID, VoxelBlock& desc) const;
 		bool TryGetDescription(const std::string& ID, const VoxelBlock*& desc) const;
 		bool TryGetDescription(size_t ID, const VoxelBlock*& desc) const;
-		VoxelBlock GetDescOrEmpty(size_t ID) const; // Returns either the description for the ID, or the description for 'empty' if not possible
-		VoxelBlock GetDescOrEmpty(const std::string& name) const;
+		const VoxelBlock* GetDescOrEmpty(size_t ID) const; // Returns either the description for the ID, or the description for 'empty' if not possible
+		const VoxelBlock* GetDescOrEmpty(const std::string& name) const;
+
+		// New stuff 
+		// v
+		const VoxelBlockMesh* GetBlockVertices(const std::string& name) const;
+
+
+		floaty3 ConvertToAtlasTexCoords(const std::string& atlasName, const std::string& diffuseTexName, floaty2 uv) const;
+		// ^ 
+		// New stuff
+
 
 		size_t GetIDFor(const std::string& blockName) const;
 		const std::string& GetNameOf(size_t ID) const;
 
-		static void InitializeVoxelStore(const std::string& prestitchedDir, const std::string& blockDir, const std::string& faceTexDir, std::vector<UnStitchedAtlasSet> builtInAtlases = std::vector<UnStitchedAtlasSet>());
+		static void InitializeVoxelStore(const std::string& prestitchedDir, const std::string& blockDir, const std::string& faceTexDir, const std::string& meshDir, std::vector<UnStitchedAtlasSet> builtInAtlases = std::vector<UnStitchedAtlasSet>());
 
 		std::unique_ptr<ICube> CreateCube(const SerialBlock& blockData) const;
 		std::unique_ptr<ICube> CreateCube(const std::string& blockName) const;

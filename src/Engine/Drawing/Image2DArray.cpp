@@ -27,7 +27,7 @@ namespace Drawing
     {
     }
 
-    Image2DArray::Image2DArray(size_t width, size_t height, size_t initialLayers)
+    Image2DArray::Image2DArray(GLsizei width, GLsizei height, size_t initialLayers)
         : GLImage()
         , _cpuSurfaces(initialLayers, nullptr, std::allocator<SDL_Surface*>())
         , _width(width)
@@ -38,8 +38,8 @@ namespace Drawing
     Image2DArray::Image2DArray(std::vector<SDL_Surface*>&& surfaces)
         : GLImage()
         , _cpuSurfaces(std::move(surfaces))
-        , _width(surfaces.size() && surfaces[0] ? surfaces[0]->w : 0)
-        , _height(surfaces.size() && surfaces[0] ? surfaces[0]->h : 0)
+        , _width(_cpuSurfaces.size() && _cpuSurfaces[0] ? _cpuSurfaces[0]->w : 0)
+        , _height(_cpuSurfaces.size() && _cpuSurfaces[0] ? _cpuSurfaces[0]->h : 0)
     {
         VerifySurfaceFormats();
     }
@@ -168,7 +168,7 @@ namespace Drawing
 
         glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &_tex);
 
-        glTextureStorage3D(_tex, 2, GL_RGBA8, _width, _height, _cpuSurfaces.size());
+        glTextureStorage3D(_tex, 2, GL_RGBA8, _width, _height, (GLsizei)_cpuSurfaces.size());
 
         glTextureParameteri(_tex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(_tex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

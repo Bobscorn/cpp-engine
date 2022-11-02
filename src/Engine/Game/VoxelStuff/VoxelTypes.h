@@ -4,6 +4,7 @@
 #include "Math/quat4.h"
 
 #include "VoxelValues.h"
+#include "Drawing/GeometryDescription.h"
 
 #include <cstdint>
 #include <cmath>
@@ -35,6 +36,10 @@ namespace Voxel
 		NEG_X = 5,
 	};
 
+	extern const std::array<BlockFace, 6> BlockFacesArray;
+
+	const char* GetBlockFaceName(BlockFace face);
+
 	enum class FaceClosedNess
 	{
 		OPEN_FACE = 0,
@@ -64,6 +69,7 @@ namespace Voxel
 	public:
 		static floaty3 GetDirection(BlockFace face);
 		static Vector::inty3 GetDirectionI(BlockFace face);
+		static floaty3 GetTangentDirection(BlockFace face);
 		static BlockFace GetNearest(floaty3 dir);
 		static BlockFace GetOpposite(BlockFace face);
 	};
@@ -167,5 +173,44 @@ namespace Voxel
 		CubeData Data;
 	};
 
-	
+	struct VoxelVertex
+	{
+		floaty3 Position;
+		floaty3 Normal;
+		floaty3 Binormal;
+		floaty3 Tangent;
+		floaty3 TexCoord;
+
+		inline bool operator==(const VoxelVertex& other) const
+		{
+			return Position == other.Position
+				&& Normal == other.Normal
+				&& Binormal == other.Binormal
+				&& Tangent == other.Tangent
+				&& TexCoord == other.TexCoord;
+		}
+
+		inline bool operator!=(const VoxelVertex& other) const
+		{
+			return !(*this == other);
+		}
+
+		constexpr static Drawing::GeometryDescription GetDescription()
+		{
+			Drawing::GeometryDescription desc;
+			desc.PositionSize = 3;
+			desc.PositionOrder = 1;
+			desc.NormalSize = 3;
+			desc.NormalOrder = 2;
+			desc.BinormalSize = 3;
+			desc.BinormalOrder = 3;
+			desc.TangentSize = 3;
+			desc.TangentOrder = 4;
+			desc.TexCoordSize = 3;
+			desc.TexCoordOrder = 5;
+			return desc;
+		}
+	};
+
+	constexpr Drawing::GeometryDescription VoxelVertexDesc = VoxelVertex::GetDescription();
 }
