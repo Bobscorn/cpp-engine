@@ -283,14 +283,21 @@ bool Voxel::VoxelPlayer::Receive(Event::KeyInput *key)
 	{
 		if (key->State)
 		{
-			m_SelectedBlockName = "velvet";
+			m_SelectedBlockName = "lamp-base";
 		}
 	}
 	else if (key->KeyCode == SDLK_4)
 	{
 		if (key->State)
 		{
-			m_SelectedBlockName = "straw";
+			m_SelectedBlockName = "lamp-pole";
+		}
+	}
+	else if (key->KeyCode == SDLK_5)
+	{
+		if (key->State)
+		{
+			m_SelectedBlockName = "lamp-bend";
 		}
 	}
 

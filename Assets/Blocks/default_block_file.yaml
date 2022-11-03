@@ -84,45 +84,125 @@ blocks:
         neg-z: closed
     textures:
         diffuse:
-            pos-x: wood_color.jpg
-            neg-x: wood_color.jpg
-            pos-y: wood_color.jpg
-            neg-y: wood_color.jpg
-            pos-z: wood_color.jpg
-            neg-z: wood_color.jpg
+            pos-x: wood-color.jpg
+            neg-x: wood-color.jpg
+            pos-y: wood-color.jpg
+            neg-y: wood-color.jpg
+            pos-z: wood-color.jpg
+            neg-z: wood-color.jpg
         normal:
-            pos-x: wood_normal.jpg
-            neg-x: wood_normal.jpg
-            pos-y: wood_normal.jpg
-            neg-y: wood_normal.jpg
-            pos-z: wood_normal.jpg
-            neg-z: wood_normal.jpg
+            pos-x: wood-normal.jpg
+            neg-x: wood-normal.jpg
+            pos-y: wood-normal.jpg
+            neg-y: wood-normal.jpg
+            pos-z: wood-normal.jpg
+            neg-z: wood-normal.jpg
         bump:
-            pos-x: wood_displace.jpg
-            neg-x: wood_displace.jpg
-            pos-y: wood_displace.jpg
-            neg-y: wood_displace.jpg
-            pos-z: wood_displace.jpg
-            neg-z: wood_displace.jpg
+            pos-x: wood-displace.jpg
+            neg-x: wood-displace.jpg
+            pos-y: wood-displace.jpg
+            neg-y: wood-displace.jpg
+            pos-z: wood-displace.jpg
+            neg-z: wood-displace.jpg
 - 
-    block-name: velvet
+    block-name: lamp-base
     atlas: global
+    wants-update: false
+    mesh: lamp-base
+    faces:
+        pos-x: open
+        neg-x: open
+        pos-y: semi-open
+        neg-y: semi-open
+        pos-z: open
+        neg-z: open
     textures:
         diffuse:
-            pos-x: velvet_px.jpg
-            pos-y: velvet_py.jpg
-            pos-z: velvet_pz.jpg
-            neg-x: velvet_nx.jpg
-            neg-y: velvet_ny.jpg
-            neg-z: velvet_nz.jpg
+            pos-x: worn-metal-color.jpg
+            pos-y: worn-metal-color.jpg
+            pos-z: worn-metal-color.jpg
+            neg-x: worn-metal-color.jpg
+            neg-y: worn-metal-color.jpg
+            neg-z: worn-metal-color.jpg
+        normal:
+            pos-x: worn-metal-normal.jpg
+            neg-x: worn-metal-normal.jpg
+            pos-y: worn-metal-normal.jpg
+            neg-y: worn-metal-normal.jpg
+            pos-z: worn-metal-normal.jpg
+            neg-z: worn-metal-normal.jpg
+        bump:
+            pos-x: worn-metal-displace.jpg
+            neg-x: worn-metal-displace.jpg
+            pos-y: worn-metal-displace.jpg
+            neg-y: worn-metal-displace.jpg
+            pos-z: worn-metal-displace.jpg
+            neg-z: worn-metal-displace.jpg
 - 
-    block-name: straw
+    block-name: lamp-pole
     atlas: global
+    wants-update: false
+    mesh: lamp-pole
+    faces:
+        pos-x: open
+        neg-x: open
+        pos-y: semi-open
+        neg-y: semi-open
+        pos-z: open
+        neg-z: open
     textures:
         diffuse:
-            pos-x: straw_px.jpg
-            pos-y: straw_py.jpg
-            pos-z: straw_pz.jpg
-            neg-x: straw_nx.jpg
-            neg-y: straw_ny.jpg
-            neg-z: straw_nz.jpg
+            pos-x: worn-metal-color.jpg
+            pos-y: worn-metal-color.jpg
+            pos-z: worn-metal-color.jpg
+            neg-x: worn-metal-color.jpg
+            neg-y: worn-metal-color.jpg
+            neg-z: worn-metal-color.jpg
+        normal:
+            pos-x: worn-metal-normal.jpg
+            neg-x: worn-metal-normal.jpg
+            pos-y: worn-metal-normal.jpg
+            neg-y: worn-metal-normal.jpg
+            pos-z: worn-metal-normal.jpg
+            neg-z: worn-metal-normal.jpg
+        bump:
+            pos-x: worn-metal-displace.jpg
+            neg-x: worn-metal-displace.jpg
+            pos-y: worn-metal-displace.jpg
+            neg-y: worn-metal-displace.jpg
+            pos-z: worn-metal-displace.jpg
+            neg-z: worn-metal-displace.jpg
+- 
+    block-name: lamp-bend
+    atlas: global
+    wants-update: false
+    mesh: lamp-bend
+    faces:
+        pos-x: open
+        neg-x: open
+        pos-y: semi-open
+        neg-y: open
+        pos-z: open
+        neg-z: semi-open
+    textures:
+        diffuse:
+            pos-x: worn-metal-color.jpg
+            pos-y: worn-metal-color.jpg
+            pos-z: worn-metal-color.jpg
+            neg-x: worn-metal-color.jpg
+            neg-y: worn-metal-color.jpg
+            neg-z: worn-metal-color.jpg
+        normal:
+            pos-x: worn-metal-normal.jpg
+            neg-x: worn-metal-normal.jpg
+            pos-y: worn-metal-normal.jpg
+            neg-y: worn-metal-normal.jpg
+            pos-z: worn-metal-normal.jpg
+            neg-z: worn-metal-normal.jpg
+        bump:
+            pos-x: worn-metal-displace.jpg
+            neg-x: worn-metal-displace.jpg
+            pos-y: worn-metal-displace.jpg
+            neg-y: worn-metal-displace.jpg
+            pos-z: worn-metal-displace.jpg
+            neg-z: worn-metal-displace.jpg
