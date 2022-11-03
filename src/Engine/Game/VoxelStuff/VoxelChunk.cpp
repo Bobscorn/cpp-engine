@@ -366,7 +366,7 @@ namespace Voxel
 
 		auto origin = coord;
 
-		auto AddVerticesFunc = [&vertices, &indices, origin](const VoxelBlock* block, int chunkRelativeX, int chunkRelativeY, int chunkRelativeZ, BlockFace face)
+		auto AddVerticesFunc = [&vertices, &indices, origin](const VoxelBlock* block, int chunkRelativeX, int chunkRelativeY, int chunkRelativeZ, BlockFace face, const CubeData& data)
 		{
 			// Generate vertices
 			constexpr auto blockOffset = floaty3{ 0.5f * BlockSize, 0.5f * BlockSize, 0.5f * BlockSize }; // Offset necessary to make any origin cubes actually on the origin
@@ -375,7 +375,7 @@ namespace Voxel
 			auto& verts = block->Mesh.FaceVertices[(size_t)face];
 			auto& block_indices = block->Mesh.FaceIndices[(size_t)face];
 			
-			auto rot = block->BlockData.Data.Rotation;
+			auto rot = data.Rotation;
 
 			auto index_base = (unsigned int)vertices.size();
 			for (Voxel::VoxelVertex vert : verts)
@@ -410,25 +410,23 @@ namespace Voxel
 					// go through neighbours check if there is a block there
 					// if there isn't add triangles to mesh
 
-					// -X
-					if (desc->FaceOpaqueness[(size_t)BlockFace::NEG_X] == FaceClosedNess::OPEN_FACE || !cubeAtHasFace(x - 1, y, z, BlockFace::POS_X))
-						AddVerticesFunc(desc, x, y, z, BlockFace::NEG_X);
-					// +X
-					if (desc->FaceOpaqueness[(size_t)BlockFace::POS_X] == FaceClosedNess::OPEN_FACE || !cubeAtHasFace(x + 1, y, z, BlockFace::NEG_X))
-						AddVerticesFunc(desc, x, y, z, BlockFace::POS_X);
-					// -Y
-					if (desc->FaceOpaqueness[(size_t)BlockFace::NEG_Y] == FaceClosedNess::OPEN_FACE || !cubeAtHasFace(x, y - 1, z, BlockFace::POS_Y))
-						AddVerticesFunc(desc, x, y, z, BlockFace::NEG_Y);
-					// +Y
-					if (desc->FaceOpaqueness[(size_t)BlockFace::POS_Y] == FaceClosedNess::OPEN_FACE || !cubeAtHasFace(x, y + 1, z, BlockFace::NEG_Y))
-						AddVerticesFunc(desc, x, y, z, BlockFace::POS_Y);
-					// -Z
-					if (desc->FaceOpaqueness[(size_t)BlockFace::NEG_Z] == FaceClosedNess::OPEN_FACE || !cubeAtHasFace(x, y, z - 1, BlockFace::POS_Z))
-						AddVerticesFunc(desc, x, y, z, BlockFace::NEG_Z);
-					// +Z
-					if (desc->FaceOpaqueness[(size_t)BlockFace::POS_Z] == FaceClosedNess::OPEN_FACE || !cubeAtHasFace(x, y, z + 1, BlockFace::NEG_Z))
-						AddVerticesFunc(desc, x, y, z, BlockFace::POS_Z);
+					for (auto& face : BlockFacesArray)
+					{
+						if (desc->FaceOpaqueness[(size_t)face] == FaceClosedNess::OPEN_FACE)
+						{
+							AddVerticesFunc(desc, x, y, z, face, blockDat.Data);
+							continue;
+						}
 
+						auto rot = blockDat.Data.Rotation;
+
+						auto dir = BlockFaceHelper::GetDirectionI(face);
+						auto rotatedDir = rot.rotate(dir);
+						auto rotatedFace = Voxel::RotateFace(face, rot);
+						Vector::inty3 neighbourPos = Vector::inty3{ x, y, z } + rotatedDir;					
+						if (!cubeAtHasFace(neighbourPos.x, neighbourPos.y, neighbourPos.z, rotatedFace))
+							AddVerticesFunc(desc, x, y, z, face, blockDat.Data);
+					}
 				}
 			}
 		}
