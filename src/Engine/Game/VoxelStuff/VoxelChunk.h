@@ -67,14 +67,14 @@ namespace Voxel
 		Drawing::RawMesh Mesh;
 	};
 
-	class ChunkyBoi : public G1::IShape, public BulletHelp::INothingInterface
+	class VoxelChunk : public G1::IShape, public BulletHelp::INothingInterface
 	{
 	public:
 
-		ChunkyBoi(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 origin, ChunkCoord coord);
-		ChunkyBoi(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 origin, RawChunkDataMap initial_dat, ChunkCoord coord);
-		ChunkyBoi(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, std::unique_ptr<LoadedChunk> preLoadedData);
-		~ChunkyBoi();
+		VoxelChunk(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 origin, ChunkCoord coord);
+		VoxelChunk(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 origin, RawChunkDataMap initial_dat, ChunkCoord coord);
+		VoxelChunk(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, std::unique_ptr<LoadedChunk> preLoadedData);
+		~VoxelChunk();
 
 		void BeforeDraw() override;
 		void AfterDraw() override;

@@ -518,7 +518,7 @@ void Voxel::VoxelPlayer::TmpRayThing(bool destroy)
 			TmpEntityThing(ray, entity_ptr);
 		}
 
-		auto cube_ptr = dynamic_cast<ChunkyBoi *>(ray.hold->Pointy);
+		auto cube_ptr = dynamic_cast<VoxelChunk *>(ray.hold->Pointy);
 		if (cube_ptr)
 		{
 			if (destroy)

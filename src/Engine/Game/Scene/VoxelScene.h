@@ -23,7 +23,7 @@ namespace Voxel
 		virtual RawChunkDataMap LoadChunk(int64_t x, int64_t y, int64_t z) override;
 
 		// Inherited via IChunkUnloader
-		virtual void UnloadChunk(std::unique_ptr<ChunkyBoi> chunk) override;
+		virtual void UnloadChunk(std::unique_ptr<VoxelChunk> chunk) override;
 	};
 
 	class VoxelScene : FullResourceHolder, public Scene::IScene

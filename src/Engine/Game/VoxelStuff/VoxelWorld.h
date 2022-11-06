@@ -34,7 +34,7 @@ namespace Voxel
 
 	struct IChunkUnloader
 	{
-		virtual void UnloadChunk(std::unique_ptr<ChunkyBoi> chunk) = 0;
+		virtual void UnloadChunk(std::unique_ptr<VoxelChunk> chunk) = 0;
 	};
 
 	struct LoadingStuff
@@ -115,7 +115,7 @@ namespace Voxel
 
 
 		// Chunk Unloading
-		void UnloadChunk(std::unique_ptr<ChunkyBoi> chunk) override;
+		void UnloadChunk(std::unique_ptr<VoxelChunk> chunk) override;
 
 	protected:
 
@@ -129,7 +129,7 @@ namespace Voxel
 
 		// Store the actual chunks in an unordered_map
 		// Storing them as unique_ptrs is perhaps not necessary
-		std::unordered_map<ChunkCoord, std::unique_ptr<ChunkyBoi>> m_Chunks;
+		std::unordered_map<ChunkCoord, std::unique_ptr<VoxelChunk>> m_Chunks;
 		
 		// Temporary measure to store changes and prevent them being unloaded
 		std::unordered_map<ChunkCoord, std::vector<std::pair<ChunkBlockCoord, std::unique_ptr<ICube>>>> m_UpdateBlockChanges;

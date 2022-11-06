@@ -40,7 +40,7 @@ namespace Voxel
 		return data;
 	}
 
-	Voxel::ChunkyBoi::ChunkyBoi(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, ChunkCoord coord)
+	Voxel::VoxelChunk::VoxelChunk(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, ChunkCoord coord)
 		: G1::IShape(container, CreateChunkName(coord))
 		, FullResourceHolder(resources)
 		, m_World(world)
@@ -51,7 +51,7 @@ namespace Voxel
 	{
 	}
 
-	Voxel::ChunkyBoi::ChunkyBoi(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, RawChunkDataMap initial_dat, ChunkCoord coord)
+	Voxel::VoxelChunk::VoxelChunk(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, RawChunkDataMap initial_dat, ChunkCoord coord)
 		: G1::IShape(container, CreateChunkName(coord))
 		, FullResourceHolder(resources)
 		, m_World(world)
@@ -79,7 +79,7 @@ namespace Voxel
 		PROFILE_POP();
 	}
 
-	ChunkyBoi::ChunkyBoi(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, std::unique_ptr<LoadedChunk> preloadedStuff)
+	VoxelChunk::VoxelChunk(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, std::unique_ptr<LoadedChunk> preloadedStuff)
 		: G1::IShape(container, CreateChunkName(preloadedStuff->Coord))
 		, FullResourceHolder(resources)
 		, m_World(world)
@@ -97,7 +97,7 @@ namespace Voxel
 		PROFILE_POP();
 	}
 
-	Voxel::ChunkyBoi::~ChunkyBoi()
+	Voxel::VoxelChunk::~VoxelChunk()
 	{
 		if (m_Body)
 		{
@@ -105,7 +105,7 @@ namespace Voxel
 		}
 	}
 
-	void Voxel::ChunkyBoi::BeforeDraw()
+	void Voxel::VoxelChunk::BeforeDraw()
 	{
 		if (m_Culler)
 			m_Culler->Flush();
@@ -123,7 +123,7 @@ namespace Voxel
 		}
 	}
 
-	void Voxel::ChunkyBoi::AfterDraw()
+	void Voxel::VoxelChunk::AfterDraw()
 	{
 		for (auto& updateBlockPair : m_UpdateBlocks)
 		{
@@ -132,19 +132,19 @@ namespace Voxel
 		}
 	}
 
-	void Voxel::ChunkyBoi::UpdateOrigin(floaty3 origin)
+	void Voxel::VoxelChunk::UpdateOrigin(floaty3 origin)
 	{
 		m_Origin = origin;
 		m_Culler = CreateCuller(m_Origin);
 		m_Dirty = true;
 	}
 
-	Voxel::ChunkyFrustumCuller* Voxel::ChunkyBoi::GetCuller() const
+	Voxel::ChunkyFrustumCuller* Voxel::VoxelChunk::GetCuller() const
 	{
 		return m_Culler.get();
 	}
 
-	void Voxel::ChunkyBoi::set(uint32_t x, uint32_t y, uint32_t z, std::unique_ptr<Voxel::ICube> val)
+	void Voxel::VoxelChunk::set(uint32_t x, uint32_t y, uint32_t z, std::unique_ptr<Voxel::ICube> val)
 	{
 		ChunkBlockCoord key{ x, y, z };
 		m_Data[x][y][z] = val->GetBlockData();
@@ -152,18 +152,18 @@ namespace Voxel
 		m_Dirty = true;
 	}
 
-	void ChunkyBoi::set(ChunkBlockCoord coord, std::unique_ptr<Voxel::ICube> val)
+	void VoxelChunk::set(ChunkBlockCoord coord, std::unique_ptr<Voxel::ICube> val)
 	{
 		set(coord.x, coord.y, coord.z, std::move(val));
 	}
 
-	void ChunkyBoi::set(ChunkBlockCoord coord, const SerialBlock& block)
+	void VoxelChunk::set(ChunkBlockCoord coord, const SerialBlock& block)
 	{
 		m_Data[coord.x][coord.y][coord.z] = block;
 		m_Dirty = true;
 	}
 
-	Voxel::ICube* Voxel::ChunkyBoi::get(uint32_t x, uint32_t y, uint32_t z)
+	Voxel::ICube* Voxel::VoxelChunk::get(uint32_t x, uint32_t y, uint32_t z)
 	{
 		auto it = m_UpdateBlocks.find(ChunkBlockCoord{ x, y, z });
 		if (it != m_UpdateBlocks.end())
@@ -171,22 +171,22 @@ namespace Voxel
 		return nullptr;
 	}
 
-	ICube* ChunkyBoi::get(ChunkBlockCoord coord)
+	ICube* VoxelChunk::get(ChunkBlockCoord coord)
 	{
 		return get(coord.x, coord.y, coord.z);
 	}
 
-	SerialBlock ChunkyBoi::get_data(ChunkBlockCoord coord) const
+	SerialBlock VoxelChunk::get_data(ChunkBlockCoord coord) const
 	{
 		return m_Data[coord.x][coord.y][coord.z];
 	}
 
-	ChunkCoord ChunkyBoi::GetCoord() const
+	ChunkCoord VoxelChunk::GetCoord() const
 	{
 		return m_Coord;
 	}
 
-	std::unique_ptr<ICube> ChunkyBoi::take(ChunkBlockCoord coord)
+	std::unique_ptr<ICube> VoxelChunk::take(ChunkBlockCoord coord)
 	{
 		auto it = m_UpdateBlocks.find(coord);
 		if (it != m_UpdateBlocks.end())
@@ -194,7 +194,7 @@ namespace Voxel
 		return nullptr;
 	}
 
-	void Voxel::ChunkyBoi::SetTo(std::unique_ptr<ChunkData> data)
+	void Voxel::VoxelChunk::SetTo(std::unique_ptr<ChunkData> data)
 	{
 		(void)data;
 		// TODO: this method (or delete this method)
@@ -205,7 +205,7 @@ namespace Voxel
 		m_Dirty = true;
 	}
 
-	void ChunkyBoi::SetFrom(std::unique_ptr<LoadedChunk> preLoadedChunk, bool constructCubes)
+	void VoxelChunk::SetFrom(std::unique_ptr<LoadedChunk> preLoadedChunk, bool constructCubes)
 	{
 		if (constructCubes)
 		{
@@ -274,7 +274,7 @@ namespace Voxel
 		m_Coord = preLoadedChunk->Coord;
 	}
 
-	void Voxel::ChunkyBoi::RecomputeMesh()
+	void Voxel::VoxelChunk::RecomputeMesh()
 	{
 		if (!m_World)
 		{
@@ -287,7 +287,7 @@ namespace Voxel
 		SetFrom(GenerateChunkMesh(m_Data, m_Coord, [&world](BlockCoord coord) { return world.GetCubeDataAt(coord); }), false);
 	}
 
-	std::string ChunkyBoi::CreateChunkName(ChunkCoord coord)
+	std::string VoxelChunk::CreateChunkName(ChunkCoord coord)
 	{
 		std::string name{ 0, (char)0, std::allocator<char>() };
 		name.reserve(35);
@@ -295,7 +295,7 @@ namespace Voxel
 		return name;
 	}
 
-	std::unique_ptr<ChunkyFrustumCuller> ChunkyBoi::CreateCuller(floaty3 origin)
+	std::unique_ptr<ChunkyFrustumCuller> VoxelChunk::CreateCuller(floaty3 origin)
 	{
 		return std::make_unique<ChunkyFrustumCuller>(origin, floaty3{ Voxel::Chunk_Size, Voxel::Chunk_Height, Voxel::Chunk_Size });
 	}

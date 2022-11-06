@@ -99,7 +99,7 @@ Voxel::RawChunkDataMap Voxel::DefaultWorldLoader::LoadChunk(int64_t x, int64_t y
 	return {};
 }
 
-void Voxel::DefaultWorldLoader::UnloadChunk(std::unique_ptr<ChunkyBoi> chunk)
+void Voxel::DefaultWorldLoader::UnloadChunk(std::unique_ptr<VoxelChunk> chunk)
 {
 	(void)chunk;
 	// TODO: this shit

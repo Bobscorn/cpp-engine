@@ -112,7 +112,7 @@ floaty3 Voxel::VoxelWorld::Update(floaty3 New_Centre)
 
 	//for (auto &chunkIndex : to_unload)
 	//{
-	//	std::unique_ptr<ChunkyBoi> ptr = std::move(m_Chunks[chunkIndex]);
+	//	std::unique_ptr<VoxelChunk> ptr = std::move(m_Chunks[chunkIndex]);
 	//	m_Stuff.m_ChunkUnloader->UnloadChunk(std::move(ptr));
 	//	m_Chunks.erase(chunkIndex);
 	//}
@@ -632,7 +632,7 @@ void Voxel::VoxelWorld::RemoveEntity(Entity *entity)
 	this->m_ToRemoveEntities.emplace_back(entity);
 }
 
-void Voxel::VoxelWorld::UnloadChunk(std::unique_ptr<ChunkyBoi> chunk)
+void Voxel::VoxelWorld::UnloadChunk(std::unique_ptr<VoxelChunk> chunk)
 {
 	if (!chunk)
 		return;
@@ -795,7 +795,7 @@ void Voxel::VoxelWorld::CheckLoadingThread()
 
 		std::unique_lock lock(m_ChunksMutex);
 		auto coord = chunkDat->Coord;
-		auto& chunk = m_Chunks[coord] = std::make_unique<ChunkyBoi>(GetContainer(), mResources, this, ChunkOrigin(coord), std::move(chunkDat));
+		auto& chunk = m_Chunks[coord] = std::make_unique<VoxelChunk>(GetContainer(), mResources, this, ChunkOrigin(coord), std::move(chunkDat));
 		{
 			auto it = m_BlockChanges.find(coord);
 			if (it != m_BlockChanges.end())
@@ -840,7 +840,7 @@ void Voxel::VoxelWorld::Load(ChunkCoord at)
 		}
 		m_LoadingStuff->ToLoad.push(at);
 		PROFILE_PUSH("Chunk Emplace");
-		//m_Chunks.emplace(at, std::make_unique<ChunkyBoi>(GetContainer(), GetResources(), this, ChunkOrigin(at), m_Stuff.m_ChunkLoader->LoadChunk(at.X, at.Y, at.Z), at)); // Single threaded
+		//m_Chunks.emplace(at, std::make_unique<VoxelChunk>(GetContainer(), GetResources(), this, ChunkOrigin(at), m_Stuff.m_ChunkLoader->LoadChunk(at.X, at.Y, at.Z), at)); // Single threaded
 		PROFILE_POP();
 	}
 	PROFILE_POP();
@@ -852,7 +852,7 @@ void Voxel::VoxelWorld::Unload(ChunkCoord at)
 	if (auto it = m_Chunks.find(at); it != m_Chunks.end())
 	{
 		// TODO: write unloading crap
-		std::unique_ptr<ChunkyBoi> tmp = std::move(it->second);
+		std::unique_ptr<VoxelChunk> tmp = std::move(it->second);
 		m_Chunks.erase(it);
 		m_Stuff.m_ChunkUnloader->UnloadChunk(std::move(tmp));
 	}
