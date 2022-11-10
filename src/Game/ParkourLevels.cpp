@@ -18,7 +18,9 @@ namespace Parkour
 					std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -1, 0, -2 }),
 					std::make_pair(Voxel::NamedBlock{ "lamp-base", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -1, 1, -2 }),
 					std::make_pair(Voxel::NamedBlock{ "lamp-pole", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -1, 2, -2 }),
-					std::make_pair(Voxel::NamedBlock{ "lamp-bend", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -1, 3, -2 }),
+					std::make_pair(Voxel::NamedBlock{ "lamp-pole", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -1, 3, -2 }),
+					std::make_pair(Voxel::NamedBlock{ "lamp-bend", Voxel::CubeData{ quat4(btQuaternion::btQuaternion(-90.f * Math::DegToRadF, 0.f, 0.f)) } }, Vector::inty3{ -1, 4, -2 }),
+					std::make_pair(Voxel::NamedBlock{ "lamp-light", Voxel::CubeData{ quat4(btQuaternion::btQuaternion(-90.f * Math::DegToRadF, 0.f, 0.f)) } }, Vector::inty3{ 0, 5, -2 }),
 					std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ 0, 0, -3 }),
 				},
 				std::vector<LookingPoint>{ LookingPoint{ Vector::inty3{ 0, 0, -3 }, ParkourForwardDirection } }

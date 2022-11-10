@@ -6,7 +6,7 @@ project(cpp_engine_game CXX)
 set(CP_ENG_GAME_SRCS 
 	"Parkour.cpp"
 	"ParkourShapes.cpp"
- "ParkourScene.cpp" "ParkourLevels.cpp"  "ParkourUI.cpp")
+ "ParkourScene.cpp" "ParkourLevels.cpp"  "ParkourUI.cpp" "ParkourBlocks.cpp")
    
 set(CP_ENGINE_GAME_HDRS 
 	"Parkour.h"

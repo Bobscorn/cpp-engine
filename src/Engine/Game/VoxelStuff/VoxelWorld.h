@@ -69,8 +69,9 @@ namespace Voxel
 
 	// VoxelWorld is a class designed to load*, unload chunks, and displace the physics world in order to keep the player at the centre of world
 	// *Loading is not done in this class
-	struct VoxelWorld : G1::IShape, Events::IEventListenerT<Events::AfterPhysicsEvent>, IChunkUnloader
+	class VoxelWorld : public G1::IShape, public Events::IEventListenerT<Events::AfterPhysicsEvent>, public IChunkUnloader
 	{
+	public:
 		VoxelWorld(G1::IShapeThings things, WorldStuff stuff);
 		~VoxelWorld();
 
@@ -97,9 +98,10 @@ namespace Voxel
 		bool IsCubeAt(BlockCoord coord) const; // Thread-safe
 
 		// Get the coords of a block/chunk given by position, in Displaced Physics space
-		BlockCoord GetBlockCoordFromPhys(floaty3 phys_pos);
-		ChunkCoord GetChunkCoordFromPhys(floaty3 phys_pos);
-		floaty3 GetPhysPosFromBlockCoord(BlockCoord coord);
+		BlockCoord GetBlockCoordFromPhys(floaty3 phys_pos) const;
+		ChunkCoord GetChunkCoordFromPhys(floaty3 phys_pos) const;
+		floaty3 GetPhysPosFromBlockCoord(BlockCoord coord) const;
+		floaty3 GetPhysPosOfBlock(ICube* cube) const;
 
 		// Dynamic Stuff
 		void AddEntity(std::unique_ptr<Entity> entity);

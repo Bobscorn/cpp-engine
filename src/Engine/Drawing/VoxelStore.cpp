@@ -14,6 +14,7 @@
 #include "Systems/Importing/SimpleMeshImport.h"
 
 #include "Game/VoxelStuff/VoxelTypes.h"
+#include "Game/VoxelStuff/VoxelWorld.h"
 
 const Voxel::SerialBlock Voxel::VoxelStore::EmptyBlockData = Voxel::SerialBlock{};
 
@@ -60,6 +61,11 @@ namespace Voxel
 		}
 
 		return convertedVertices;
+	}
+
+	VoxelStore& VoxelStore::GetMutable()
+	{
+		return *_instance;
 	}
 
 	void VoxelStore::LoadAtlas(const std::string& path)
@@ -764,6 +770,7 @@ namespace Voxel
 		vox.MeshName = desc.MeshName;
 		vox.AtlasName = desc.AtlasName;
 		vox.DiffuseTexNames = desc.DiffuseFaceTextures;
+		vox.WantsUpdate = desc.WantsUpdate;
 		
 		auto* mesh = GetBlockVertices(desc.MeshName);
 		if (mesh)
@@ -908,7 +915,7 @@ namespace Voxel
 		_instance = std::make_unique<VoxelStore>(prestitchedDir, blockDir, faceTexDir, meshDir, builtInAtlases);
 	}
 
-	std::unique_ptr<ICube> VoxelStore::CreateCube(const SerialBlock& blockData) const
+	std::unique_ptr<ICube> VoxelStore::CreateCube(VoxelWorld* world, VoxelChunk* chunk, ChunkBlockCoord pos, const SerialBlock& blockData) const
 	{
 		extern std::unique_ptr<Engine::IEngine> g_Engine;
 
@@ -916,12 +923,23 @@ namespace Voxel
 		if (desc->WantsUpdate == false)
 			return nullptr;
 
-		return std::make_unique<VoxelCube>(nullptr, &g_Engine->Resources, nullptr, floaty3{ 0.f, 0.f, 0.f }, ChunkBlockCoord{}, blockData);
+		auto it = _voxelUpdateBlockLookup.find(desc->Name);
+		if (it != _voxelUpdateBlockLookup.end())
+			return it->second->Clone(world, chunk, pos);
+
+		return std::make_unique<VoxelCube>(world->GetContainer(), world->GetResources(), world, chunk, pos);
 	}
 
-	std::unique_ptr<ICube> VoxelStore::CreateCube(const std::string& blockName) const
+	std::unique_ptr<ICube> VoxelStore::CreateCube(VoxelWorld* world, VoxelChunk* chunk, ChunkBlockCoord pos, const std::string& blockName) const
 	{
-		return CreateCube(GetDescOrEmpty(blockName)->BlockData);
+		return CreateCube(world, chunk, pos, GetDescOrEmpty(blockName)->BlockData);
+	}
+
+	void VoxelStore::RegisterUpdateBlock(const std::string& blockName, std::unique_ptr<ICube> cube)
+	{
+		if (_voxelUpdateBlockLookup.count(blockName))
+			DWARNING("Overwriting update block '" + blockName + "'");
+		_voxelUpdateBlockLookup[blockName] = std::move(cube);
 	}
 
 	BlockDescription GetEmptyBlockDesc()

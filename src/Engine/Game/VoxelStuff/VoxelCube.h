@@ -13,8 +13,8 @@
 
 namespace Voxel
 {
-
-	struct VoxelWorld;
+	class VoxelWorld;
+	class VoxelChunk;
 
 	struct CubeCreationDescription
 	{
@@ -28,50 +28,54 @@ namespace Voxel
 
 	struct ICube : virtual G1::IShape
 	{
-		ICube(VoxelWorld *world, SerialBlock block) : m_World(world), m_BlockData(block) {}
+		ICube(VoxelWorld *world, Voxel::VoxelChunk* chunk, Voxel::ChunkBlockCoord pos) : m_World(world), m_Chunk(chunk), m_Pos(pos) {}
 
-		// Position in displaced physics space
-		virtual void BecomeDynamic(floaty3 pos) { (void)pos; };
-
-		// Position in absolute world space
-		virtual bool TryBecomeStatic(size_t x, size_t y, size_t z) { (void)x; (void)y; (void)z; return false; };
-
-		virtual void UpdatePosition(floaty3 new_position, ChunkyFrustumCuller *new_culler) = 0;
-
-		inline VoxelWorld *GetWorld() const { return m_World; }
+		inline VoxelWorld* GetWorld() const { return m_World; }
+		inline VoxelChunk* GetChunk() const { return m_Chunk; }
+		inline ChunkBlockCoord GetChunkPos() const { return m_Pos; }
+		BlockCoord GetWorldPos() const;
 		const std::string& GetBlockName() const;
-		inline const CubeID& GetBlockID() const { return m_BlockData.ID; }
-		inline const SerialBlock& GetBlockData() const { return m_BlockData; }
+		CubeID GetBlockID() const;
+		const SerialBlock& GetBlockData() const;
+		SerialBlock TakeBlockData();
 
-		virtual std::unique_ptr<ICube> Clone() const = 0;
+		virtual std::unique_ptr<ICube> Clone(VoxelWorld* world, VoxelChunk* chunk, ChunkBlockCoord pos) const = 0;
 		inline virtual bool WantsUpdate() const { return false; }
 
+		// OnPlaced is called when this block is placed into the world
+		inline virtual void OnPlaced() {}
+		// OnDestroyed is called when this block is destroyed (not unloaded)
+		inline virtual void OnDestroyed() {}
+		// OnLoaded is called when this block is loaded into a chunk (this includes when it is placed)
+		inline virtual void OnLoaded() {}
+		// OnUnloaded is called when this block is unloaded from a chunk (this includes when it is destroyed)
+		inline virtual void OnUnloaded() {}
+
+		inline void Attach(VoxelWorld* world, VoxelChunk* chunk, ChunkBlockCoord pos) { m_World = world; m_Chunk = chunk; m_Pos = pos; }
+		inline void Detach(SerialBlock data) { m_Chunk = nullptr; m_World = nullptr; if (!m_Data) m_Data = std::make_unique<SerialBlock>(); *m_Data = std::move(data); }
+
 	protected:
-		VoxelWorld *m_World = nullptr;
-		SerialBlock m_BlockData;
+		VoxelWorld* m_World = nullptr;
+		Voxel::VoxelChunk* m_Chunk = nullptr;
+		Voxel::ChunkBlockCoord m_Pos;
+		std::unique_ptr<SerialBlock> m_Data;
 	};
 
 	struct VoxelCube : ICube, virtual G1::IShape, BulletHelp::INothingInterface
 	{
-		VoxelCube(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 position, ChunkBlockCoord coord, SerialBlock block);
+		VoxelCube(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, VoxelChunk* chunk, ChunkBlockCoord coord);
 		~VoxelCube();
 
 		virtual void BeforeDraw() override;
 		virtual void AfterDraw() override;
 
-		floaty3 GetPosition() const;
-
 		void SetCull(ChunkyFrustumCuller *chunkyboi);
 
-		virtual void UpdatePosition(floaty3 new_position, ChunkyFrustumCuller *new_culler) override;
-		virtual std::unique_ptr<ICube> Clone() const override;
+		virtual std::unique_ptr<ICube> Clone(VoxelWorld* world, VoxelChunk* chunk, ChunkBlockCoord pos) const override;
 
 	protected:
 
 		void ResetCuller();
-
-		floaty3 m_Position;
-		ChunkBlockCoord m_Coord;
 
 		//std::shared_ptr<btBoxShape> m_Shape;
 		//static std::weak_ptr<btBoxShape> s_Shape;

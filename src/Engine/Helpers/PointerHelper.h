@@ -87,7 +87,7 @@ namespace Pointer
 		pointer ptr;
 		selfish_control_block<T> *control_block;
 	public:
-		selfish_ptr(pointer _ptr = nullptr) : ptr(_ptr), control_block(nullptr)
+		explicit selfish_ptr(pointer _ptr) : ptr(_ptr), control_block(nullptr)
 		{
 			if (ptr)
 				control_block = new selfish_control_block<T>();

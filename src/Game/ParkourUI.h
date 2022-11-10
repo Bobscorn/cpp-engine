@@ -19,4 +19,15 @@ namespace Parkour
 		void Enable();
 		void Disable();
 	};
+
+	class ParkourInGameHUD
+	{
+		UI1I::ButtonyContainer m_Container;
+		UI1I::SmallButtony m_FPSDisplay;
+		UI1I::SmallButtony m_LightCountDisplay;
+	public:
+		ParkourInGameHUD(CommonResources* resources);
+
+
+	};
 }

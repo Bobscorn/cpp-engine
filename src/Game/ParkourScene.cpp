@@ -8,17 +8,19 @@
 #include <Systems/Events/Converter.h>
 #include <Systems/Time/Time.h>
 #include <Drawing/GeometryStore.h>
+#include <Drawing/VoxelStore.h>
 
 #include <vector>
 #include <utility>
 
 #include "ParkourLevels.h"
+#include "ParkourBlocks.h"
 
 Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	: FullResourceHolder(resources)
 	, m_Level(level)
 	, m_GSpace(resources)
-	, m_WorldShape(m_GSpace.GetRootShape()->AddChild<Voxel::VoxelWorld>("Voxel World", Voxel::WorldStuff{&m_Loader, &m_Loader, nullptr, 1, 1, 1, 2}))
+	, m_WorldShape(m_GSpace.GetRootShape()->AddChild<Voxel::VoxelWorld>("Voxel World", Voxel::WorldStuff{&m_Loader, &m_Loader, nullptr, 1, 1, 1, 1}))
 	, m_PlayerShape(m_GSpace.GetRootShape()->AddChild<Voxel::VoxelPlayer>("Voxel Player", m_WorldShape.get(), Voxel::VoxelPlayerStuff()))
 	, m_LevelShape(m_GSpace.GetRootShape()->AddChild<ParkourLevelShape>("ParkourLevel Shape", Parkour::Levels[level]))
 	, m_GeneratorShape(m_GSpace.GetRootShape()->AddChild<ParkourGeneratorShape>("Parkour Generator", m_LevelShape, m_WorldShape))
@@ -33,21 +35,20 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	light.Intensity = 5.f;
 	light.Attenuation = floaty3{ 2.f, 0.25f, 0.05f };
 	light.Enabled = true;
-	light.PositionWS = floaty4{ 0.f, 2.f, 0.f, 1.f };
+	light.PositionWS = floaty4{ 0.f, 3.f, 0.f, 1.f };
 	light.PositionVS = floaty4{};
-	light.DirectionWS = floaty4{ 0.f, 0.f, 0.f, 1.f };
+	light.DirectionWS = floaty4{ 0.f, -1.f, 0.f, 1.f };
 	light.DirectionVS = floaty4{};
 	light.Range = 50.f;
-	light.Type = LIGHT_POINT;
+	light.Type = LIGHT_SPOT;
+	light.SpotlightAngle = Math::DegToRadF * 30.f;
 	light.Padding = 0.f;
+
 	m_LightShape = m_GSpace.GetRootShape()->AddChild<G1I::LightShape>("Epic Light", light);
 	m_GSpace.GetRootShape()->AddChild<G1I::ProfilerShape>("Profiler McGee Shape", G1I::ProfilerThings{ 15.0, false });
 	m_GSpace.GetRootShape()->AddChild<G1I::SkyBoxShape>("Skybox Shape", "skybox", ".jpg");
-	auto testMat = Drawing::MaterialStore::Instance()["default-3d-material"];
-	m_GSpace.GetRootShape()->AddChild<G1I::SimpleRenderShape>("Placeholder Test Sphere Shape", mResources->Ren3v2->SubmitDrawCall(Drawing::DrawCallv2{ Drawing::GeometryStore::Instance()["default-sphere"], testMat, std::make_shared<Matrixy4x4>(Matrixy4x4::Translate(floaty3{ 0.f, 5.f, 0.f })), "Placeholder Visual" }));
-	m_GSpace.GetRootShape()->AddChild<G1I::SimpleRenderShape>("Placeholder Test Cube Shape", mResources->Ren3v2->SubmitDrawCall(Drawing::DrawCallv2{ Drawing::GeometryStore::Instance()["default-cube"], testMat, std::make_shared<Matrixy4x4>(Matrixy4x4::Translate(floaty3{ 0.f, 4.f, 0.f })), "Placeholder Visual" }));
-	m_GSpace.GetRootShape()->AddChild<G1I::SimpleRenderShape>("Placeholder Test Floor Shape", mResources->Ren3v2->SubmitDrawCall(Drawing::DrawCallv2{ Drawing::GeometryStore::Instance()["default-cube"], testMat, std::make_shared<Matrixy4x4>(Matrixy4x4::Scale(3.f)), "Placeholder Visual" }));
-	m_GSpace.GetRootShape()->AddChild<G1I::SimpleRenderShape>("Placeholder Test Floor Shape", mResources->Ren3v2->SubmitDrawCall(Drawing::DrawCallv2{ Drawing::GeometryStore::Instance()["default-cube"], testMat, std::make_shared<Matrixy4x4>(Matrixy4x4::MultiplyE(Matrixy4x4::Scale(100.f, 3.f, 100.f), Matrixy4x4::Translate(0.f, 15.f, 0.f))), "Placeholder Visual" }));
+
+	Voxel::VoxelStore::GetMutable().RegisterUpdateBlock("lamp-light", std::make_unique<ParkourLightBlock>(&m_GSpace, mResources, m_WorldShape.get(), nullptr, Voxel::ChunkBlockCoord{}));
 
 	resources->InputAttachment->Add(m_PlayerShape.get());
 	m_UI.AddChildBottom(&m_Crosshair);

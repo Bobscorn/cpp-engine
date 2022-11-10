@@ -43,6 +43,9 @@
 
 namespace Voxel
 {
+	// Forward declare VoxelChunk to use as pointer
+	class VoxelChunk;
+
 	// The pixel size of a single block face
 	// All face textures are assumed to be this size
 	constexpr int DefaultFaceSize = 1024;
@@ -199,12 +202,15 @@ namespace Voxel
 		static const BlockDescription EmptyBlockDesc;
 		static const std::string DefaultCubeMeshName;
 
+		static VoxelStore& GetMutable();
+
 	private:
 
 		std::vector<std::shared_ptr<StitchedAtlasSet>> _sets;
 		std::unordered_map<std::string, std::shared_ptr<StitchedAtlasSet>> _atlasLookup;
 		std::unordered_map<std::string, size_t> _descriptionLookup;
 		std::unordered_map<std::string, VoxelBlockMesh> _voxelMeshLookup;
+		std::unordered_map<std::string, std::unique_ptr<ICube>> _voxelUpdateBlockLookup;
 		std::vector<VoxelBlock> _descriptions;
 		std::vector<BlockDescription> _unstitchedDescriptions;
 
@@ -232,6 +238,8 @@ namespace Voxel
 		VoxelStore(const std::string& prestitchedDirectory, const std::string& blockDirectory, const std::string& faceTexDir, const std::string& meshDir, std::vector<UnStitchedAtlasSet> builtInAtlases = std::vector<UnStitchedAtlasSet>());
 
 
+		// Loading stuff
+		// v
 		void StitchAndLoadAtlas(const UnStitchedAtlasSet& set, const std::string& faceTexDir);
 		StitchedAtlasSet StichAtlas(const UnStitchedAtlasSet& set, const std::string& faceTexDir);
 
@@ -244,7 +252,11 @@ namespace Voxel
 
 		bool TryGetAtlas(const std::string& name, std::shared_ptr<StitchedAtlasSet>& out) const;
 		bool TryGetAtlasTexture(const AtlasTextureName& name, std::shared_ptr<Drawing::Image2DArray>& out) const;
+		// ^
+		// Loading stuff
 		
+		// Block lookup
+		// v
 		bool HasBlock(const std::string& name) const;
 		const VoxelBlock* GetBlock(const std::string& name) const; // Return value should not be kept
 		bool TryGetDescription(const std::string& name, VoxelBlock& desc) const;
@@ -253,24 +265,29 @@ namespace Voxel
 		bool TryGetDescription(size_t ID, const VoxelBlock*& desc) const;
 		const VoxelBlock* GetDescOrEmpty(size_t ID) const; // Returns either the description for the ID, or the description for 'empty' if not possible
 		const VoxelBlock* GetDescOrEmpty(const std::string& name) const;
+		size_t GetIDFor(const std::string& blockName) const;
+		const std::string& GetNameOf(size_t ID) const;
+		// ^
+		// Block Lookup
 
-		// New stuff 
+		// Mesh stuff
 		// v
 		const VoxelBlockMesh* GetBlockVertices(const std::string& name) const;
 
-
 		floaty3 ConvertToAtlasTexCoords(const std::string& atlasName, const std::string& diffuseTexName, floaty2 uv) const;
 		// ^ 
-		// New stuff
+		// Mesh stuff
+		// Update Block stuff 
+		// v
+		std::unique_ptr<ICube> CreateCube(VoxelWorld* world, VoxelChunk* chunk, ChunkBlockCoord pos, const SerialBlock& blockData) const;
+		std::unique_ptr<ICube> CreateCube(VoxelWorld* world, VoxelChunk* chunk, ChunkBlockCoord pos, const std::string& blockName) const;
 
+		void RegisterUpdateBlock(const std::string& blockName, std::unique_ptr<ICube> cube);
+		// ^
+		// Update Block stuff
 
-		size_t GetIDFor(const std::string& blockName) const;
-		const std::string& GetNameOf(size_t ID) const;
 
 		static void InitializeVoxelStore(const std::string& prestitchedDir, const std::string& blockDir, const std::string& faceTexDir, const std::string& meshDir, std::vector<UnStitchedAtlasSet> builtInAtlases = std::vector<UnStitchedAtlasSet>());
-
-		std::unique_ptr<ICube> CreateCube(const SerialBlock& blockData) const;
-		std::unique_ptr<ICube> CreateCube(const std::string& blockName) const;
 
 		static const SerialBlock EmptyBlockData;
 	};

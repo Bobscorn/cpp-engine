@@ -7,6 +7,7 @@
 #include "Structure/BulletBitmasks.h"
 
 #include "Drawing/VoxelStore.h"
+#include "Game/VoxelStuff/VoxelChunk.h"
 
 //std::weak_ptr<btBoxShape> Voxel::VoxelCube::s_Shape;
 
@@ -38,12 +39,10 @@ constexpr std::array<FullVertex, 24> CubeVertices = {
 };
 constexpr std::array<unsigned int, 36> CubeIndices = { 2, 1, 0, 5, 4, 3, 8, 7, 6, 11, 10, 9, 14, 13, 12, 17, 16, 15, 1, 18, 0, 4, 19, 3, 7, 20, 6, 10, 21, 9, 13, 22, 12, 16, 23, 15, };
 
-Voxel::VoxelCube::VoxelCube(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 position, ChunkBlockCoord coord, SerialBlock block) 
+Voxel::VoxelCube::VoxelCube(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, VoxelChunk* chunk, ChunkBlockCoord coord) 
 	: IShape(container, "Cube")
-	, ICube(world, std::move(block))
+	, ICube(world, chunk, coord)
 	, FullResourceHolder(resources)
-	, m_Position(position)
-	, m_Coord(coord)
 {
 	PROFILE_PUSH("Construct Body");
 	//btTransform tmp;
@@ -68,32 +67,54 @@ void Voxel::VoxelCube::AfterDraw()
 {
 }
 
-floaty3 Voxel::VoxelCube::GetPosition() const
+std::unique_ptr<Voxel::ICube> Voxel::VoxelCube::Clone(VoxelWorld* world, VoxelChunk* chunk, ChunkBlockCoord pos) const
 {
-	return m_Position;
-}
-
-void Voxel::VoxelCube::SetCull(ChunkyFrustumCuller *chunkyboi)
-{
-	(void)chunkyboi;
-}
-
-void Voxel::VoxelCube::UpdatePosition(floaty3 new_position, ChunkyFrustumCuller *new_culler)
-{
-	(void)new_position;
-	(void)new_culler;
-}
-
-std::unique_ptr<Voxel::ICube> Voxel::VoxelCube::Clone() const
-{
-	return std::make_unique<VoxelCube>(GetContainer(), mResources, m_World, GetPosition(), m_Coord, m_BlockData);
+	return std::make_unique<VoxelCube>(GetContainer(), mResources, world, chunk, pos);
 }
 
 void Voxel::VoxelCube::ResetCuller()
 {
 }
 
+Voxel::CubeID Voxel::ICube::GetBlockID() const
+{
+	if (!m_Chunk)
+		return 0;
+	return m_Chunk->get_data(m_Pos).ID;
+}
+
+Voxel::BlockCoord Voxel::ICube::GetWorldPos() const
+{
+	return (m_Chunk ? BlockCoord{ m_Chunk->GetCoord(), m_Pos } : BlockCoord{});
+}
+
 const std::string& Voxel::ICube::GetBlockName() const
 {
-	return VoxelStore::Instance().GetNameOf(m_BlockData.ID);
+	return VoxelStore::Instance().GetNameOf(GetBlockID());
+}
+
+const Voxel::SerialBlock& Voxel::ICube::GetBlockData() const
+{
+	static SerialBlock EmptyData{};
+
+	if (!m_Chunk)
+	{
+		if (m_Data)
+			return *m_Data;
+		return EmptyData;
+	}
+	return m_Chunk->get_data(m_Pos);
+}
+
+Voxel::SerialBlock Voxel::ICube::TakeBlockData()
+{
+	static SerialBlock EmptyData{};
+
+	if (m_Data)
+	{
+		SerialBlock tmp = std::move(*m_Data);
+		m_Data = nullptr;
+		return tmp;
+	}
+	return EmptyData;
 }

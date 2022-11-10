@@ -49,7 +49,7 @@ namespace std
 
 namespace Voxel
 {
-	struct VoxelWorld;
+	class VoxelWorld;
 
 	typedef std::unordered_map<ChunkBlockCoord, SerialBlock> RawChunkDataMap;
 
@@ -71,8 +71,8 @@ namespace Voxel
 	{
 	public:
 
-		VoxelChunk(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 origin, ChunkCoord coord);
-		VoxelChunk(G1::IGSpace *container, CommonResources *resources, VoxelWorld *world, floaty3 origin, RawChunkDataMap initial_dat, ChunkCoord coord);
+		VoxelChunk(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, ChunkCoord coord);
+		VoxelChunk(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, RawChunkDataMap initial_dat, ChunkCoord coord);
 		VoxelChunk(G1::IGSpace* container, CommonResources* resources, VoxelWorld* world, floaty3 origin, std::unique_ptr<LoadedChunk> preLoadedData);
 		~VoxelChunk();
 
@@ -93,7 +93,7 @@ namespace Voxel
 
 		ICube* get(uint32_t x, uint32_t y, uint32_t z);
 		ICube* get(ChunkBlockCoord coord);
-		SerialBlock get_data(ChunkBlockCoord coord) const;
+		const SerialBlock& get_data(ChunkBlockCoord coord) const;
 		ChunkCoord GetCoord() const;
 
 		// Use with caution, will remove the block from this chunk

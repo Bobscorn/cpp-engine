@@ -370,12 +370,12 @@ void Voxel::VoxelPlayer::ShootTestRay(bool destroy)
 				auto *point = reinterpret_cast<BulletHelp::NothingHolder *>(hitman->getUserPointer());
 				if (point)
 				{
-					auto *thing = dynamic_cast<Voxel::VoxelCube *>(point->Pointy);
+					auto *thing = dynamic_cast<Voxel::ICube *>(point->Pointy);
 					if (thing)
 					{
 						if (destroy)
 						{
-							auto coord = thing->GetWorld()->GetBlockCoordFromPhys(thing->GetPosition());
+							auto coord = thing->GetWorldPos();
 							thing->GetWorld()->SetCube(coord, VoxelStore::EmptyBlockData);
 						}
 						else

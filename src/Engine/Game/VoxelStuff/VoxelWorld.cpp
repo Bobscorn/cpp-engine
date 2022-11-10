@@ -567,7 +567,7 @@ bool Voxel::VoxelWorld::IsCubeAt(BlockCoord coord) const
 	return GetCubeAt(coord) != nullptr;
 }
 
-Voxel::BlockCoord Voxel::VoxelWorld::GetBlockCoordFromPhys(floaty3 phys_pos)
+Voxel::BlockCoord Voxel::VoxelWorld::GetBlockCoordFromPhys(floaty3 phys_pos) const
 {
 	BlockCoord out;
 
@@ -592,7 +592,7 @@ Voxel::BlockCoord Voxel::VoxelWorld::GetBlockCoordFromPhys(floaty3 phys_pos)
 	return out;
 }
 
-Voxel::ChunkCoord Voxel::VoxelWorld::GetChunkCoordFromPhys(floaty3 phys_pos)
+Voxel::ChunkCoord Voxel::VoxelWorld::GetChunkCoordFromPhys(floaty3 phys_pos) const
 {
 	ChunkCoord out;
 
@@ -605,7 +605,7 @@ Voxel::ChunkCoord Voxel::VoxelWorld::GetChunkCoordFromPhys(floaty3 phys_pos)
 	return out;
 }
 
-floaty3 Voxel::VoxelWorld::GetPhysPosFromBlockCoord(Voxel::BlockCoord coord)
+floaty3 Voxel::VoxelWorld::GetPhysPosFromBlockCoord(Voxel::BlockCoord coord) const
 {
 	floaty3 out;
 
@@ -620,6 +620,13 @@ floaty3 Voxel::VoxelWorld::GetPhysPosFromBlockCoord(Voxel::BlockCoord coord)
 	out.z += (BlockSize * 0.5f);
 
 	return out;
+}
+
+floaty3 Voxel::VoxelWorld::GetPhysPosOfBlock(Voxel::ICube* cube) const
+{
+	if (!cube)
+		return { 0.f, 0.f, 0.f };
+	return GetPhysPosFromBlockCoord(cube->GetWorldPos());
 }
 
 void Voxel::VoxelWorld::AddEntity(std::unique_ptr<Entity> entity)
@@ -795,7 +802,8 @@ void Voxel::VoxelWorld::CheckLoadingThread()
 
 		std::unique_lock lock(m_ChunksMutex);
 		auto coord = chunkDat->Coord;
-		auto& chunk = m_Chunks[coord] = std::make_unique<VoxelChunk>(GetContainer(), mResources, this, ChunkOrigin(coord), std::move(chunkDat));
+		auto chunkIt = m_Chunks.insert_or_assign(coord, std::make_unique<VoxelChunk>(GetContainer(), mResources, this, ChunkOrigin(coord), std::move(chunkDat)));
+		auto& chunk = chunkIt.first->second;
 		{
 			auto it = m_BlockChanges.find(coord);
 			if (it != m_BlockChanges.end())

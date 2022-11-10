@@ -48,6 +48,7 @@ namespace Voxel
 		, m_Origin(origin)
 		, m_Coord(coord)
 		, m_Data()
+		, m_UpdateBlocks()
 	{
 	}
 
@@ -61,6 +62,7 @@ namespace Voxel
 		, m_Material(Drawing::MaterialStore::Instance().GetMaterial("default-voxel-material"))
 		, m_Coord(coord)
 		, m_Mesh(std::make_shared<Drawing::Mesh>())
+		, m_UpdateBlocks()
 	{
 		/*PROFILE_PUSH("Chunk Creating Blocks");
 		for (auto& pair : initial_dat)
@@ -89,6 +91,7 @@ namespace Voxel
 		, m_Material(Drawing::MaterialStore::Instance().GetMaterial("default-voxel-material"))
 		, m_Coord(preloadedStuff->Coord)
 		, m_Mesh()
+		, m_UpdateBlocks()
 	{
 		SetFrom(std::move(preloadedStuff));
 		PROFILE_PUSH("Submitting DrawCall");
@@ -99,6 +102,11 @@ namespace Voxel
 
 	Voxel::VoxelChunk::~VoxelChunk()
 	{
+		for (auto& block : m_UpdateBlocks)
+		{
+			if (block.second)
+				block.second->OnUnloaded();
+		}
 		if (m_Body)
 		{
 			Container->RequestPhysicsRemoval(m_Body.get());
@@ -148,7 +156,10 @@ namespace Voxel
 	{
 		ChunkBlockCoord key{ x, y, z };
 		m_Data[x][y][z] = val->GetBlockData();
-		m_UpdateBlocks[key] = std::move(val);
+		auto& block = m_UpdateBlocks[key] = std::move(val);
+		block->Attach(m_World, this, key);
+		block->OnLoaded();
+		block->OnPlaced();
 		m_Dirty = true;
 	}
 
@@ -159,7 +170,25 @@ namespace Voxel
 
 	void VoxelChunk::set(ChunkBlockCoord coord, const SerialBlock& block)
 	{
+		auto curIt = m_UpdateBlocks.find(coord);
+		if (curIt != m_UpdateBlocks.end())
+		{
+			curIt->second->OnDestroyed();
+			curIt->second->OnUnloaded();
+			m_UpdateBlocks.erase(curIt);
+		}
 		m_Data[coord.x][coord.y][coord.z] = block;
+		auto desc = VoxelStore::Instance().GetDescOrEmpty(block.ID);
+		if (desc->WantsUpdate)
+		{
+			auto tmp = VoxelStore::Instance().CreateCube(m_World, this, coord, desc->Name);
+			if (tmp)
+			{
+				auto& newBlock = m_UpdateBlocks[coord] = std::move(tmp);
+				newBlock->OnLoaded();
+				newBlock->OnPlaced();
+			}
+		}
 		m_Dirty = true;
 	}
 
@@ -176,7 +205,7 @@ namespace Voxel
 		return get(coord.x, coord.y, coord.z);
 	}
 
-	SerialBlock VoxelChunk::get_data(ChunkBlockCoord coord) const
+	const SerialBlock& VoxelChunk::get_data(ChunkBlockCoord coord) const
 	{
 		return m_Data[coord.x][coord.y][coord.z];
 	}
@@ -190,7 +219,12 @@ namespace Voxel
 	{
 		auto it = m_UpdateBlocks.find(coord);
 		if (it != m_UpdateBlocks.end())
+		{
+			it->second->OnUnloaded();
+			it->second->Detach(std::move(m_Data[coord.x][coord.y][coord.z]));
+			m_Data[coord.x][coord.y][coord.z] = SerialBlock{};
 			return std::move(it->second);
+		}
 		return nullptr;
 	}
 
@@ -222,14 +256,19 @@ namespace Voxel
 						const VoxelBlock* desc;
 						if (vox.TryGetDescription(block.ID, desc) && desc->WantsUpdate)
 						{
-							auto tmp = vox.CreateCube(preLoadedChunk->ChunkDat[x][y][z]);
+							auto pos = ChunkBlockCoord{ x,y,z };
+							auto tmp = vox.CreateCube(m_World, this, pos, preLoadedChunk->ChunkDat[x][y][z]);
 							if (tmp)
 							{
-								m_UpdateBlocks[ChunkBlockCoord{ x,y,z }] = std::move(tmp);
+								 m_UpdateBlocks[pos] = std::move(tmp);
 							}
 						}
 					}
 				}
+			}
+			for (auto& block : m_UpdateBlocks)
+			{
+				block.second->OnLoaded();
 			}
 		}
 

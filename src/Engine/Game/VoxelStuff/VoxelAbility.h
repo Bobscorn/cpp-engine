@@ -89,7 +89,7 @@ namespace Voxel
 		}
 	};
 
-	struct VoxelWorld;
+	class VoxelWorld;
 
 	struct Entity
 	{
