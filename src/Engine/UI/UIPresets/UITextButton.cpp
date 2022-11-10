@@ -3,7 +3,7 @@
 #include "Systems/Input/Config1.h"
 #include "Drawing/Graphics2D.h"
 
-Debug::DebugReturn UI1I::UITextButton::Initialize()
+Debug::DebugReturn UI1I::UITextBox::Initialize()
 {
 	float HalfHeight = 0.5f * (GetFontSize() + GetMargin());
 	float Width = GetFullWidth();
@@ -15,7 +15,7 @@ Debug::DebugReturn UI1I::UITextButton::Initialize()
 	return true;
 }
 
-bool UI1I::UITextButton::Receive(Event::FontSizeEvent * e)
+bool UI1I::UITextBox::Receive(Event::FontSizeEvent * e)
 {
 	(void)e;
 	/*
@@ -34,7 +34,7 @@ bool UI1I::UITextButton::Receive(Event::FontSizeEvent * e)
 	return true;
 }
 
-bool UI1I::UITextButton::Receive(Event::MarginChangeEvent * e)
+bool UI1I::UITextBox::Receive(Event::MarginChangeEvent * e)
 {
 	(void)e;
 	this->LocalBounds.bottom = GetMargin() + GetFontSize();
@@ -42,13 +42,13 @@ bool UI1I::UITextButton::Receive(Event::MarginChangeEvent * e)
 	return true;
 }
 
-void UI1I::UITextButton::IDraw()
+void UI1I::UITextBox::IDraw()
 {
 	mResources->Ren2->SetTransform(this->LocalToWorld);
 	mResources->Ren2->DrawImage(&Text, LocalBounds);
 }
 
-void UI1I::UITextButton::SetTextFormat(Stringy Name)
+void UI1I::UITextBox::SetTextFormat(Stringy Name)
 {
 	Text.SetFontName(Name);
 	Parent->ChildNeedsUpdate();

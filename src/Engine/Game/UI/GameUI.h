@@ -49,25 +49,25 @@ namespace UI1I
 		Requests::Request action;
 	};
 
-	struct SmallButtony : Buttony, UI1I::SmallButtonE, virtual UI1I::UITextButtonE, virtual UI1I::UITextButton
+	struct SmallButtony : Buttony, UI1I::SmallButtonE, virtual UI1I::UITextButtonE, virtual UI1I::UITextBox
 	{
-		SmallButtony(CommonResources *resources, Stringy name, Requests::Request action, Stringy fontname = "Small") : UITextButton(name, fontname), UITextButtonE(name, fontname), FullResourceHolder(resources), Buttony(action) {}
+		SmallButtony(CommonResources *resources, Stringy name, Requests::Request action, Stringy fontname = "Small") : UITextBox(name, fontname), UITextButtonE(name, fontname), FullResourceHolder(resources), Buttony(action) {}
 		float GetHeight() const { return mResources->UIConfig->GetSmallFontSize() + mResources->UIConfig->GetSmallMarginSize(); }
-		virtual inline Stringy GetName() const override { return UITextButton::Text.GetText() + " Small Button"; }
+		virtual inline Stringy GetName() const override { return UITextBox::Text.GetText() + " Small Button"; }
 	};
 
-	struct NormalButtony : Buttony, UI1I::NormalButtonE, virtual UI1I::UITextButtonE, virtual UI1I::UITextButton
+	struct NormalButtony : Buttony, UI1I::NormalButtonE, virtual UI1I::UITextButtonE, virtual UI1I::UITextBox
 	{
-		NormalButtony(CommonResources *resources, Stringy name, Requests::Request action, Stringy fontname = "Normal") : UITextButton(name, fontname), UITextButtonE(name, fontname), FullResourceHolder(resources), Buttony(action) {}
+		NormalButtony(CommonResources *resources, Stringy name, Requests::Request action, Stringy fontname = "Normal") : UITextBox(name, fontname), UITextButtonE(name, fontname), FullResourceHolder(resources), Buttony(action) {}
 		float GetHeight() const override { return mResources->UIConfig->GetNormalFontSize() + mResources->UIConfig->GetNormalMarginSize(); }
-		virtual inline Stringy GetName() const override { return UITextButton::Text.GetText() + " Normal Button"; }
+		virtual inline Stringy GetName() const override { return UITextBox::Text.GetText() + " Normal Button"; }
 	};
 
-	struct BigButtony : Buttony, UI1I::BigButtonE, virtual UI1I::UITextButtonE, virtual UI1I::UITextButton
+	struct BigButtony : Buttony, UI1I::BigButtonE, virtual UI1I::UITextButtonE, virtual UI1I::UITextBox
 	{
-		BigButtony(CommonResources *resources, Stringy name, Requests::Request action, Stringy fontname = "Big") : UITextButton(name, fontname), UITextButtonE(name, fontname), FullResourceHolder(resources), Buttony(action) {}
+		BigButtony(CommonResources *resources, Stringy name, Requests::Request action, Stringy fontname = "Big") : UITextBox(name, fontname), UITextButtonE(name, fontname), FullResourceHolder(resources), Buttony(action) {}
 		float GetHeight() const override { return mResources->UIConfig->GetBigFontSize() + mResources->UIConfig->GetBigMarginSize(); }
-		virtual inline Stringy GetName() const override { return UITextButton::Text.GetText() + " Big Button"; }
+		virtual inline Stringy GetName() const override { return UITextBox::Text.GetText() + " Big Button"; }
 	};
 
 	// Simple Buttony Container
@@ -133,12 +133,12 @@ namespace UI1I
 		float Marginny{ 30.f };
 	};
 
-	struct TitleText : UI1I::UITextButton, UI1::BlankElement
+	struct TitleText : UI1I::UITextBox, UI1::BlankElement
 	{
-		TitleText(CommonResources *resources, Stringy name) : FullResourceHolder(resources), UITextButton(name, "Title") {}
+		TitleText(CommonResources *resources, Stringy name) : FullResourceHolder(resources), UITextBox(name, "Title") {}
 		Debug::DebugReturn Initialize() override;
 
-		inline void IDraw() override { UI1I::UITextButton::IDraw(); }
+		inline void IDraw() override { UI1I::UITextBox::IDraw(); }
 		virtual void IDebugDraw() override { UIElement::IDebugDraw(); RectangleInfo::DebugDraw(mResources); }
 		virtual void PreComputePosition() override { }
 		virtual void ComputePosition(Matrixy2x3 Accumulated) override { this->ComputeWorldMatrix(Accumulated); }
@@ -147,7 +147,7 @@ namespace UI1I
 			this->RecommendBoundingBox({ -HalfWidth, *mResources->HalfWindowHeight - mResources->UIConfig->GetBigMarginSize(), HalfWidth, *mResources->HalfWindowHeight - (mResources->UIConfig->GetBigMarginSize() + 2.f * LocalBounds.top) });
 			this->ComputeWorldMatrix(Matrixy2x3::Identity());
 		}
-		inline bool Within(floaty2 coords) override { return UI1I::UITextButton::Within(coords); }
+		inline bool Within(floaty2 coords) override { return UI1I::UITextBox::Within(coords); }
 		inline Matrixy2x3 GetParentToHereMatrix() override { return UIPositioner::RectangleInfo::GetParentToHereMatrix(); }
 		inline Matrixy2x3 GetFullMatrix() override { return UIPositioner::RectangleInfo::GetFullMatrix(); }
 		inline Matrixy2x3 GetChildMatrix() override { return UIPositioner::RectangleInfo::GetChildMatrix(); }

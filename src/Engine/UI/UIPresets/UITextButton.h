@@ -14,9 +14,9 @@ namespace UI1I
 	/// Only uses UIConfig's small margin
 	/// Only supports single line text (although it doesn't remove endline \\n characters, their behaviour is undefined.
 	/// </remarks>
-	struct UITextButton : virtual UI1::UIElement, UIPositioner::RectangleInfo, Events::IEventListenerT<Events::FontChangeEvent, Events::MarginChangeEvent>
+	struct UITextBox : virtual UI1::UIElement, UIPositioner::RectangleInfo, Events::IEventListenerT<Events::FontChangeEvent, Events::MarginChangeEvent>
 	{
-		UITextButton(Stringy name, Stringy fontname, ConfigColorTemp textcolor = "Text") : Text(mResources, name, fontname, textcolor) {}
+		UITextBox(Stringy name, Stringy fontname, ConfigColorTemp textcolor = "Text") : Text(mResources, name, fontname, textcolor) {}
 
 		virtual Debug::DebugReturn Initialize() override;
 
@@ -49,7 +49,7 @@ namespace UI1I
 		TextDrawing Text;
 	};
 
-	struct UITextButtonE : virtual UITextButton
+	struct UITextButtonE : virtual UITextBox
 	{
 		UITextButtonE(Stringy name, Stringy fontname, ConfigColorTemp hovercolor = "HoverText", ConfigColorTemp mousedowncolor = "MouseDownText") : HoveredText(mResources, name, fontname, hovercolor), MouseDownText(mResources, name, fontname, mousedowncolor) {}
 		virtual void IDraw() override;
@@ -66,21 +66,21 @@ namespace UI1I
 		TextDrawing MouseDownText;
 	};
 
-	struct NormalButton : virtual UITextButton
+	struct NormalButton : virtual UITextBox
 	{
 		NormalButton() {}
 		float GetMargin() const override { return mResources->UIConfig->GetNormalMarginSize(); }
 		float GetFontSize() const override { return mResources->UIConfig->GetNormalFontSize(); }
 	};
 
-	struct SmallButton : virtual UITextButton
+	struct SmallButton : virtual UITextBox
 	{
 		SmallButton() {}
 		float GetMargin() const override { return mResources->UIConfig->GetSmallMarginSize(); }
 		float GetFontSize() const override { return mResources->UIConfig->GetSmallFontSize(); }
 	};
 
-	struct BigButton : virtual UITextButton
+	struct BigButton : virtual UITextBox
 	{
 		BigButton() {}
 		float GetMargin() const override { return mResources->UIConfig->GetBigMarginSize(); }
