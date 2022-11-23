@@ -4,7 +4,7 @@
 
 #include "Systems/Execution/Engine.h"
 
-Scene::StartingScene::StartingScene(CommonResources* resources)
+Scene::StartingScene::StartingScene(CommonResources* resources, std::unique_ptr<IScene> nextScene)
 	: FullResourceHolder(resources)
 	, UIRoot(resources)
 	, Faderer(resources, 1.f)
@@ -15,7 +15,7 @@ Scene::StartingScene::StartingScene(CommonResources* resources)
 	, LoadButton(resources, "LOAD", Requests::Request("LoadGame"))
 	, OptionsButton(resources, "OPTIONS", Requests::Request("OpenOptions"))
 	, ExitButton(resources, "EXIT", Requests::Request("ExitGame"))
-	, Stageboi(new StageScene(resources))
+	, NextScene(std::move(nextScene))
 	//, Testo(resources)
 {
 	mResources->UIConfig->RegisterNewBrush("Title", { 200, 80, 120 ,255 });
@@ -27,6 +27,7 @@ Scene::StartingScene::StartingScene(CommonResources* resources)
 
 Debug::DebugReturn Scene::StartingScene::Initialize()
 {
+	mResources->InputAttachment->Add(&UIRoot);
 	UIRoot.AddChildrenTop({ &UIContainer, &Title });
 	UIContainer.AddButtons({ &NewGameButton, &ContinueButton, &LoadButton, &OptionsButton, &ExitButton });
 	//UIRoot.AddChildTop(&Testo);
@@ -116,13 +117,12 @@ void Scene::StartingScene::NewGame()
 
 void Scene::StartingScene::ActuallyDoNewGame()
 {
-	mResources->Engine->SwitchScene(std::move(Stageboi));
+	mResources->Engine->SwitchScene(std::move(NextScene));
 	DINFO("Wooo new game time");
 }
 
 Debug::DebugReturn Scene::StartingScene::Continue()
 {
-	Stageboi->ActivateContinueSave();
 	NewGame();
 	return true;
 }

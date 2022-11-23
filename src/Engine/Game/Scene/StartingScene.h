@@ -10,13 +10,13 @@
 
 #include <Drawing/Effects/Fade.h>
 
-#include "StageScene.h"
+#include <memory>
 
 namespace Scene
 {
 	struct StartingScene : IScene, FullResourceHolder, Requests::IRequestable
 	{
-		StartingScene(CommonResources *resources);
+		StartingScene(CommonResources *resources, std::unique_ptr<IScene> nextScene);
 
 		// Inherited via IScene
 		virtual Debug::DebugReturn Initialize() override;
@@ -25,7 +25,7 @@ namespace Scene
 		virtual void Draw() override;
 		virtual void AfterDraw() override;
 
-		inline virtual std::unique_ptr<IScene> Clone() override { return std::make_unique<StartingScene>(mResources); }
+		inline virtual std::unique_ptr<IScene> Clone() override { return std::make_unique<StartingScene>(mResources, NextScene->Clone()); }
 
 		virtual Debug::DebugReturn Request(Requests::Request &action) override;
 		inline virtual Stringy GetName() const override { return "StartingScene instance"; }
@@ -46,7 +46,7 @@ namespace Scene
 		UI1I::SmallButtony ExitButton;
 		//Options::DefaultOptionMenu Testo;
 
-		std::unique_ptr<StageScene> Stageboi;
+		std::unique_ptr<IScene> NextScene;
 		SolidFader Faderer;
 		bool DoNewGame{ false };
 	};
