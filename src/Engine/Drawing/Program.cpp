@@ -698,8 +698,6 @@ namespace Drawing
 
 		const auto& bytes = material.ToByteForm();
 
-		glBindBuffer(GL_UNIFORM_BUFFER, _matBuffer.Get());
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, (GLsizeiptr)bytes.size(), (GLvoid*)bytes.data());
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		glNamedBufferSubData(_matBuffer.Get(), 0, (GLsizeiptr)bytes.size(), (GLvoid*)bytes.data());
 	}
 }
