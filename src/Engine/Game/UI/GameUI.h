@@ -10,7 +10,62 @@
 #pragma warning(disable:4250)
 namespace UI1I
 {
-	struct Buttony : virtual UI1I::UITextButton
+	class UIPosition
+	{
+		floaty2 m_Anchor = { 0.5f, 0.5f };
+		floaty2 m_Pivot = { 0.f, 0.f };
+		floaty2 m_HalfBounds = { 50.f, 50.f };
+	public:
+		UIPosition() = default;
+		UIPosition(floaty2 anchor, floaty2 pivot, floaty2 halfBounds) : m_Anchor(anchor), m_Pivot(pivot), m_HalfBounds(halfBounds) {}
+
+		void SetAnchor(floaty2 anchor);
+		void SetPivot(floaty2 pivot);
+		void SetHalfBounds(floaty2 halfBounds);
+
+		/// <summary>
+		/// Transforms a point based on stored Anchor, Pivot and Half Bound values.
+		/// The anchor specifies which corner of the parent's space to base the origin off of. The Anchor is normalized -1..+1
+		/// The Pivot specifies which corner of the Bounds is used. 
+		/// A pivot of 0.f, 0.f does nothing, a pivot of -1, +1 makes the point (HalfWidth, HalfHeight) into (0, Height)
+		/// </summary>
+		/// <param name="in">The point to transform</param>
+		/// <param name="ParentBounds">The pixel space bounds (xmin, ymin, xmax, ymax) of the parent to anchor to</param>
+		/// <returns>The transformed point</returns>
+		floaty2 Transform(floaty2 in, floaty4 ParentBounds) const;
+
+		/// <summary>
+		/// Identical to Transform with a floaty2, treating floaty4 as two floaty2s in the form (x1, y1, x2, y2)
+		/// </summary>
+		/// <param name="in">The point to transform</param>
+		/// <param name="ParentBounds">The pixel space bounds (xmin, ymin, xmax, ymax) of the parent to anchor to</param>
+		/// <returns>The 2 transformed points in the form (x1, y1, x2, y2)</returns>
+		floaty4 Transform(floaty4 in, floaty4 ParentBounds) const;
+
+		floaty4 GetTransformedBounds(floaty4 parentBounds) const;
+	};
+
+	class SizedUIElement : public virtual UI1::UIElement
+	{
+	protected:
+		floaty4 m_ParentBounds = { 0.f, 0.f, 0.f, 0.f };
+	public:
+		virtual ~SizedUIElement() {}
+
+		inline virtual void SetParentBounds(floaty4 parentBounds) { m_ParentBounds = parentBounds; }
+	};
+
+	class SizedUITextBox : public UI1I::UITextBox, public SizedUIElement
+	{
+		UIPosition m_Position;
+
+	public:
+		SizedUITextBox(CommonResources* resources, std::string name, std::string fontName, UIPosition position);
+
+		virtual void IDraw() override;
+	};
+
+	struct Buttony : virtual UI1I::UITextBox
 	{
 		Buttony(Requests::Request action) : action(action) {}
 

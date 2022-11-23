@@ -24,8 +24,8 @@ void Parkour::ParkourLightBlock::OnLoaded()
 
 		Light light;
 		light.Color = floaty3{ 1.f, 1.f, 1.f };
-		light.Intensity = 2.f;
-		light.Attenuation = floaty3{ 2.f, 0.1f, 0.075f };
+		light.Intensity = 3.5f;
+		light.Attenuation = floaty3{ 2.f, 0.1f, 0.15f };
 		light.Enabled = true;
 		light.PositionWS = floaty4{ pos, 1.f };
 		light.PositionVS = floaty4{};
@@ -33,7 +33,7 @@ void Parkour::ParkourLightBlock::OnLoaded()
 		light.DirectionVS = floaty4{};
 		light.Range = 50.f;
 		light.Type = LIGHT_SPOT;
-		light.SpotlightAngle = Math::DegToRadF * 30.f;
+		light.SpotlightAngle = Math::DegToRadF * 35.f;
 		light.Padding = 0.f;
 		this->AddChild<G1I::LightShape>("Parkour Light", light);
 	}
@@ -44,6 +44,14 @@ void Parkour::ParkourLightBlock::OnLoaded()
 
 void Parkour::ParkourLightBlock::OnUnloaded()
 {
+	for (int i = children.size(); i-- > 0; )
+	{
+		if (auto child = dynamic_cast<G1I::LightShape*>(children[i].get()); child)
+		{
+			std::swap(children[i], children.back());
+			children.pop_back();
+		}
+	}
 }
 
 std::unique_ptr<Voxel::ICube> Parkour::ParkourLightBlock::Clone(Voxel::VoxelWorld* world, Voxel::VoxelChunk* chunk, Voxel::ChunkBlockCoord pos) const

@@ -20,7 +20,7 @@ namespace Parkour
 		void Disable();
 	};
 
-	class ParkourInGameHUD
+	class ParkourInGameHUD : public FullResourceHolder
 	{
 		UI1I::ButtonyContainer m_Container;
 		UI1I::SmallButtony m_FPSDisplay;
@@ -28,6 +28,11 @@ namespace Parkour
 	public:
 		ParkourInGameHUD(CommonResources* resources);
 
+		void AddTo(UI1::RootElement& root);
 
+		void Update();
+
+		void Enable();
+		void Disable();
 	};
 }

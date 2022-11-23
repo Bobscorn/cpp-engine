@@ -39,6 +39,7 @@
 #include <random>
 #include <sstream>
 
+#include <Game/Scene/StartingScene.h>
 #include "ParkourScene.h"
 
 #define _CHEATS_
@@ -249,17 +250,18 @@ int main(int argc, char *args[])
 		*/
 		
 		g_Engine = std::make_unique<Engine::GameEngine>();
-		g_Engine->SwitchScene(std::make_unique<Parkour::ParkourScene>(&g_Engine->Resources, 0));
+		g_Engine->SwitchScene(std::make_unique<Parkour::ParkourStartingScene>(&g_Engine->Resources, std::unique_ptr<Parkour::IParkourDifficultyScene>(new Parkour::ParkourScene(&g_Engine->Resources, 0))));
+		//g_Engine->SwitchScene(std::make_unique<Parkour::ParkourStartingScene>(&g_Engine->Resources, std::make_unique<Parkour::ParkourScene>(&g_Engine->Resources, 0)));
 		DINFO("Yo whats popping my bois");
 		Run();
 	}
 	catch (Debug::GLExc &e)
 	{
-		Debug::ReportError("OpenGL ran into an error during creation", (std::string("OpenGL ran into an error during creation: ") + e.what()).c_str());
+		Debug::ReportError("OpenGL ran into an error", (std::string("OpenGL ran into an error: ") + e.what()).c_str());
 	}
 	catch (Debug::SDLException &e)
 	{
-		Debug::ReportError("SDL ran into an error during creation", (std::string("SDL ran into an error pre-creation: ") + e.what()).c_str());
+		Debug::ReportError("SDL ran into an error", (std::string("SDL ran into an error: ") + e.what()).c_str());
 	}
 
 	// Destroy engine before Shutting down SDL/TTG/IMG

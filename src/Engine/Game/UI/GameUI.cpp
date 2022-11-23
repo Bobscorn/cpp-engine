@@ -86,14 +86,14 @@ floaty2 UI1I::ButtonyContainer::GetAlignmentPosition()
 	floaty2 out;
 	float margin_size = mResources->UIConfig->GetBigMarginSize();
 	if (X_Align == LEFT_ALIGN)
-		out.x = -(float)*mResources->WindowWidth + margin_size * 3.f;
+		out.x = -(float)*mResources->HalfWindowWidth + margin_size * 2.f;
 	else if (X_Align == RIGHT_ALIGN)
 	{
 		float max_width = 0.f;
 		for (auto& button : Buttons)
 			max_width = fmaxf(max_width, button->GetWidth());
 
-		out.x = (float)*mResources->WindowWidth - margin_size * 3.f - max_width;
+		out.x = (float)*mResources->HalfWindowWidth - margin_size * 3.f - max_width;
 	}
 	else
 	{
@@ -103,14 +103,14 @@ floaty2 UI1I::ButtonyContainer::GetAlignmentPosition()
 		out.x = -(max_width * 0.5f);
 	}
 	if (Y_Align == TOP_ALIGN)
-		out.x = (float)*mResources->WindowHeight - margin_size * 3.f;
+		out.x = (float)*mResources->HalfWindowHeight - margin_size * 3.f;
 	else if (Y_Align == BOTTOM_ALIGN)
 	{
 		float TotalHeight{ 0.f };
 		for (auto& butt : Buttons)
 			TotalHeight += butt->GetHeight();
 
-		out.y = -(float)*mResources->WindowHeight + margin_size * 3.f + TotalHeight;
+		out.y = -(float)*mResources->HalfWindowHeight + margin_size * 3.f + TotalHeight;
 	}
 	else
 	{
@@ -132,4 +132,36 @@ Debug::DebugReturn UI1I::TitleText::Initialize()
 	this->LocalBounds.right = Width * 0.5f;
 	
 	return true;
+}
+
+floaty2 UI1I::UIPosition::Transform(floaty2 in, floaty4 parentBounds) const 
+{
+	floaty2 preAnchor = in + floaty2{ m_HalfBounds.x * m_Pivot.x, m_HalfBounds.y * m_Pivot.y };
+	floaty2 parentDims = floaty2{ parentBounds.z - parentBounds.x, parentBounds.w - parentBounds.y };
+
+	floaty2 anchorOrigin = parentBounds.xy() + floaty2{ parentDims.x * m_Anchor.x, parentDims.y * m_Anchor.y };
+	return preAnchor + anchorOrigin;
+}
+
+floaty4 UI1I::UIPosition::Transform(floaty4 myBounds, floaty4 parentBounds) const 
+{
+	floaty2 pivotOrigin = floaty2{ m_HalfBounds.x * m_Pivot.x, m_HalfBounds.y * m_Pivot.y };
+	floaty4 preAnchor = myBounds + floaty4{ pivotOrigin.x, pivotOrigin.y, pivotOrigin.x, pivotOrigin.y };
+	floaty2 parentDims = floaty2{ parentBounds.z - parentBounds.x, parentBounds.w - parentBounds.y };
+
+	floaty2 anchorOrigin = parentBounds.xy() + floaty2{ parentDims.x * m_Anchor.x, parentDims.y * m_Anchor.y };
+	return preAnchor + floaty4{ anchorOrigin.x, anchorOrigin.y, anchorOrigin.x, anchorOrigin.y };
+}
+
+floaty4 UI1I::UIPosition::GetTransformedBounds(floaty4 parentBounds) const
+{
+	return Transform(floaty4{ -m_HalfBounds.x, -m_HalfBounds.y, m_HalfBounds.x, m_HalfBounds.y }, parentBounds);
+}
+
+void UI1I::SizedUITextBox::IDraw()
+{
+	mResources->Ren2->SetTransform(this->LocalToWorld);
+	
+	floaty4 bounds = m_Position.GetTransformedBounds(m_ParentBounds);
+	mResources->Ren2->DrawImage(&Text, LocalBounds);
 }

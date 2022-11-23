@@ -25,13 +25,14 @@ void Parkour::ParkourLevelShape::SetLevelData(ParkourLevel level)
 	m_Level = level;
 }
 
-Parkour::ParkourGeneratorShape::ParkourGeneratorShape(G1::IShapeThings things, Pointer::f_ptr<ParkourLevelShape> levelShape, Pointer::f_ptr<Voxel::VoxelWorld> worldShape)
+Parkour::ParkourGeneratorShape::ParkourGeneratorShape(G1::IShapeThings things, Pointer::f_ptr<ParkourLevelShape> levelShape, Pointer::f_ptr<Voxel::VoxelWorld> worldShape, bool generate)
 	: IShape(things)
 	, FullResourceHolder(things.Resources)
 	, m_LevelShape(std::move(levelShape))
 	, m_WorldShape(std::move(worldShape))
 {
-	Generate();
+	if (generate)
+		Generate();
 }
 
 void Parkour::ParkourGeneratorShape::Generate()

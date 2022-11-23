@@ -31,6 +31,10 @@ namespace Parkour
 	// Visually displays the end of the current parkour level
 	// No behaviour except for displaying the visuals
 
+	// A PlayerTorchShape
+	// refs the Player
+	// Updates the player's 'torch' to match where they are looking
+
 	class ParkourLevelShape : public virtual G1::IShape
 	{
 	public:
@@ -47,10 +51,11 @@ namespace Parkour
 		ParkourLevel m_Level;
 	};
 
+	// A shape that will generate parkour upon creation
 	class ParkourGeneratorShape : public virtual G1::IShape
 	{
 	public:
-		ParkourGeneratorShape(G1::IShapeThings things, Pointer::f_ptr<ParkourLevelShape> levelShape, Pointer::f_ptr<Voxel::VoxelWorld> worldShape);
+		ParkourGeneratorShape(G1::IShapeThings things, Pointer::f_ptr<ParkourLevelShape> levelShape, Pointer::f_ptr<Voxel::VoxelWorld> worldShape, bool generate);
 
 		inline virtual void BeforeDraw() override {}
 		inline virtual void AfterDraw() override {}
@@ -71,6 +76,7 @@ namespace Parkour
 		float MinimumY;
 	};
 
+	// Tracks player position for specific conditions like being at the goal
 	class PlayerTrackerShape : public virtual G1::IShape
 	{
 	public:
@@ -83,6 +89,7 @@ namespace Parkour
 		PlayerTrackingData m_Data;
 	};
 
+	// A visual shape used to indicate where the end of parkour is
 	class ParkourEndShape : public virtual G1::IShape
 	{
 	public:

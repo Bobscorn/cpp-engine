@@ -152,7 +152,7 @@ namespace Voxel
 		return m_Culler.get();
 	}
 
-	void Voxel::VoxelChunk::set(uint32_t x, uint32_t y, uint32_t z, std::unique_ptr<Voxel::ICube> val)
+	void Voxel::VoxelChunk::set(uint8_t x, uint8_t y, uint8_t z, std::unique_ptr<Voxel::ICube> val)
 	{
 		ChunkBlockCoord key{ x, y, z };
 		m_Data[x][y][z] = val->GetBlockData();
@@ -192,7 +192,7 @@ namespace Voxel
 		m_Dirty = true;
 	}
 
-	Voxel::ICube* Voxel::VoxelChunk::get(uint32_t x, uint32_t y, uint32_t z)
+	Voxel::ICube* Voxel::VoxelChunk::get(uint8_t x, uint8_t y, uint8_t z)
 	{
 		auto it = m_UpdateBlocks.find(ChunkBlockCoord{ x, y, z });
 		if (it != m_UpdateBlocks.end())
@@ -246,11 +246,11 @@ namespace Voxel
 			m_Data = std::move(preLoadedChunk->ChunkDat);
 			auto& vox = Voxel::VoxelStore::Instance();
 			m_UpdateBlocks.clear();
-			for (unsigned int x = 0; x < Chunk_Size; ++x)
+			for (uint8_t x = 0; x < Chunk_Size; ++x)
 			{
-				for (unsigned int y = 0; y < Chunk_Height; ++y)
+				for (uint8_t y = 0; y < Chunk_Height; ++y)
 				{
-					for (unsigned int z = 0; z < Chunk_Size; ++z)
+					for (uint8_t z = 0; z < Chunk_Size; ++z)
 					{
 						auto& block = m_Data[x][y][z];
 						const VoxelBlock* desc;

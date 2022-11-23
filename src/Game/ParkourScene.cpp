@@ -7,8 +7,11 @@
 #include <Systems/Input/Input.h>
 #include <Systems/Events/Converter.h>
 #include <Systems/Time/Time.h>
+#include <Systems/Execution/Engine.h>
 #include <Drawing/GeometryStore.h>
 #include <Drawing/VoxelStore.h>
+
+#include <Helpers/StringHelper.h>
 
 #include <vector>
 #include <utility>
@@ -20,51 +23,41 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	: FullResourceHolder(resources)
 	, m_Level(level)
 	, m_GSpace(resources)
-	, m_WorldShape(m_GSpace.GetRootShape()->AddChild<Voxel::VoxelWorld>("Voxel World", Voxel::WorldStuff{&m_Loader, &m_Loader, nullptr, 1, 1, 1, 1}))
+	, m_WorldShape(m_GSpace.GetRootShape()->AddChild<Voxel::VoxelWorld>("Voxel World", Voxel::WorldStuff{&m_Loader, &m_Loader, nullptr, 3, 2, 3, 1}))
 	, m_PlayerShape(m_GSpace.GetRootShape()->AddChild<Voxel::VoxelPlayer>("Voxel Player", m_WorldShape.get(), Voxel::VoxelPlayerStuff()))
 	, m_LevelShape(m_GSpace.GetRootShape()->AddChild<ParkourLevelShape>("ParkourLevel Shape", Parkour::Levels[level]))
-	, m_GeneratorShape(m_GSpace.GetRootShape()->AddChild<ParkourGeneratorShape>("Parkour Generator", m_LevelShape, m_WorldShape))
+	, m_GeneratorShape(m_GSpace.GetRootShape()->AddChild<ParkourGeneratorShape>("Parkour Generator", m_LevelShape, m_WorldShape, false))
 	, m_TrackerShape(m_GSpace.GetRootShape()->AddChild<PlayerTrackerShape>("Parkour Player Tracker", PlayerTrackingData{ m_PlayerShape, m_WorldShape, m_LevelShape, 1.f, -20.f }))
 	, m_ParkourEndShape(m_GSpace.GetRootShape()->AddChild<ParkourEndShape>("Parkour End Shape", m_LevelShape, m_WorldShape))
+	, m_TorchShape(m_GSpace.GetRootShape()->AddChild<ParkourTorchShape>("Player Torch Shape", m_PlayerShape))
 	, m_UI(resources)
 	, m_Crosshair()
+	, m_HUD(resources)
 	, m_Menu(resources)
 {
-	Light light{};
-	light.Color = floaty3{ 1.f, 1.f, 1.f };
-	light.Intensity = 5.f;
-	light.Attenuation = floaty3{ 2.f, 0.25f, 0.05f };
-	light.Enabled = true;
-	light.PositionWS = floaty4{ 0.f, 3.f, 0.f, 1.f };
-	light.PositionVS = floaty4{};
-	light.DirectionWS = floaty4{ 0.f, -1.f, 0.f, 1.f };
-	light.DirectionVS = floaty4{};
-	light.Range = 50.f;
-	light.Type = LIGHT_SPOT;
-	light.SpotlightAngle = Math::DegToRadF * 30.f;
-	light.Padding = 0.f;
-
-	m_LightShape = m_GSpace.GetRootShape()->AddChild<G1I::LightShape>("Epic Light", light);
 	m_GSpace.GetRootShape()->AddChild<G1I::ProfilerShape>("Profiler McGee Shape", G1I::ProfilerThings{ 15.0, false });
 	m_GSpace.GetRootShape()->AddChild<G1I::SkyBoxShape>("Skybox Shape", "skybox", ".jpg");
 
 	Voxel::VoxelStore::GetMutable().RegisterUpdateBlock("lamp-light", std::make_unique<ParkourLightBlock>(&m_GSpace, mResources, m_WorldShape.get(), nullptr, Voxel::ChunkBlockCoord{}));
 
-	resources->InputAttachment->Add(m_PlayerShape.get());
 	m_UI.AddChildBottom(&m_Crosshair);
 	m_Menu.AddTo(m_UI);
 	m_Menu.Disable();
-
-	if (!this->Events::IEventListener::ListeningTo)
-		resources->Event->Add((Events::IEventListener*)this);
-
-	if (!this->Requests::IRequestable::GetMaster())
-		resources->Request->Add(this);
+	m_HUD.AddTo(m_UI);
 }
 
 Debug::DebugReturn Parkour::ParkourScene::Initialize()
 {
 	m_WorldShape->Update(m_PlayerShape->GetPosition());
+	mResources->InputAttachment->Add(m_PlayerShape.get());
+
+	if (!this->Events::IEventListener::ListeningTo)
+		mResources->Event->Add((Events::IEventListener*)this);
+
+	if (!this->Requests::IRequestable::GetMaster())
+		mResources->Request->Add(this);
+
+	m_GeneratorShape->Generate();
 
 	return true;
 }
@@ -82,21 +75,6 @@ bool Parkour::ParkourScene::Receive(Events::IEvent* event)
 		}
 		else if (key_event->State)
 		{
-			if (key_event->KeyCode == SDLK_EQUALS)
-			{
-				m_LightShape->GetLight()->Attenuation.y += 0.05f;
-				DINFO("Increasing Attenuation by 0.05");
-			}
-			if (key_event->KeyCode == SDLK_MINUS)
-			{
-				m_LightShape->GetLight()->Attenuation.y -= 0.05f;
-				DINFO("Decreasing Attenuation by 0.05");
-			}
-			if (key_event->KeyCode == SDLK_q)
-			{
-				m_LightShape->GetLight()->PositionWS = floaty4{ m_PlayerShape->GetCentre(), 1.f };
-				DINFO("Setting light to player position (" + std::to_string(m_PlayerShape->GetCentre().x) + ", " + std::to_string(m_PlayerShape->GetCentre().y) + ", " + std::to_string(m_PlayerShape->GetCentre().z) + ")");
-			}
 			if (key_event->KeyCode == SDLK_r)
 			{
 				mResources->Request->Request(Requests::Request{ "ReloadMaterials" });
@@ -110,6 +88,8 @@ bool Parkour::ParkourScene::Receive(Events::IEvent* event)
 void Parkour::ParkourScene::BeforeDraw()
 {
 	m_GSpace.BeforeDraw();
+
+	m_HUD.Update();
 }
 
 void Parkour::ParkourScene::Draw()
@@ -177,4 +157,121 @@ void Parkour::ParkourScene::Resume()
 	mResources->Time->SetTimeScale(1.f);
 
 	m_Paused = false;
+}
+
+void Parkour::ParkourScene::SetDifficulty(int dif)
+{
+
+}
+
+Parkour::ParkourStartingScene::ParkourStartingScene(CommonResources* resources, std::unique_ptr<IParkourDifficultyScene> nextScene)
+	: FullResourceHolder(resources)
+	, UIRoot(resources)
+	, Faderer(resources, 1.f)
+	, Title(resources, "Parkour!")
+	, UIContainer(resources, "background.jpeg", UI1I::ButtonyContainer::CENTRE_ALIGN, UI1I::ButtonyContainer::CENTRE_ALIGN)
+	, NewEasyGameButton(resources, "BEGIN EASY RUN", Requests::Request("BeginEasyRun"))
+	, NewMediumGameButton(resources, "BEGIN MEDIUM RUN", Requests::Request("BeginMediumRun"))
+	, NewHardGameButton(resources, "BEGIN HARD RUN", Requests::Request("BeginHardRun"))
+	, ExitButton(resources, "EXIT", Requests::Request("ExitGame"))
+	, NextScene(std::move(nextScene))
+{
+	mResources->UIConfig->RegisterNewBrush("Title", { 200, 80, 120 ,255 });
+
+	mResources->UIConfig->RegisterNewTextFormat("Title", { "NotoSans-Regular.ttf", 24 });
+
+	resources->Request->Add(this);
+}
+
+Debug::DebugReturn Parkour::ParkourStartingScene::Initialize()
+{
+	mResources->InputAttachment->Add(&UIRoot);
+	UIRoot.AddChildrenTop({ &UIContainer, &Title });
+	UIContainer.AddButtons({ &NewEasyGameButton, &NewMediumGameButton, &NewHardGameButton, &ExitButton });
+
+	return true;
+}
+
+bool Parkour::ParkourStartingScene::Receive(Events::IEvent* event)
+{
+	(void)event;
+	return false;
+}
+
+void Parkour::ParkourStartingScene::BeforeDraw()
+{
+	UIRoot.BeforeDraw();
+}
+
+void Parkour::ParkourStartingScene::Draw()
+{
+	UIRoot.Draw();
+	if (DoNewGame)
+	{
+		if (Faderer.Fade())
+			ActuallyDoNewGame();
+	}
+}
+
+void Parkour::ParkourStartingScene::AfterDraw()
+{
+	UIRoot.AfterDraw();
+}
+
+Debug::DebugReturn Parkour::ParkourStartingScene::Request(Requests::Request& action)
+{
+	if (action.Name == "BeginEasyRun")
+	{
+		NextScene->SetDifficulty(0);
+		NewGame();
+		return true;
+	}
+	else if (action.Name == "BeginMediumRun")
+	{
+		NextScene->SetDifficulty(1);
+		NewGame();
+		return true;
+	}
+	else if (action.Name == "BeginHardRun")
+	{
+		NextScene->SetDifficulty(2);
+		NewGame();
+		return true;
+	}
+	else if (action.Name == "UI")
+	{
+		if (action.Params.size())
+		{
+			if (action.Params[0] == "ToggleDebugDrawing")
+			{
+				UIRoot.ToggleDebugDraw();
+				return true;
+			}
+			else if (action.Params[0] == "ToggleMouseMovement")
+			{
+				UIRoot.ToggleMouseMovement();
+				return true;
+			}
+			else if (action.Params[0] == "ToggleHover")
+			{
+				UIRoot.ToggleHover();
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+void Parkour::ParkourStartingScene::NewGame()
+{
+	Faderer.Reset();
+	Faderer.Start();
+	DoNewGame = true;
+}
+
+void Parkour::ParkourStartingScene::ActuallyDoNewGame()
+{
+	mResources->Engine->SwitchScene(std::move(NextScene));
+	DINFO("Wooo new game time");
 }
