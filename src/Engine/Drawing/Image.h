@@ -112,7 +112,7 @@ namespace Drawing
 				return;
 			if (!HasGLTex())
 			{
-				DINFO("Loading '" + Name + "' into OpenGL");
+				//DINFO("Loading '" + Name + "' into OpenGL");
 				_tex = LoadGLTexture(Tex, &WidthScale, &HeightScale, ChannelCount);
 			}
 		}

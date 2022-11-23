@@ -93,17 +93,17 @@ GLuint Drawing::SDLImage::LoadGLTexture(SDL_Surface * surface, float *WidthScale
 	if (channels == 4)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pow2width, pow2height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp->pixels);
-		DINFO("Loading OpenGL texture with 4 channels");
+		//DINFO("Loading OpenGL texture with 4 channels");
 	}
 	else if (channels == 3)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, pow2width, pow2height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp->pixels);
-		DINFO("Loading OpenGL texture with 3 channels");
+		//DINFO("Loading OpenGL texture with 3 channels");
 	}
 	else if (channels == 1)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, pow2width, pow2height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tmp->pixels);
-		DINFO("Loading OpenGL texture with 1 channel");
+		//DINFO("Loading OpenGL texture with 1 channel");
 	}
 	else
 	{
