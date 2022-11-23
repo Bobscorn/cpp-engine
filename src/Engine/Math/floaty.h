@@ -269,6 +269,12 @@ struct floaty4
 	floaty4(SDL_Color color);
 	explicit floaty4(const aiVector3D& a);
 
+	inline floaty2 xy() const { return floaty2{ x, y }; }
+	inline floaty2 yz() const { return floaty2{ y, z }; }
+	inline floaty2 zw() const { return floaty2{ y, z }; }
+	inline floaty3 xyz() const { return floaty3{ x, y, z }; }
+	inline floaty3 yzw() const { return floaty3{ y, z, w }; }
+
 	inline float dot(const floaty4& other) const
 	{
 		return x * other.x + y * other.y + z * other.z + w * other.w;
