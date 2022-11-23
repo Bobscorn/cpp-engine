@@ -304,6 +304,8 @@ namespace G1I
 		size_t m_LightIndex = (size_t)-1;
 
 		static std::array<bool, LIGHT_COUNT> TakenLights;
+	public:
+		static size_t GetNumUsedLights();
 	};
 	
 	namespace EnviroThings

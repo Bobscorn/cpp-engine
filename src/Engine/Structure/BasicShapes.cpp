@@ -989,6 +989,17 @@ size_t G1I::LightShape::GetFreeIndex()
 	throw NoFreeLightException();
 }
 
+size_t G1I::LightShape::GetNumUsedLights()
+{
+	size_t total = 0;
+	for (size_t i = 0; i < LIGHT_COUNT; ++i)
+	{
+		if (TakenLights[i])
+			++total;
+	}
+	return total;
+}
+
 G1I::ProfilerShape::ProfilerShape(G1::IShapeThings ting1, ProfilerThings ting2) : FullResourceHolder(ting1.Resources), IShape(ting1), m_Info(ting2)
 {
 	if (ting2.Running)
