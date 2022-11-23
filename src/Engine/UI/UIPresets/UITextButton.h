@@ -41,6 +41,7 @@ namespace UI1I
 		virtual float GetMargin() const = 0;
 		virtual float GetFontSize() const = 0;
 		void SetTextFormat(Stringy Name);
+		void SetText(Stringy text);
 
 		inline void SetTextColor(SDL_Color color) { Text.SetColor(color); }
 		inline void SetTextColor(Stringy colorname) { Text.SetColor(colorname); }

@@ -54,6 +54,11 @@ void UI1I::UITextBox::SetTextFormat(Stringy Name)
 	Parent->ChildNeedsUpdate();
 }
 
+void UI1I::UITextBox::SetText(Stringy text)
+{
+	Text.SetText(text);
+}
+
 void UI1I::UITextButtonE::IDraw()
 {
 	mResources->Ren2->SetTransform(LocalToWorld);
