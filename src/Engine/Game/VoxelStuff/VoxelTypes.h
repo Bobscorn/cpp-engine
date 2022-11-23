@@ -102,7 +102,7 @@ namespace Voxel
 
 	struct ChunkBlockCoord
 	{
-		uint32_t x, y, z;
+		uint8_t x, y, z;
 	};
 
 	inline bool operator==(const ChunkBlockCoord& a, const ChunkBlockCoord& b)

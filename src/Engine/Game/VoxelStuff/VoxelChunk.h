@@ -38,11 +38,22 @@ namespace std
 	{
 		inline size_t operator()(const Voxel::ChunkBlockCoord& in) const
 		{
-			size_t out = 0;
-			out |= (((size_t)in.x + (size_t)LLONG_MAX) >> 42) >> 42;
-			out |= (((size_t)in.y + (size_t)LLONG_MAX) >> 42) << 21;
-			out |= (((size_t)in.z + (size_t)LLONG_MAX) >> 42) << 42;
-			return out;
+			if constexpr (sizeof(decltype(in.x)) <= 1)
+			{
+				size_t out = 0;
+				out |= ((size_t)in.x) << 0;
+				out |= ((size_t)in.y) << 8;
+				out |= ((size_t)in.z) << 16;
+				return out;
+			}
+			else
+			{
+				size_t out = 0;
+				out |= (((size_t)in.x + (size_t)LLONG_MAX) >> 42) >> 42;
+				out |= (((size_t)in.y + (size_t)LLONG_MAX) >> 42) << 21;
+				out |= (((size_t)in.z + (size_t)LLONG_MAX) >> 42) << 42;
+				return out;
+			}
 		}
 	};
 }
@@ -86,12 +97,12 @@ namespace Voxel
 		//inline operator std::array<std::array<std::array<std::unique_ptr<Voxel::ICube>, Chunk_Size>, Chunk_Height>, Chunk_Size> &const() { return m_Data; }
 		
 		// Will set the targetted block and add it to m_UpdateBlocks
-		void set(uint32_t x, uint32_t y, uint32_t z, std::unique_ptr<Voxel::ICube> val);
+		void set(uint8_t x, uint8_t y, uint8_t z, std::unique_ptr<Voxel::ICube> val);
 		void set(ChunkBlockCoord coord, std::unique_ptr<Voxel::ICube> val);
 
 		void set(ChunkBlockCoord coord, const SerialBlock& block);
 
-		ICube* get(uint32_t x, uint32_t y, uint32_t z);
+		ICube* get(uint8_t x, uint8_t y, uint8_t z);
 		ICube* get(ChunkBlockCoord coord);
 		const SerialBlock& get_data(ChunkBlockCoord coord) const;
 		ChunkCoord GetCoord() const;

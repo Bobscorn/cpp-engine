@@ -1,12 +1,13 @@
 #pragma once
 
 #include <math.h>
+#include <cstdint>
 
 namespace Voxel
 {
 	constexpr float BlockSize = 0.8f;
-	constexpr size_t Chunk_Size = 8u;
-	constexpr size_t Chunk_Height = 32u;
+	constexpr uint8_t Chunk_Size = 32u;
+	constexpr uint8_t Chunk_Height = 48u;
 
 	constexpr float Block_Radius = 1.224744871391589f;
 

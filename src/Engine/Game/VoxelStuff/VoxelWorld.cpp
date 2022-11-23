@@ -648,11 +648,11 @@ void Voxel::VoxelWorld::UnloadChunk(std::unique_ptr<VoxelChunk> chunk)
 	//DINFO("Unloading chunk (" + std::to_string(chunkPos.X) + ", " + std::to_string(chunkPos.Y) + ", " + std::to_string(chunkPos.Z) + ")");
 	auto generatedData = (m_Stuff.m_ChunkLoader ? m_Stuff.m_ChunkLoader->LoadChunk(chunkPos) : Voxel::RawChunkDataMap{});
 
-	for (unsigned int x = 0; x < Chunk_Size; ++x)
+	for (uint8_t x = 0; x < Chunk_Size; ++x)
 	{
-		for (unsigned int y = 0; y < Chunk_Height; ++y)
+		for (uint8_t y = 0; y < Chunk_Height; ++y)
 		{
-			for (unsigned int z = 0; z < Chunk_Size; ++z)
+			for (uint8_t z = 0; z < Chunk_Size; ++z)
 			{
 				auto key = ChunkBlockCoord{ x, y, z };
 				auto it = generatedData.find(key);

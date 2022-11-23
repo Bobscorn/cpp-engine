@@ -86,9 +86,9 @@ Voxel::RawChunkDataMap Voxel::DefaultWorldLoader::LoadChunk(int64_t x, int64_t y
 	if (y == 0)
 	{
 		Voxel::RawChunkDataMap map;
-		for (unsigned int x_i = 0; x_i < Chunk_Size; ++x_i)
+		for (uint8_t x_i = 0; x_i < Chunk_Size; ++x_i)
 		{
-			for (unsigned int z_i = 0; z_i < Chunk_Size; ++z_i)
+			for (uint8_t z_i = 0; z_i < Chunk_Size; ++z_i)
 			{
 				map[{x_i, 0, z_i}] = VoxelStore::Instance().GetDescOrEmpty("wood")->BlockData;
 			}
