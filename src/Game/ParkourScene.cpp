@@ -23,17 +23,18 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	: FullResourceHolder(resources)
 	, m_Level(level)
 	, m_GSpace(resources)
-	, m_WorldShape(m_GSpace.GetRootShape()->AddChild<Voxel::VoxelWorld>("Voxel World", Voxel::WorldStuff{&m_Loader, &m_Loader, nullptr, 3, 2, 3, 1}))
+	, m_WorldShape(m_GSpace.GetRootShape()->AddChild<Voxel::VoxelWorld>("Voxel World", Voxel::WorldStuff{&m_Loader, &m_Loader, nullptr, 2, 1, 2, 1}))
 	, m_PlayerShape(m_GSpace.GetRootShape()->AddChild<Voxel::VoxelPlayer>("Voxel Player", m_WorldShape.get(), Voxel::VoxelPlayerStuff()))
 	, m_LevelShape(m_GSpace.GetRootShape()->AddChild<ParkourLevelShape>("ParkourLevel Shape", Parkour::Levels[level]))
 	, m_GeneratorShape(m_GSpace.GetRootShape()->AddChild<ParkourGeneratorShape>("Parkour Generator", m_LevelShape, m_WorldShape, false))
 	, m_TrackerShape(m_GSpace.GetRootShape()->AddChild<PlayerTrackerShape>("Parkour Player Tracker", PlayerTrackingData{ m_PlayerShape, m_WorldShape, m_LevelShape, 1.f, -20.f }))
 	, m_ParkourEndShape(m_GSpace.GetRootShape()->AddChild<ParkourEndShape>("Parkour End Shape", m_LevelShape, m_WorldShape))
-	, m_TorchShape(m_GSpace.GetRootShape()->AddChild<ParkourTorchShape>("Player Torch Shape", m_PlayerShape))
+	//, m_TorchShape(m_GSpace.GetRootShape()->AddChild<ParkourTorchShape>("Player Torch Shape", m_PlayerShape))
 	, m_UI(resources)
 	, m_Crosshair()
 	, m_HUD(resources)
 	, m_Menu(resources)
+	, m_FinishMenu(resources)
 {
 	m_GSpace.GetRootShape()->AddChild<G1I::ProfilerShape>("Profiler McGee Shape", G1I::ProfilerThings{ 15.0, false });
 	m_GSpace.GetRootShape()->AddChild<G1I::SkyBoxShape>("Skybox Shape", "skybox", ".jpg");
@@ -44,6 +45,8 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	m_Menu.AddTo(m_UI);
 	m_Menu.Disable();
 	m_HUD.AddTo(m_UI);
+	m_FinishMenu.AddTo(m_UI);
+	m_FinishMenu.Disable();
 }
 
 Debug::DebugReturn Parkour::ParkourScene::Initialize()
@@ -99,6 +102,7 @@ void Parkour::ParkourScene::Draw()
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	CHECK_GL_ERR("After clearing");
 	m_GSpace.Draw();
+	m_FinishMenu.Update();
 	m_UI.Draw();
 }
 
@@ -117,12 +121,37 @@ Debug::DebugReturn Parkour::ParkourScene::Request(Requests::Request& req)
 {
 	if (req.Name == "Resume")
 	{
-		Resume();
+		if (!m_FinishMenu.IsEnabled())
+			Resume();
 		return true;
 	}
 	else if (req.Name == "Pause")
 	{
 		Pause();
+		return true;
+	}
+	else if (req.Name == "WinRun")
+	{
+		m_FinishMenu.Enable();
+		Pause();
+		m_Menu.Disable();
+		return true;
+	}
+	else if (req.Name == "RestartRun")
+	{
+		m_WorldShape->Reset();
+		m_PlayerShape->SetPosition(floaty3{ 0.f, 2.f, 0.f });
+		m_PlayerShape->ResetState();
+		m_PlayerShape->SetLookUp(floaty3{ 0.f, 0.f, -1.f }, floaty3{ 0.f, 1.f, 0.f });
+		m_FinishMenu.Disable();
+		m_GeneratorShape->Generate();
+		m_TrackerShape->Reset();
+		Resume();
+		return true;
+	}
+	else if (req.Name == "ReturnToMenu")
+	{
+		mResources->Engine->SwitchScene(std::make_unique<Parkour::ParkourStartingScene>(mResources, std::unique_ptr<Parkour::IParkourDifficultyScene>(new Parkour::ParkourScene(mResources, 0))));
 		return true;
 	}
 	return false;
@@ -205,6 +234,10 @@ void Parkour::ParkourStartingScene::BeforeDraw()
 
 void Parkour::ParkourStartingScene::Draw()
 {
+	CHECK_GL_ERR("Before clearing");
+	glClearColor(0.f, 0.f, 0.f, 1.f);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	CHECK_GL_ERR("After clearing");
 	UIRoot.Draw();
 	if (DoNewGame)
 	{
