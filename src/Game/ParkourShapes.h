@@ -85,8 +85,11 @@ namespace Parkour
 		// Inherited via IShape
 		virtual void BeforeDraw() override;
 		virtual void AfterDraw() override;
+
+		inline void Reset() { m_HasSentWinRequest = false; }
 	protected:
 		PlayerTrackingData m_Data;
+		bool m_HasSentWinRequest = false;
 	};
 
 	// A visual shape used to indicate where the end of parkour is

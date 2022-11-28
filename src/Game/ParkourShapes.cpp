@@ -74,12 +74,15 @@ void Parkour::PlayerTrackerShape::BeforeDraw()
 {
 	constexpr float GoalDistanceSq = 1.f;
 
-	// check if near end
-    auto diff = m_Data.Player->GetPosition() - m_Data.World->GetPhysPosFromBlockCoord(m_Data.Level->GetLevelData().GoalPosition);
-	if (diff.mag2() < GoalDistanceSq)
+	if (!m_HasSentWinRequest)
 	{
-		DINFO("Parkour: Player is within winning area!");
-		// Player win
+		// check if near end
+		auto diff = m_Data.Player->GetPosition() - m_Data.World->GetPhysPosFromBlockCoord(m_Data.Level->GetLevelData().GoalPosition);
+		if (diff.mag2() < GoalDistanceSq)
+		{
+			mResources->Request->Request(Requests::Request{ "WinRun" });
+			m_HasSentWinRequest = true;
+		}
 	}
 
 	if (m_Data.Player->GetPosition().y < m_Data.MinimumY)
