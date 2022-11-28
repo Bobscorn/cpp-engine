@@ -119,6 +119,9 @@ namespace Voxel
 		// Chunk Unloading
 		void UnloadChunk(std::unique_ptr<VoxelChunk> chunk) override;
 
+		// Unload all chunks and clear all changes
+		void Reset();
+
 	protected:
 
 		WorldStuff m_Stuff;

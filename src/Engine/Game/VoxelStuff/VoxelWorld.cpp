@@ -678,6 +678,13 @@ void Voxel::VoxelWorld::UnloadChunk(std::unique_ptr<VoxelChunk> chunk)
 	chunk = nullptr;
 }
 
+void Voxel::VoxelWorld::Reset()
+{
+	m_UpdateBlockChanges.clear();
+	m_BlockChanges.clear();
+	m_Chunks.clear();
+}
+
 GLuint Voxel::VoxelWorld::CreateVAO()
 {
 	GLuint out;
