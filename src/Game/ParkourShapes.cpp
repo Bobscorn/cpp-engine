@@ -52,7 +52,7 @@ void Parkour::ParkourGeneratorShape::Generate()
 	DINFO("Parkour: Generated '" + std::to_string(gen.Blocks.size()) + "' blocks");
 	levelDat.EndPosition = Parkour::inty3ToBlockCoord(gen.EndPosition);
 	levelDat.EndFace = gen.EndDirection;
-	levelDat.GoalPosition = Parkour::inty3ToBlockCoord(gen.EndPosition - Voxel::BlockFaceHelper::GetDirectionI(gen.EndDirection) + Vector::inty3(0, 2, 0));
+	levelDat.GoalPosition = Parkour::inty3ToBlockCoord(gen.EndPosition - Voxel::BlockFaceHelper::GetDirectionI(gen.EndDirection) + Vector::inty3(0, 1, 0));
 	m_LevelShape->SetLevelData(levelDat);
 
 	for (auto& block : gen.Blocks)
@@ -113,7 +113,7 @@ void Parkour::ParkourEndShape::BeforeDraw()
 
 	Matrixy4x4 trans = Matrixy4x4::Scale(0.5f);
 	trans = Matrixy4x4::MultiplyE(trans, Matrixy4x4::RotationAxisD(floaty3{ 0.f, 1.f, 0.f }, m_RotationDegrees));
-	auto endPos = m_WorldShape->GetPhysPosFromBlockCoord(m_LevelShape->GetLevelData().EndPosition);
+	auto endPos = m_WorldShape->GetPhysPosFromBlockCoord(m_LevelShape->GetLevelData().GoalPosition);
 	trans = Matrixy4x4::MultiplyE(trans, Matrixy4x4::Translate(endPos));
 
 	*m_DrawTrans = trans;
