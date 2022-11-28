@@ -31,96 +31,9 @@ void Engine::IEngine::ApplyScene()
 	if (toSwitch)
 	{
 		ENGINE_PROFILE_PUSH("TrySceneChange");
-		// Try change
-		auto old_scene = CurrentScene.release();
-		if (old_scene)
-			EventManager::Remove(old_scene);
+		CurrentScene = nullptr;
 		CurrentScene = std::move(toSwitch);
-		auto success = CurrentScene->Initialize();
-		ENGINE_PROFILE_POP();
-		ENGINE_PROFILE_PUSH("SuccessPart");
-		if (success)
-		{
-			Add(CurrentScene.get());
-			toSwitch = nullptr;
-			if (old_scene)
-				delete old_scene;
-		}
-		else
-		{
-			toSwitch = nullptr;
-			// Change failed
-			if (old_scene && old_scene->ContinueIfFail())
-			{
-				int response{ -1 };
-				if (success.HasErrors())
-					response = Debug::ReportErrorCancelTryContinue("Error Occured", success.AsString().c_str());
-				else
-					response = Debug::ReportErrorCancelTryContinue("Error Occured", "Something failed to load properly, you can either close the application, try to load it again, or continue from where you were");
-
-				if (response == Debug::ContinueID)
-				{
-					// Switch back to old scene
-					CurrentScene.reset(old_scene);
-					CurrentScene->WasContinued(&Resources);
-					Add(CurrentScene.get());
-				}
-				else if (response == Debug::RetryID)
-				{
-					toSwitch = CurrentScene->Clone();
-					CurrentScene = nullptr;
-					ApplyScene();
-
-				}
-				else
-				{
-					// MessageBox failed or user clicked cancel
-					delete old_scene;
-
-					auto bad_scene = CurrentScene.release();
-
-					try { delete bad_scene;	} catch (...) {}
-
-					QuitDatAss();
-					return;
-				}
-			}
-			else
-			{
-				// Switch to error scene
-				if (old_scene)
-					delete old_scene;
-				
-				bool retry = false;
-				if (success.HasErrors())
-					retry = Debug::ReportRetry("Error Occured", success.AsString().c_str());
-				else
-					retry = Debug::ReportRetry("ErrorOccured", "Fatal Error occured when loading a new scene \n You can retry or quit");
-
-				if (retry)
-				{
-					auto bad_scene = CurrentScene.release();
-					toSwitch = bad_scene->Clone();
-					ApplyScene();
-
-					try	{ delete bad_scene;	} 
-					catch (...)
-					{
-						DWARNING("a new scene failed to initialize, user asked for retry, old scene's deletion threw an exception");
-					}
-				}
-				else
-				{
-					auto bad_scene = CurrentScene.release();
-
-					try { delete bad_scene; }
-					catch (...) {}
-
-					QuitDatAss();
-					return;
-				}
-			}
-		}
+		CurrentScene->Initialize();
 		ENGINE_PROFILE_POP();
 	}
 }
