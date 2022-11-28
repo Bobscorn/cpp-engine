@@ -43,7 +43,7 @@ void Parkour::ParkourInGameHUD::AddTo(UI1::RootElement& root)
 
 void Parkour::ParkourInGameHUD::Update()
 {
-	m_FPSDisplay.SetText("Frame Time: " + std::to_string(*mResources->DeltaTime));
+	m_FPSDisplay.SetText("Frame Time: " + std::to_string((float)(int)(*mResources->DeltaTime * 10000.f) / 10.f) + "ms");
 	m_LightCountDisplay.SetText("Lights: " + std::to_string(G1I::LightShape::GetNumUsedLights()));
 }
 
@@ -55,4 +55,46 @@ void Parkour::ParkourInGameHUD::Enable()
 void Parkour::ParkourInGameHUD::Disable()
 {
 	m_Container.DisableUI();
+}
+
+Parkour::ParkourFinishMenu::ParkourFinishMenu(CommonResources* resources)
+	: FullResourceHolder(resources)
+	, m_Container(resources, "menu_backdrop.jpeg", UI1I::ButtonyContainer::CENTRE_ALIGN, UI1I::ButtonyContainer::CENTRE_ALIGN)
+	, m_AgainButton(resources, "Begin Another Run", Requests::Request{ "RestartRun" })
+	, m_BackButton(resources, "Return to Menu", Requests::Request{ "ReturnToMenu" })
+	, m_QuitDesktopButton(resources, "Quit to Desktop", Requests::Request{ "ExitGame" })
+	, m_Fader(resources, 1.f)
+	, m_Enabled(false)
+{
+	m_Container.AddButtons({ &m_AgainButton, &m_BackButton, &m_QuitDesktopButton });
+}
+
+void Parkour::ParkourFinishMenu::AddTo(UI1::RootElement& root)
+{
+	root.AddChildTop(&m_Container);
+}
+
+void Parkour::ParkourFinishMenu::Update()
+{
+	if (m_Enabled)
+	{
+		if (m_Fader.Fade() && !m_Container.IsUIEnabled())
+		{
+			m_Container.EnableUI();
+		}
+	}
+}
+
+void Parkour::ParkourFinishMenu::Enable()
+{
+	m_Fader.Reset();
+	m_Fader.Start();
+	m_Enabled = true;
+}
+
+void Parkour::ParkourFinishMenu::Disable()
+{
+	m_Fader.Stop();
+	m_Container.DisableUI();
+	m_Enabled = false;
 }

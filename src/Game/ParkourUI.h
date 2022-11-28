@@ -2,6 +2,7 @@
 
 #include <Game/UI/GameUI.h>
 #include <Helpers/TransferHelper.h>
+#include <Drawing/Effects/Fade.h>
 
 namespace Parkour
 {
@@ -23,8 +24,8 @@ namespace Parkour
 	class ParkourInGameHUD : public FullResourceHolder
 	{
 		UI1I::ButtonyContainer m_Container;
-		UI1I::SmallButtony m_FPSDisplay;
-		UI1I::SmallButtony m_LightCountDisplay;
+		UI1I::BigButtony m_FPSDisplay;
+		UI1I::BigButtony m_LightCountDisplay;
 	public:
 		ParkourInGameHUD(CommonResources* resources);
 
@@ -34,5 +35,25 @@ namespace Parkour
 
 		void Enable();
 		void Disable();
+	};
+
+	class ParkourFinishMenu : public FullResourceHolder
+	{
+		SolidFader m_Fader;
+		UI1I::ButtonyContainer m_Container;
+		UI1I::BigButtony m_AgainButton;
+		UI1I::BigButtony m_BackButton;
+		UI1I::BigButtony m_QuitDesktopButton;
+		bool m_Enabled = false;
+	public:
+		ParkourFinishMenu(CommonResources* resources);
+
+		void AddTo(UI1::RootElement& root);
+
+		void Update();
+
+		void Enable();
+		void Disable();
+		inline bool IsEnabled() const { return m_Enabled; }
 	};
 }
