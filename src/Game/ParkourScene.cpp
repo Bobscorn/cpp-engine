@@ -39,6 +39,24 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	m_GSpace.GetRootShape()->AddChild<G1I::ProfilerShape>("Profiler McGee Shape", G1I::ProfilerThings{ 15.0, false });
 	m_GSpace.GetRootShape()->AddChild<G1I::SkyBoxShape>("Skybox Shape", "skybox", ".jpg");
 
+	{
+		Light sunLight{};
+		sunLight.Color = floaty3{ 1.f, 1.f, 1.f };
+		sunLight.Intensity = 0.5f;
+		sunLight.Attenuation = floaty3{ 2.f, 0.25f, 0.05f };
+		sunLight.Enabled = true;
+		sunLight.PositionWS = floaty4{ 0.f, 3.f, 0.f, 1.f };
+		sunLight.PositionVS = floaty4{};
+		sunLight.DirectionWS = floaty4{ floaty4::Normalized(floaty4{ 0.5f, -3.f, 0.5f, 0.f }).xyz(), 1.f };
+		sunLight.DirectionVS = floaty4{};
+		sunLight.Range = 50.f;
+		sunLight.Type = LIGHT_DIRECTION;
+		sunLight.SpotlightAngle = 0;
+		sunLight.Padding = 0.f;
+
+		m_GSpace.GetRootShape()->AddChild<G1I::LightShape>("Sun Light", sunLight);
+	}
+
 	Voxel::VoxelStore::GetMutable().RegisterUpdateBlock("lamp-light", std::make_unique<ParkourLightBlock>(&m_GSpace, mResources, m_WorldShape.get(), nullptr, Voxel::ChunkBlockCoord{}));
 
 	m_UI.AddChildBottom(&m_Crosshair);
