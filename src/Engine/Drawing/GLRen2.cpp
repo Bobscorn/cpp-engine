@@ -181,7 +181,11 @@ namespace Drawing
 		data.WorldView = Matrixy4x4::Multiply(view, world);
 		data.WorldViewProj = Matrixy4x4::Multiply(proj, data.WorldView);
 
-		glNamedBufferSubData(_perObjectBuffer.Get(), 0, sizeof(DefaultPerObjectStruct), (GLvoid*)&data);
+		//glNamedBufferSubData(_perObjectBuffer.Get(), 0, sizeof(DefaultPerObjectStruct), (GLvoid*)&data);
+		//auto* dst = glMapNamedBuffer(_perObjectBuffer.Get(), GL_WRITE_ONLY);
+		//std::memcpy(dst, &data, sizeof(DefaultPerObjectStruct));
+		//glUnmapNamedBuffer(_perObjectBuffer.Get());
+		glNamedBufferData(_perObjectBuffer.Get(), sizeof(DefaultPerObjectStruct), &data, GL_STREAM_DRAW);
 		PROFILE_POP_WITH(g_Engine->Resources.Profile);
 		CHECK_GL_ERR("Post Updating Per Object");
 	}

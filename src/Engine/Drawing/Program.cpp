@@ -698,6 +698,9 @@ namespace Drawing
 
 		const auto& bytes = material.ToByteForm();
 
-		glNamedBufferSubData(_matBuffer.Get(), 0, (GLsizeiptr)bytes.size(), (GLvoid*)bytes.data());
+		//glNamedBufferSubData(_matBuffer.Get(), 0, (GLsizeiptr)bytes.size(), (GLvoid*)bytes.data());
+		auto* dst = glMapNamedBuffer(_matBuffer.Get(), GL_WRITE_ONLY);
+		std::memcpy(dst, bytes.data(), bytes.size());
+		glUnmapNamedBuffer(_matBuffer.Get());
 	}
 }
