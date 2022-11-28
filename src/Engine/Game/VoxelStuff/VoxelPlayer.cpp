@@ -123,6 +123,11 @@ floaty3 Voxel::VoxelPlayer::GetCentre()
 	return floaty3(m_RigidBody->getWorldTransform().getOrigin());
 }
 
+void Voxel::VoxelPlayer::SetLookUp(floaty3 newLook, floaty3 newUp)
+{
+	Cam->SetPosLookUp(Cam->GetPosition(), newLook, newUp);
+}
+
 void Voxel::VoxelPlayer::SetPosition(floaty3 pos)
 {
 	Cam->SetPosition(pos);

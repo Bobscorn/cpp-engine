@@ -41,6 +41,7 @@ namespace Voxel
 		inline floaty3 GetPosition() const { return Cam->GetPosition(); }
 		inline floaty3 GetOrientation() const { return Cam->GetLook(); }
 
+		void SetLookUp(floaty3 newLook, floaty3 newUp);
 		void SetPosition(floaty3 newPos);
 		void SetVelocity(floaty3 newVel);
 
