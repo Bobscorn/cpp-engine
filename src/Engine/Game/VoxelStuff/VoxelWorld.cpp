@@ -582,9 +582,9 @@ Voxel::BlockCoord Voxel::VoxelWorld::GetBlockCoordFromPhys(floaty3 phys_pos) con
 
 	double floor_dif_x = c_x - c_x_f, floor_dif_y = c_y - c_y_f, floor_dif_z = c_z - c_z_f;
 
-	out.Block.x = (uint32_t)std::floor(floor_dif_x * (double)Voxel::Chunk_Size);
-	out.Block.y = (uint32_t)std::floor(floor_dif_y * (double)Voxel::Chunk_Height);
-	out.Block.z = (uint32_t)std::floor(floor_dif_z * (double)Voxel::Chunk_Size);
+	out.Block.x = (uint8_t)std::floor(floor_dif_x * (double)Voxel::Chunk_Size);
+	out.Block.y = (uint8_t)std::floor(floor_dif_y * (double)Voxel::Chunk_Height);
+	out.Block.z = (uint8_t)std::floor(floor_dif_z * (double)Voxel::Chunk_Size);
 	//out.X = std::max(std::min(out.X, Chunk_Size - 1), 0ull);
 	//out.Y = std::max(std::min(out.Y, Chunk_Height - 1), 0ull);
 	//out.Z = std::max(std::min(out.Z, Chunk_Size - 1), 0ull);

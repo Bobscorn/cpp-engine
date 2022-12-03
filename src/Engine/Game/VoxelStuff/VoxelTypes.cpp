@@ -165,9 +165,9 @@ Voxel::BlockCoord add_coords(const Voxel::BlockCoord& a, const Voxel::BlockCoord
 	out.Chunk.X = a.Chunk.X + (subtract ? -b.Chunk.X : b.Chunk.X) + x_chunk_dif;
 	out.Chunk.Y = a.Chunk.Y + (subtract ? -b.Chunk.Y : b.Chunk.Y) + y_chunk_dif;
 	out.Chunk.Z = a.Chunk.Z + (subtract ? -b.Chunk.Z : b.Chunk.Z) + z_chunk_dif;
-	out.Block.x = (uint32_t)(x_diff - x_chunk_dif * (int64_t)Chunk_Size);
-	out.Block.y = (uint32_t)(y_diff - y_chunk_dif * (int64_t)Chunk_Height);
-	out.Block.z = (uint32_t)(z_diff - z_chunk_dif * (int64_t)Chunk_Size);
+	out.Block.x = (uint8_t)(x_diff - x_chunk_dif * (int64_t)Chunk_Size);
+	out.Block.y = (uint8_t)(y_diff - y_chunk_dif * (int64_t)Chunk_Height);
+	out.Block.z = (uint8_t)(z_diff - z_chunk_dif * (int64_t)Chunk_Size);
 
 	return out;
 }
