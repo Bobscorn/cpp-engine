@@ -96,7 +96,9 @@ void SDLW::Window::Create(char const * title, int x, int y, int width, int heigh
 		throw Debug::GLExc((std::string("Glew Initialization Error: ") + er).c_str());
 	}
 
-	SDL_GL_SetSwapInterval(-1);
+	auto adaptiveSupport = SDL_GL_SetSwapInterval(-1);
+	if (adaptiveSupport == -1)
+		SDL_GL_SetSwapInterval(1);
 
 #if defined(_DEBUG) | defined(DEBUG)
 	glEnable(GL_DEBUG_OUTPUT);
