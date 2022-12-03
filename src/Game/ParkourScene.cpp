@@ -38,6 +38,7 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 {
 	m_GSpace.GetRootShape()->AddChild<G1I::ProfilerShape>("Profiler McGee Shape", G1I::ProfilerThings{ 15.0, false });
 	m_GSpace.GetRootShape()->AddChild<G1I::SkyBoxShape>("Skybox Shape", "skybox", ".jpg");
+	m_GSpace.GetRootShape()->AddChild<ParkourTimeMeasuringShape>("Epic Time Measuring");
 
 	{
 		Light sunLight{};
@@ -100,6 +101,11 @@ bool Parkour::ParkourScene::Receive(Events::IEvent* event)
 			{
 				mResources->Request->Request(Requests::Request{ "ReloadMaterials" });
 				DINFO("Reloading Materials");
+			}
+			else if (key_event->KeyCode == SDLK_COMMA)
+			{
+				DINFO("Sending record time request");
+				mResources->Request->Request(Requests::Request{ "RecordTime" });
 			}
 		}
 	}

@@ -1,5 +1,7 @@
 #include "ParkourShapes.h"
 
+#include <Systems/Time/Time.h>
+
 Parkour::ParkourLevelShape::ParkourLevelShape(G1::IShapeThings things, ParkourLevel level)
 	: IShape(things)
 	, FullResourceHolder(things.Resources)
@@ -120,4 +122,54 @@ void Parkour::ParkourEndShape::BeforeDraw()
 	trans = Matrixy4x4::MultiplyE(trans, Matrixy4x4::Translate(endPos));
 
 	*m_DrawTrans = trans;
+}
+
+Parkour::ParkourTimeMeasuringShape::ParkourTimeMeasuringShape(G1::IShapeThings things)
+	: IShape(things)
+	, FullResourceHolder(things.Resources)
+{
+	mResources->Request->Add(this);
+}
+
+void Parkour::ParkourTimeMeasuringShape::BeforeDraw()
+{
+	if (m_Recording)
+	{
+		auto time = mResources->Time->GetUnscaledRunningTime();
+
+		if (time > m_StartTime + m_Period)
+		{
+			auto update = *mResources->UpdateID;
+			auto numUpdates = update - m_StartUpdateID;
+			DINFO("------------ Time recorder -------------");
+			DINFO("For run " + std::to_string(m_RunNumber) + " over a period of " + std::to_string(m_Period) + "s, ");
+			DINFO(" " + std::to_string(numUpdates) + " updates were completed");
+			DINFO("------------ End Time Recorder ---------");
+			if (m_RunNumber++ >= m_NumRuns)
+			{
+				DINFO("Runs completed");
+				m_Recording = false;
+			}
+			else
+			{
+				m_StartUpdateID = update;
+				m_StartTime = time;
+			}
+		}
+	}
+}
+
+Debug::DebugReturn Parkour::ParkourTimeMeasuringShape::Request(Requests::Request& req)
+{
+	if (req.Name == "RecordTime")
+	{
+		DINFO("Beginning recording over " + std::to_string(m_Period) + "s");
+		m_StartTime = mResources->Time->GetUnscaledRunningTime();
+		m_StartUpdateID = *mResources->UpdateID;
+		m_RunNumber = 1;
+		m_Recording = true;
+		return true;
+	}
+
+	return false;
 }

@@ -112,4 +112,24 @@ namespace Parkour
 		float m_RotationDegreesPerSec;
 	};
 
+
+	// Testing shape to record fps
+	class ParkourTimeMeasuringShape : public virtual G1::IShape, public Requests::IRequestable
+	{
+	public:
+		ParkourTimeMeasuringShape(G1::IShapeThings things);
+
+		virtual void BeforeDraw() override;
+		inline virtual void AfterDraw() override {}
+
+		virtual Debug::DebugReturn Request(Requests::Request& req) override;
+		inline virtual std::string GetName() const override { return "ParkourTimeMeasurer"; }
+	protected:
+		bool m_Recording = false;
+		unsigned int m_RunNumber = 0;
+		float m_StartTime = 0.f;
+		unsigned int m_StartUpdateID = 0;
+		float m_Period = 10.f;
+		unsigned int m_NumRuns = 5;
+	};
 }
