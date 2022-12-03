@@ -685,6 +685,18 @@ void Voxel::VoxelWorld::Reset()
 	m_Chunks.clear();
 }
 
+Voxel::VoxelWorld::ChunkStatus Voxel::VoxelWorld::GetChunkStatus(ChunkCoord coord)
+{
+	auto it = m_Chunks.find(coord);
+	if (it == m_Chunks.end())
+		return NOT_IN_WORLD;
+
+	if (!it->second)
+		return IN_WORLD_NOT_LOADED;
+
+	return IN_WORLD_LOADED;
+}
+
 GLuint Voxel::VoxelWorld::CreateVAO()
 {
 	GLuint out;

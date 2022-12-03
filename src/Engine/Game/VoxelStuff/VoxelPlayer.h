@@ -110,6 +110,7 @@ namespace Voxel
 		void UpdateCache();
 		void DoSound();
 		void TestForOutOfBounds();
+		void CheckForUnloadedChunk();
 
 		void ResetPickup();
 

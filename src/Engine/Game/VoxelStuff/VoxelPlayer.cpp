@@ -104,6 +104,8 @@ void Voxel::VoxelPlayer::AfterDraw()
 	UpdateCache();
 
 	DoWalkFrame(btScalar(*mResources->DeltaTime));
+
+	CheckForUnloadedChunk();
 }
 
 void Voxel::VoxelPlayer::TakeKnockbackDirect(floaty3 knock_back)
@@ -847,6 +849,21 @@ void Voxel::VoxelPlayer::TestForOutOfBounds()
 		Cam->SetPosLookUp(m_Stuff.InitialPosition, m_Stuff.InitialDirection, { 0.f, 1.f, 0.f });
 		m_RigidBody->getWorldTransform().setOrigin(m_Stuff.InitialPosition);
 		m_RigidBody->setLinearVelocity({ 0.f, 0.f, 0.f });
+	}
+}
+
+void Voxel::VoxelPlayer::CheckForUnloadedChunk()
+{
+	auto pos = m_World->GetBlockCoordFromPhys(GetPosition());
+	auto chunkState = m_World->GetChunkStatus(pos.Chunk);
+	if (chunkState == VoxelWorld::NOT_IN_WORLD)
+	{
+		//m_World->LoadChunk(pos.Chunk);
+		(void)0;
+	}
+	else if (chunkState == VoxelWorld::IN_WORLD_NOT_LOADED)
+	{
+		m_RigidBody->setLinearVelocity(btVector3(0.f, 0.f, 0.f));
 	}
 }
 

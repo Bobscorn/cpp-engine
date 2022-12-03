@@ -122,6 +122,17 @@ namespace Voxel
 		// Unload all chunks and clear all changes
 		void Reset();
 
+		enum ChunkStatus
+		{
+			NOT_IN_WORLD = 0,
+			IN_WORLD_NOT_LOADED = 1,
+			NOT_LOADED_IN_WORLD = 1,
+			LOADED_IN_WORLD = 2,
+			IN_WORLD_LOADED = 2,
+		};
+
+		ChunkStatus GetChunkStatus(ChunkCoord coord);
+
 	protected:
 
 		WorldStuff m_Stuff;
