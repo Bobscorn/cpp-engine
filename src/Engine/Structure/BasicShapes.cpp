@@ -953,7 +953,7 @@ G1I::LightShape::~LightShape()
 	if (m_LightIndex != (size_t)-1)
 	{
 		TakenLights[m_LightIndex] = false;
-		auto *light = mResources->Ren3->GetLight((unsigned int)m_LightIndex);
+		auto* light = GetLight();
 		if (light)
 		{
 			light->Enabled = false;
