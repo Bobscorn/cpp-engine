@@ -89,3 +89,34 @@ GLVertexArray::ArrayAttribState GLVertexArray::GetState(GLuint index) const
 		return ArrayAttribState{ false, 0, GL_NONE, GL_FALSE, 0, nullptr };
 	return it->second;
 }
+
+void UpdateBuffer(const GLBuffer& buf, void* data, GLuint dataSize, BufferUpdateMode mode)
+{
+	auto buffer = buf.Get();
+	void* dst = 0;
+	switch (mode)
+	{
+	default:
+		DERROR("Unknown Buffer Update mode '" + std::to_string((int)mode) + "'!");
+		break;
+	case BufferUpdateMode::SUB_DATA_INVALIDATE:
+		glInvalidateBufferData(buffer);
+		[[fallthrough]];
+	case BufferUpdateMode::SUB_DATA:
+		glNamedBufferSubData(buffer, 0, dataSize, (GLvoid*)data);
+		break;
+	case BufferUpdateMode::MAP_WITH_INVALIDATE:
+		dst = glMapNamedBufferRange(buffer, 0, dataSize, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+		std::memcpy(dst, data, dataSize);
+		glUnmapNamedBuffer(buffer);
+		break;
+	case BufferUpdateMode::ORPHANING:
+		glNamedBufferData(buffer, dataSize, data, GL_DYNAMIC_DRAW);
+		break;
+	case BufferUpdateMode::MAP:
+		dst = glMapNamedBuffer(buffer, GL_WRITE_ONLY);
+		std::memcpy(dst, data, dataSize);
+		glUnmapNamedBuffer(buffer);
+		break;
+	}
+}

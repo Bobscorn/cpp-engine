@@ -98,7 +98,7 @@ namespace Drawing
 
 		inline void BindVAO() { CHECK_GL_ERR("Before Binding VAO"); glBindVertexArray(_inputVAO.Get()); CHECK_GL_ERR("After Binding VAO"); }
 
-		void SetMaterial(Material& material);
+		void SetMaterial(Material& material, BufferUpdateMode mode);
 
 		inline const std::vector<BoundTextureMapping>& GetTexMappings() const { return _textureMappings; }
 	};

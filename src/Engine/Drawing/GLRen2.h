@@ -24,6 +24,7 @@ namespace Drawing
 
 	class DrawCallRenderer : public IRen3Dv2
 	{
+	public:
 		static constexpr size_t LightCount = LIGHT_COUNT;
 
 	private:
@@ -41,6 +42,8 @@ namespace Drawing
 
 		std::unordered_map<ProgramReference, std::vector<std::reference_wrapper<const DrawCallv2>>> m_DrawCallGroups;
 		bool _drawCallsDirty = true;
+
+		BufferUpdateMode m_bufferUpdateMode = BufferUpdateMode::MAP_WITH_INVALIDATE;
 
 		void UpdateDrawCalls();
 
@@ -60,6 +63,7 @@ namespace Drawing
 		static GLuint GetLightBufBinding();
 		static GLuint GetPerObjectBufBinding();
 		static GLuint GetMaterialBufBinding();
+
 
 		// Draw Calls v
 

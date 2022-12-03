@@ -139,6 +139,18 @@ struct Wrapper2 : Wrapper<Funcylicious<func>>
 };
 
 using GLBuffer = Wrapper2<&glDeleteBuffers>;
+
+enum class BufferUpdateMode
+{
+	SUB_DATA = 0,
+	SUB_DATA_INVALIDATE = 1,
+	MAP = 2,
+	MAP_WITH_INVALIDATE = 3,
+	ORPHANING = 4,
+};
+
+void UpdateBuffer(const GLBuffer& buf, void* data, GLuint dataSize, BufferUpdateMode mode);
+
 class GLVertexArray : public Wrapper2<&glDeleteVertexArrays>
 {
 public:
