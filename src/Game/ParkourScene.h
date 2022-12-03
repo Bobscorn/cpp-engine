@@ -39,6 +39,7 @@ namespace Parkour
 	{
 	public:
 		ParkourScene(CommonResources *resources, int level);
+		~ParkourScene();
 		
 		// Inherited via IScene
 		virtual Debug::DebugReturn Initialize() override;

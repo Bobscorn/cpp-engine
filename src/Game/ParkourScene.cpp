@@ -68,6 +68,12 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	m_FinishMenu.Disable();
 }
 
+Parkour::ParkourScene::~ParkourScene()
+{
+	if (m_Paused)
+		Resume();
+}
+
 Debug::DebugReturn Parkour::ParkourScene::Initialize()
 {
 	m_WorldShape->Update(m_PlayerShape->GetPosition());
