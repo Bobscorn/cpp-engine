@@ -45,8 +45,8 @@ inline bool operator!=(const SDL_Color &a, const SDL_Color &b)
 struct SimpleSurface
 {
 	SimpleSurface() : Surface(nullptr) {}
-	SimpleSurface(SDL_Surface *surface) : Surface(surface) {}
-	SimpleSurface(SimpleSurface &&ss) noexcept : Surface(ss.Surface) { ss.Surface = nullptr; }
+	SimpleSurface(SDL_Surface *surface, bool ownsSurface = true) : Surface(surface), OwnsSurface(ownsSurface) {}
+	SimpleSurface(SimpleSurface &&ss) noexcept : Surface(ss.Surface), OwnsSurface(ss.OwnsSurface) { ss.Surface = nullptr; }
 	~SimpleSurface() { Delete(); }
 
 	inline SimpleSurface &operator=(SimpleSurface &&ss) noexcept
@@ -54,14 +54,16 @@ struct SimpleSurface
 		Delete();
 		Surface = ss.Surface;
 		ss.Surface = nullptr;
+		ss.OwnsSurface = ss.OwnsSurface;
 		return *this;
 	}
 
 	inline void Delete()
 	{
-		if (Surface)
+		if (OwnsSurface && Surface)
 			SDL_FreeSurface(Surface);
 		Surface = nullptr;
+		OwnsSurface = true;
 	}
 
 	inline SDL_Surface *Get() const noexcept
@@ -87,6 +89,7 @@ struct SimpleSurface
 
 protected:
 	SDL_Surface *Surface;
+	bool OwnsSurface = true;
 };
 
 
