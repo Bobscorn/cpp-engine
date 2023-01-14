@@ -47,6 +47,7 @@ void UI1I::ButtonyContainer::ComputePosition(Matrixy2x3 accumulated)
 	auto start = GetAlignmentPosition();
 	accumulated = accumulated * Matrixy2x3::Translation(start.x, 0.f);
 	float y = start.y;
+	float maxWidth = 0.f;
 	for (auto& button : Buttons)
 	{
 		button->PreComputePosition();
@@ -54,7 +55,13 @@ void UI1I::ButtonyContainer::ComputePosition(Matrixy2x3 accumulated)
 		button->RecommendBoundingBox({ -button->GetMargin(), y, button->GetFullWidth() - button->GetMargin(), tmpy });
 		y = tmpy;
 		button->ComputeWorldMatrix(accumulated);
+		maxWidth = std::max(button->GetFullWidth(), maxWidth);
 	}
+
+	Bounds.x = start.x;
+	Bounds.y = y;
+	Bounds.z = maxWidth;
+	Bounds.w = start.y;
 }
 
 void UI1I::ButtonyContainer::UpdateImageScale()
@@ -79,6 +86,14 @@ void UI1I::ButtonyContainer::UpdateImageTrans()
 		ImageTrans = Matrixy2x3::Scale({ Scale, Scale });
 		ImageTrans = ImageTrans * Matrixy2x3::Translation(TransX, TransY);
 	}
+}
+
+bool UI1I::ButtonyContainer::Within(floaty2 coords)
+{
+	return coords.x > Bounds.x &&
+		coords.y > Bounds.y &&
+		coords.x < Bounds.z&&
+		coords.y < Bounds.w;
 }
 
 floaty2 UI1I::ButtonyContainer::GetAlignmentPosition()

@@ -173,6 +173,8 @@ namespace UI1I
 		void UpdateImageScale();
 		void UpdateImageTrans();
 
+		bool Within(floaty2 coords) override;
+
 	protected:
 
 		floaty2 GetAlignmentPosition();
@@ -183,6 +185,7 @@ namespace UI1I
 		Alignment X_Align;
 		Alignment Y_Align;
 		Matrixy2x3 ImageTrans;
+		floaty4 Bounds = { 0.f, 0.f, 0.f, 0.f };
 		float Scale{ 1.f };
 		float TransX{ 0.f }, TransY{ 0.f };
 		float Marginny{ 30.f };
