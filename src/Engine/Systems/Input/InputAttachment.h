@@ -112,30 +112,17 @@ namespace InputAttach
 				return;
 			}
 			e->manager = nullptr;
-			if (Attachments.size())
-			{
-				if (e == Attachments.back())
-				{
-					Attachments.pop_back();
-					if (Attachments.size())
-						Attachments.back()->Reinstated();
-				}
-				else
-				{
-					for (auto i = Attachments.size(); i-- > 0; )
-					{
-						if (Attachments[i] == e)
-						{
-							Attachments.erase(Attachments.begin() + i);
-							return;
-						}
-					}
-					DWARNING("Removal of an IAttachable not found in '" + GetName() + "' Attachments");
-				}
-			}
-			else
+			if (!Attachments.size())
 			{
 				DWARNING("Attachment being removed from '" + GetName() + "' that did not have it in the first place");
+			}
+
+			for (auto i = Attachments.size(); i-- > 0; )
+			{
+				if (Attachments[i] == e)
+				{
+					Attachments.erase(Attachments.begin() + i);
+				}
 			}
 		}
 
