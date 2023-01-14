@@ -96,6 +96,8 @@ namespace Drawing
 
 		inline explicit operator bool() const noexcept { return Tex; }
 
+		inline const SDL_Surface* GetSurface() const { return Tex; }
+		inline SDL_Surface* GetSurface() { return Tex; }
 		inline int GetWidth() const noexcept { return (Tex ? Tex->w : 0); }
 		inline int GetHeight() const noexcept { return (Tex ? Tex->h : 0); }
 		inline float GetWidthScale() const noexcept { return WidthScale; } // Returns the scale of the OpenGL texture's size to the real texture's size, always less than 1
