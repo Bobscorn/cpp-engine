@@ -240,3 +240,13 @@ blocks:
             neg-y: worn-metal-displace.jpg
             pos-z: worn-metal-displace.jpg
             neg-z: worn-metal-displace.jpg
+-
+    block-name: potted-plant
+    atlas: global
+    mesh: potted-plant
+    faces: open
+    textures:
+        diffuse: parkour-pallete.png
+        normal: default-normal
+
+    
