@@ -269,7 +269,12 @@ namespace Voxel
 					// v
 
 					auto tex = node["textures"];
-					if (!tex || (tex.IsScalar() && tex.Scalar() == "elsewhere"))
+					if (!tex)
+					{
+						DINFO("Block '" + desc.Name + "' in block file '" + path + "' contains an invalid textures tag");
+						continue;
+					} 
+					if (tex.IsScalar() && tex.Scalar() == "elsewhere")
 					{
 						desc.AtlasName = "";
 						std::fill(desc.DiffuseFaceTextures.begin(),  desc.DiffuseFaceTextures.end(),  std::string{});
@@ -283,7 +288,16 @@ namespace Voxel
 						auto& blockName = desc.Name;
 						auto getTextureGroup = [&blockName](const YAML::Node& groupNode, std::array<std::string, 6>& faces)
 						{
-							if (groupNode && groupNode.IsMap())
+							if (!groupNode)
+								return;
+							if (groupNode.IsScalar())
+							{
+								for (auto blockFace : BlockFacesArray)
+								{
+									faces[(size_t)blockFace] = groupNode.Scalar();
+								}
+							}
+							else if (groupNode.IsMap())
 							{
 								auto getFaceFunc = [&blockName](const std::string& name, const YAML::Node& n, std::string& texFileRef)
 								{
@@ -307,6 +321,10 @@ namespace Voxel
 								getFaceFunc("neg-y", groupNode["neg-y"], faces[(size_t)BlockFace::NEG_Y]);
 								getFaceFunc("neg-z", groupNode["neg-z"], faces[(size_t)BlockFace::NEG_Z]);
 							}
+							else
+							{
+								DWARNING("Block '" + blockName + "' contains invalid texture group tag '" + groupNode.Tag() + "'");
+							}
 						};
 						
 						getTextureGroup(tex["diffuse"], desc.DiffuseFaceTextures);
@@ -317,11 +335,6 @@ namespace Voxel
 
 						if (std::any_of(desc.DiffuseFaceTextures.begin(), desc.DiffuseFaceTextures.end(), [](const std::string& s) { return s.size(); }))
 							_unstitchedDescriptions.emplace_back(desc);
-					}
-					else
-					{
-						DINFO("Block '" + desc.Name + "' in block file '" + path + "' contains an invalid textures tag");
-						continue;
 					}
 
 					auto meshNode = node["mesh"];
