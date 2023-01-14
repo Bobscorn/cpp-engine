@@ -15,6 +15,7 @@
 
 #include "Game/VoxelStuff/VoxelTypes.h"
 #include "Game/VoxelStuff/VoxelWorld.h"
+#include "Drawing/Texture.h"
 
 const Voxel::SerialBlock Voxel::VoxelStore::EmptyBlockData = Voxel::SerialBlock{};
 
@@ -650,6 +651,13 @@ namespace Voxel
 				SDL_Surface* p = SDL_CreateRGBSurfaceWithFormat(0, faceSize, faceSize, 32, SDL_PIXELFORMAT_RGBA32);
 				SDL_FillRect(p, nullptr, SDL_MapRGBA(p->format, 0, 0, 0, 0xff));
 				return SimpleSurface(p);
+			}
+			if (std::shared_ptr<Drawing::GLImage> img; Drawing::TextureStore::Instance().TryGetTexture(fileName, img))
+			{
+				if (auto* p = dynamic_cast<Drawing::SDLImage*>(img.get()))
+				{
+					return SimpleSurface(p->GetSurface(), false);
+				}
 			}
 			std::filesystem::path p{ fileName };
 			if (p.is_relative())

@@ -50,6 +50,12 @@ namespace Drawing
 	TextureStore::TextureStore(const std::string& textureDirectory)
 	{
 		LoadImageDirectory(textureDirectory);
+
+		// Load a default normal map
+		constexpr int normalMapSize = 1024;
+		std::shared_ptr<SDLImage> surf = std::make_shared<SDLImage>(Drawing::ImageInfo{ }, SDL_CreateRGBSurfaceWithFormat(0, normalMapSize, normalMapSize, 32, SDL_PIXELFORMAT_RGBA8888), 4);
+		SDL_FillRect(surf->GetSurface(), 0, SDL_MapRGB(surf->GetSurface()->format, (Uint8)128, (Uint8)128, (Uint8)255));
+		_store["default-normal"] = TextureStore::ImageState{ "default normal texture.jpeg", "default-normal", std::move(surf) };
 	}
 
 	bool TextureStore::TryGetTexture(const std::string& name, std::shared_ptr<GLImage>& out) 
