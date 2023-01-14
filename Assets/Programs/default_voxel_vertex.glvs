@@ -24,7 +24,8 @@ out vec3 TexOut;
 
 void main()
 {
-	TexOut = Tex;
+	// Flip the v coord of the UVs to compensate for OpenGL's upside down texture coordinates
+	TexOut = vec3(Tex.x, 1.f, Tex.z) - vec3(0.f, Tex.y, 0.f);
 
 	PosVS = (WorldView * vec4(PosL, 1.f)).xyz;
 
