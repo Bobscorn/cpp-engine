@@ -5,14 +5,16 @@
 Parkour::ParkourInGameMenu::ParkourInGameMenu(CommonResources* resources)
 	: m_Container(resources, "background.jpeg", UI1I::ButtonyContainer::CENTRE_ALIGN, UI1I::ButtonyContainer::CENTRE_ALIGN)
 	, m_ResumeButton(resources, "Resume", Requests::Request{ "Resume" }, "Normal")
-	, m_QuitButton(resources, "Quit", Requests::Request{ "Quit" }, "Normal")
+	, m_RestartButton(resources, "Restart", Requests::Request{ "RestartRun" }, "Normal")
+	, m_QuitMenuButton(resources, "Back To Menu", Requests::Request{ "ReturnToMenu" }, "Normal")
 {
+	m_Container.AddButton(&m_ResumeButton);
+	m_Container.AddButton(&m_RestartButton);
+	m_Container.AddButton(&m_QuitMenuButton);
 }
 
 void Parkour::ParkourInGameMenu::AddTo(UI1::RootElement& root)
 {
-	m_Container.AddButton(&m_ResumeButton);
-	m_Container.AddButton(&m_QuitButton);
 	root.AddChildTop(&m_Container);
 }
 

@@ -10,7 +10,8 @@ namespace Parkour
 	{
 		UI1I::ButtonyContainer m_Container;
 		UI1I::NormalButtony m_ResumeButton;
-		UI1I::NormalButtony m_QuitButton;
+		UI1I::NormalButtony m_RestartButton;
+		UI1I::NormalButtony m_QuitMenuButton;
 
 	public:
 		ParkourInGameMenu(CommonResources *resources);
