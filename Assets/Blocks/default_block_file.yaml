@@ -244,9 +244,31 @@ blocks:
     block-name: potted-plant
     atlas: global
     mesh: potted-plant
-    faces: open
+    faces:
+        pos-x: open
+        neg-x: open
+        pos-y: open
+        neg-y: open
+        pos-z: semi-open
+        neg-z: open
     textures:
         diffuse: parkour-pallete.png
         normal: default-normal
+-
+    block-name: potted-hedge
+    atlas: global
+    mesh: hedge
+    faces:
+        pos-x: open
+        neg-x: open
+        pos-y: open
+        neg-y: semi-open
+        pos-z: open
+        neg-z: open
+    textures:
+        diffuse: parkour-pallete.png
+        normal: default-normal
+        ambient: emissive.jpg
+
 
     
