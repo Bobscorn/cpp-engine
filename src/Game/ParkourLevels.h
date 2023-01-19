@@ -51,8 +51,12 @@ namespace Parkour
 		extern const ParkourStep CurvyStraightLeft;
 
 		// Topdown:
-		// O
-		extern const ParkourStep SingleBlockStep;
+		// #O
+		extern const ParkourStep SingleBlockStepDecorLeft;
+
+		// Topdown:
+		// O#
+		extern const ParkourStep SingleBlockStepDecorRight;
 	}
 
 	extern const std::array<Parkour::ParkourLevel, 5> Levels;
