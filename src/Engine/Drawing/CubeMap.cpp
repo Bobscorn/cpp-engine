@@ -149,12 +149,20 @@ namespace Drawing
 		
 		glTextureStorage2D(_tex, 1, GL_RGBA8, _width, _height);
 
-		glTextureSubImage3D(_tex, 0, 0, 0, 0, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)_cpuTexs[0]->pixels);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, _tex);
+		/*glTextureSubImage3D(_tex, 0, 0, 0, 0, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)_cpuTexs[0]->pixels);
 		glTextureSubImage3D(_tex, 0, 0, 0, 1, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)_cpuTexs[1]->pixels);
 		glTextureSubImage3D(_tex, 0, 0, 0, 2, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)_cpuTexs[2]->pixels);
 		glTextureSubImage3D(_tex, 0, 0, 0, 3, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)_cpuTexs[3]->pixels);
 		glTextureSubImage3D(_tex, 0, 0, 0, 4, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)_cpuTexs[4]->pixels);
-		glTextureSubImage3D(_tex, 0, 0, 0, 5, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)_cpuTexs[5]->pixels);
+		glTextureSubImage3D(_tex, 0, 0, 0, 5, _width, _height, 1, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)_cpuTexs[5]->pixels);*/
+		glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, 0, 0, _width, _height, GL_RGBA, GL_UNSIGNED_BYTE, _cpuTexs[0]->pixels);
+		glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, 0, 0, _width, _height, GL_RGBA, GL_UNSIGNED_BYTE, _cpuTexs[2]->pixels);
+		glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, 0, 0, _width, _height, GL_RGBA, GL_UNSIGNED_BYTE, _cpuTexs[4]->pixels);
+		glTexSubImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, 0, 0, _width, _height, GL_RGBA, GL_UNSIGNED_BYTE, _cpuTexs[1]->pixels);
+		glTexSubImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, 0, 0, _width, _height, GL_RGBA, GL_UNSIGNED_BYTE, _cpuTexs[3]->pixels);
+		glTexSubImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, 0, 0, _width, _height, GL_RGBA, GL_UNSIGNED_BYTE, _cpuTexs[5]->pixels);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	}
 
 	void CubeMapTexture::UnloadGL()
