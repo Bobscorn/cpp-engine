@@ -240,6 +240,7 @@ blocks:
             neg-y: worn-metal-displace.jpg
             pos-z: worn-metal-displace.jpg
             neg-z: worn-metal-displace.jpg
+        emissive: emissive.jpg
 -
     block-name: potted-plant
     atlas: global
