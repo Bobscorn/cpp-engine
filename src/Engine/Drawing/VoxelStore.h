@@ -30,6 +30,7 @@
 #include <string>
 #include <type_traits>
 #include <unordered_map>
+#include <utility>
 
 #include "Math/floaty.h"
 
@@ -63,6 +64,33 @@ namespace Voxel
 		std::array<std::vector<unsigned int>, 6> FaceIndices;
 	};
 
+	struct TextureNames
+	{
+		TextureNames() {}
+		~TextureNames() {}
+
+		TextureNames(TextureNames&&) = default;
+		TextureNames(const TextureNames&) = default;
+		TextureNames& operator=(TextureNames&&) = default;
+		TextureNames& operator=(const TextureNames&) = default;
+
+		inline bool operator==(const TextureNames& other) const 
+		{ 
+			return DiffuseName == other.DiffuseName
+				&& SpecularName == other.SpecularName
+				&& EmissiveName == other.EmissiveName
+				&& NormalName == other.NormalName
+				&& BumpName == other.BumpName; 
+		}
+		inline bool operator!=(const TextureNames& other) const { return !(*this == other); }
+
+		std::string DiffuseName;
+		std::string SpecularName;
+		std::string EmissiveName;
+		std::string NormalName;
+		std::string BumpName;
+	};
+
 	struct VoxelBlock
 	{
 		std::string Name;
@@ -75,11 +103,33 @@ namespace Voxel
 		VoxelBlockMesh Mesh;
 
 		// Used as key into Atlas
-		std::array<std::string, 6> DiffuseTexNames;
+		std::array<TextureNames, 6> FaceTexNames;
 
 		std::array<FaceClosedNess, 6> FaceOpaqueness;
 		bool WantsUpdate;
 	};
+}
+
+namespace std
+{
+	template<>
+	struct hash<Voxel::TextureNames>
+	{
+		inline size_t operator()(const Voxel::TextureNames& names) const
+		{
+			auto hasher = hash<std::string>();
+			size_t hash = hasher(names.DiffuseName);
+			hash ^= hasher(names.SpecularName) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+			hash ^= hasher(names.EmissiveName) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+			hash ^= hasher(names.NormalName) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+			hash ^= hasher(names.BumpName) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+			return hash;
+		}
+	};
+}
+
+namespace Voxel
+{
 
 	struct StitchedAtlasSet
 	{
@@ -111,7 +161,7 @@ namespace Voxel
 
 		// Use to lookup where a particular set of images are stored within the atlas.
 		// 
-		// The std::array<float, 5> returned contains: ([0]: u-min, [1]: v-min, [2]: u-max, [3]: v-max, [4]: texture layer (usually the 3rd component of a texture2darray lookup))
+		// The std::array<float, 5> returned contains: (std::ref([0]: u-min), std::ref([1]: v-min), std::ref([2]: u-max), std::ref([3]: v-max), [4]: texture layer (usually the 3rd component of a texture2darray lookup))
 		// An example Atlas that stores 1 image per layer, with only 1 image, would look like:
 		// { "texture1": { (u-min): 0.f, (v-min): 0.f, (u-max): 1.f, (v-max): 1.f, (layer): 0.f} }
 		// An example Atlas that stores 4 images (in a 2x2) per layer, with 5 images would contain:
@@ -120,10 +170,10 @@ namespace Voxel
 		//   "texture3": { 0.f, 0.5f, 0.5f, 1.f, 0.f },
 		//   "texture4": { 0.5f, 0.5f, 1.f, 1.f, 0.f },
 		//   "texture5": { 0.f, 0.f, 0.5f, 0.5f, 1.f }  }
-		std::unordered_map<std::string, std::array<float, 5>> FaceTextureLookup;
+		std::unordered_map<TextureNames, std::array<float, 5>> FaceTextureLookup;
 
-		floaty3 ConvertTexCoords(const std::string& diffuseTexName, floaty2 uvIn) const;
-		inline bool ContainsMappingFor(std::string diffuseTexName) const { return FaceTextureLookup.count(diffuseTexName); }
+		floaty3 ConvertTexCoords(const TextureNames& texNames, floaty2 uvIn) const;
+		inline bool ContainsMappingFor(const TextureNames& texNames) const { return FaceTextureLookup.count(texNames); }
 	};
 
 	struct BlockDescription
@@ -135,27 +185,23 @@ namespace Voxel
 		bool WantsUpdate;
 		std::string MeshName;
 
-		std::array<std::string, 6> DiffuseFaceTextures;
-		std::array<std::string, 6> NormalFaceTextures;
-		std::array<std::string, 6> BumpFaceTextures;
-		std::array<std::string, 6> SpecularFaceTextures;
-		std::array<std::string, 6> EmissiveFaceTextures;
+		std::array<TextureNames, 6> FaceTextures;
 		
-		inline constexpr const std::array<std::string, 6>& GetFacesFor(AtlasType type) const
+		inline std::array<std::reference_wrapper<std::string>, 6> GetFacesFor(AtlasType type)
 		{
 			switch (type)
 			{
 			default:
 			case AtlasType::DIFFUSE:
-				return DiffuseFaceTextures;
+				return std::array<std::reference_wrapper<std::string>, 6>{ std::ref(FaceTextures[0].DiffuseName), std::ref(FaceTextures[1].DiffuseName), std::ref(FaceTextures[2].DiffuseName), std::ref(FaceTextures[3].DiffuseName), std::ref(FaceTextures[4].DiffuseName), std::ref(FaceTextures[5].DiffuseName) };
 			case AtlasType::NORMAL:
-				return NormalFaceTextures;
+				return std::array<std::reference_wrapper<std::string>, 6>{ std::ref(FaceTextures[0].NormalName), std::ref(FaceTextures[1].NormalName), std::ref(FaceTextures[2].NormalName), std::ref(FaceTextures[3].NormalName), std::ref(FaceTextures[4].NormalName), std::ref(FaceTextures[5].NormalName) };
 			case AtlasType::BUMP:
-				return BumpFaceTextures;
+				return std::array<std::reference_wrapper<std::string>, 6>{ std::ref(FaceTextures[0].BumpName), std::ref(FaceTextures[1].BumpName), std::ref(FaceTextures[2].BumpName), std::ref(FaceTextures[3].BumpName), std::ref(FaceTextures[4].BumpName), std::ref(FaceTextures[5].BumpName) };
 			case AtlasType::SPECULAR:
-				return SpecularFaceTextures;
+				return std::array<std::reference_wrapper<std::string>, 6>{ std::ref(FaceTextures[0].SpecularName), std::ref(FaceTextures[1].SpecularName), std::ref(FaceTextures[2].SpecularName), std::ref(FaceTextures[3].SpecularName), std::ref(FaceTextures[4].SpecularName), std::ref(FaceTextures[5].SpecularName) };
 			case AtlasType::EMISSIVE:
-				return EmissiveFaceTextures;
+				return std::array<std::reference_wrapper<std::string>, 6>{ std::ref(FaceTextures[0].EmissiveName), std::ref(FaceTextures[1].EmissiveName), std::ref(FaceTextures[2].EmissiveName), std::ref(FaceTextures[3].EmissiveName), std::ref(FaceTextures[4].EmissiveName), std::ref(FaceTextures[5].EmissiveName) };
 			}
 		}
 	};
@@ -274,7 +320,7 @@ namespace Voxel
 		// v
 		const VoxelBlockMesh* GetBlockVertices(const std::string& name) const;
 
-		floaty3 ConvertToAtlasTexCoords(const std::string& atlasName, const std::string& diffuseTexName, floaty2 uv) const;
+		floaty3 ConvertToAtlasTexCoords(const std::string& atlasName, const TextureNames& texNames, floaty2 uv) const;
 		// ^ 
 		// Mesh stuff
 		// Update Block stuff 
@@ -288,6 +334,7 @@ namespace Voxel
 
 
 		static void InitializeVoxelStore(const std::string& prestitchedDir, const std::string& blockDir, const std::string& faceTexDir, const std::string& meshDir, std::vector<UnStitchedAtlasSet> builtInAtlases = std::vector<UnStitchedAtlasSet>());
+		static void ReloadMeshes(const std::string& prestitchedDir, const std::string& blockDir, const std::string& faceTexDir, const std::string& meshDir, std::vector<UnStitchedAtlasSet> builtInAtlases = std::vector<UnStitchedAtlasSet>());
 
 		static const SerialBlock EmptyBlockData;
 	};
