@@ -173,7 +173,32 @@ namespace Parkour
 				LookingPoint{ Vector::inty3(-1, 0, 0), ParkourLeftDirection }
 			}
 		};
-			
+		
+
+		// Topdown:
+		// ##O##
+		const ParkourStep DecoratedSingleStep = ParkourStep
+		{
+			std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>>{
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(0, 0, 0)),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(-1, 0, 0)),
+				std::make_pair(Voxel::NamedBlock{ "lamp-base", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(-1, 1, 0)),
+				std::make_pair(Voxel::NamedBlock{ "lamp-pole", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(-1, 2, 0)),
+				std::make_pair(Voxel::NamedBlock{ "lamp-bend", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(-1, 3, 0)),
+				std::make_pair(Voxel::NamedBlock{ "lamp-light", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(0, 3, 0)),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(-2, 0, 0)),
+				std::make_pair(Voxel::NamedBlock{ "potted-hedge", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(-2, 1, 0)),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(1, 0, 0)),
+				std::make_pair(Voxel::NamedBlock{ "potted-plant", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(1, 1, 0)),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(2, 0, 0)),
+				std::make_pair(Voxel::NamedBlock{ "torch-base", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(2, 1, 0)),
+				std::make_pair(Voxel::NamedBlock{ "torch-light", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(2, 2, 0)),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(2, 0, 0)),
+			},
+			std::vector<LookingPoint>{
+				LookingPoint{ Vector::inty3(0, 0, 0), ParkourForwardDirection }
+			}
+		};
 	}
 
 	const std::array<Parkour::ParkourLevel, 5> Levels = {
