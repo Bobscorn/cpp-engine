@@ -269,7 +269,39 @@ blocks:
     textures:
         diffuse: parkour-pallete.png
         normal: default-normal
-        ambient: emissive.jpg
+        emissive: emissive.jpg
+-
+    block-name: torch-base
+    atlas: global
+    mesh: torch-base
+    faces:
+        pos-x: open
+        neg-x: open
+        pos-y: semi-open
+        neg-y: semi-open
+        pos-z: open
+        neg-z: open
+    textures:
+        diffuse: worn-metal-color.jpg
+        normal: worn-metal-normal.jpg
+        bump: worn-metal-displace.jpg
+-
+    block-name: torch-light
+    atlas: global
+    mesh: torch-light
+    faces:
+        pos-x: open
+        neg-x: open
+        pos-y: open
+        neg-y: semi-open
+        pos-z: open
+        neg-z: open
+    textures:
+        diffuse: worn-metal-color.jpg
+        normal: worn-metal-normal.jpg
+        bump: worn-metal-displace.jpg
+        emissive: emissive.jpg
+    
 
 
     
