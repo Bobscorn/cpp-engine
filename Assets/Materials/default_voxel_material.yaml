@@ -53,5 +53,5 @@ properties:
     tex-bitmap: # tex-bitmap is the decimal number that represents the bitmask of textures used
         size: 1
         type: int
-        x: 36
+        x: 38 # 38 = 0b10 (Emissive) + 0b100 (Diffuse) + 0b100000 (Normal)
 # and so on
