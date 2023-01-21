@@ -270,73 +270,61 @@ namespace Voxel
 					// v
 
 					auto tex = node["textures"];
-					if (!tex)
+					if (!tex || !tex.IsMap())
 					{
-						DINFO("Block '" + desc.Name + "' in block file '" + path + "' contains an invalid textures tag");
+						DINFO("Block '" + desc.Name + "' in block file '" + path + "' contains an invalid or missing textures tag");
 						continue;
-					} 
-					if (tex.IsScalar() && tex.Scalar() == "elsewhere")
-					{
-						desc.AtlasName = "";
-						std::fill(desc.DiffuseFaceTextures.begin(),  desc.DiffuseFaceTextures.end(),  std::string{});
-						std::fill(desc.NormalFaceTextures.begin(),	 desc.NormalFaceTextures.end(),   std::string{});
-						std::fill(desc.BumpFaceTextures.begin(),	 desc.BumpFaceTextures.end(),	  std::string{});
-						std::fill(desc.SpecularFaceTextures.begin(), desc.SpecularFaceTextures.end(), std::string{});
-						std::fill(desc.EmissiveFaceTextures.begin(), desc.EmissiveFaceTextures.end(), std::string{});
 					}
-					else if (tex.IsMap())
+					auto& blockName = desc.Name;
+					auto getTextureGroup = [&blockName](const YAML::Node& groupNode, std::array<std::reference_wrapper<std::string>, 6>& faces)
 					{
-						auto& blockName = desc.Name;
-						auto getTextureGroup = [&blockName](const YAML::Node& groupNode, std::array<std::string, 6>& faces)
+						if (!groupNode)
+							return;
+						if (groupNode.IsScalar())
 						{
-							if (!groupNode)
-								return;
-							if (groupNode.IsScalar())
+							for (auto blockFace : BlockFacesArray)
 							{
-								for (auto blockFace : BlockFacesArray)
+								faces[(size_t)blockFace].get() = groupNode.Scalar();
+							}
+						}
+						else if (groupNode.IsMap())
+						{
+							auto getFaceFunc = [&blockName](const std::string& name, const YAML::Node& n, std::string& texFileRef)
+							{
+								if (!n)
 								{
-									faces[(size_t)blockFace] = groupNode.Scalar();
+									DINFO("Block '" + blockName + "' missing expected tag '" + name + "' (expected because textures tag is not 'elsewhere' and is a YAML map)");
+									return;
 								}
-							}
-							else if (groupNode.IsMap())
-							{
-								auto getFaceFunc = [&blockName](const std::string& name, const YAML::Node& n, std::string& texFileRef)
+								if (!n.IsScalar())
 								{
-									if (!n)
-									{
-										DINFO("Block '" + blockName + "' missing expected tag '" + name + "' (expected because textures tag is not 'elsewhere' and is a YAML map)");
-										return;
-									}
-									if (!n.IsScalar())
-									{
-										DINFO("Block '" + blockName + "' contains invalid '" + name + "' tag!");
-										return;
-									}
-									texFileRef = n.Scalar();
-								};
+									DINFO("Block '" + blockName + "' contains invalid '" + name + "' tag!");
+									return;
+								}
+								texFileRef = n.Scalar();
+							};
 
-								getFaceFunc("pos-x", groupNode["pos-x"], faces[(size_t)BlockFace::POS_X]);
-								getFaceFunc("pos-y", groupNode["pos-y"], faces[(size_t)BlockFace::POS_Y]);
-								getFaceFunc("pos-z", groupNode["pos-z"], faces[(size_t)BlockFace::POS_Z]);
-								getFaceFunc("neg-x", groupNode["neg-x"], faces[(size_t)BlockFace::NEG_X]);
-								getFaceFunc("neg-y", groupNode["neg-y"], faces[(size_t)BlockFace::NEG_Y]);
-								getFaceFunc("neg-z", groupNode["neg-z"], faces[(size_t)BlockFace::NEG_Z]);
-							}
-							else
-							{
-								DWARNING("Block '" + blockName + "' contains invalid texture group tag '" + groupNode.Tag() + "'");
-							}
-						};
+							getFaceFunc("pos-x", groupNode["pos-x"], faces[(size_t)BlockFace::POS_X]);
+							getFaceFunc("pos-y", groupNode["pos-y"], faces[(size_t)BlockFace::POS_Y]);
+							getFaceFunc("pos-z", groupNode["pos-z"], faces[(size_t)BlockFace::POS_Z]);
+							getFaceFunc("neg-x", groupNode["neg-x"], faces[(size_t)BlockFace::NEG_X]);
+							getFaceFunc("neg-y", groupNode["neg-y"], faces[(size_t)BlockFace::NEG_Y]);
+							getFaceFunc("neg-z", groupNode["neg-z"], faces[(size_t)BlockFace::NEG_Z]);
+						}
+						else
+						{
+							DWARNING("Block '" + blockName + "' contains invalid texture group tag '" + groupNode.Tag() + "'");
+						}
+					};
 						
-						getTextureGroup(tex["diffuse"], desc.DiffuseFaceTextures);
-						getTextureGroup(tex["normal"], desc.NormalFaceTextures);
-						getTextureGroup(tex["specular"], desc.SpecularFaceTextures);
-						getTextureGroup(tex["bump"], desc.BumpFaceTextures);
-						getTextureGroup(tex["emissive"], desc.EmissiveFaceTextures);
+					getTextureGroup(tex["diffuse"], desc.GetFacesFor(Voxel::AtlasType::DIFFUSE));
+					getTextureGroup(tex["normal"], desc.GetFacesFor(Voxel::AtlasType::NORMAL));
+					getTextureGroup(tex["specular"], desc.GetFacesFor(Voxel::AtlasType::SPECULAR));
+					getTextureGroup(tex["bump"], desc.GetFacesFor(Voxel::AtlasType::BUMP));
+					getTextureGroup(tex["emissive"], desc.GetFacesFor(Voxel::AtlasType::EMISSIVE));
 
-						if (std::any_of(desc.DiffuseFaceTextures.begin(), desc.DiffuseFaceTextures.end(), [](const std::string& s) { return s.size(); }))
-							_unstitchedDescriptions.emplace_back(desc);
-					}
+					if (std::any_of(desc.FaceTextures.begin(), desc.FaceTextures.end(), [](const TextureNames& s) { return s.DiffuseName.size(); }))
+						_unstitchedDescriptions.emplace_back(desc);
 
 					auto meshNode = node["mesh"];
 					desc.MeshName = DefaultCubeMeshName;
@@ -601,13 +589,13 @@ namespace Voxel
 			{
 				for (int faceI = 0; faceI < 6; ++faceI)
 				{
-					if (!ptr->ContainsMappingFor(desc.DiffuseTexNames[faceI]))
+					if (!ptr->ContainsMappingFor(desc.FaceTexNames[faceI]))
 						continue;
 
 					for (int i = 0; i < desc.Mesh.FaceVertices[faceI].size(); ++i)
 					{
 						auto& vert = desc.Mesh.FaceVertices[faceI][i];
-						vert.TexCoord = ptr->ConvertTexCoords(desc.DiffuseTexNames[faceI], (floaty2)vert.TexCoord);
+						vert.TexCoord = ptr->ConvertTexCoords(desc.FaceTexNames[faceI], (floaty2)vert.TexCoord);
 					}
 				}
 			}
@@ -617,7 +605,7 @@ namespace Voxel
 	StitchedAtlasSet VoxelStore::StichAtlas(const UnStitchedAtlasSet& set, const std::string& faceTexDir)
 	{
 		if (set.Blocks.empty())
-			return StitchedAtlasSet{ set.AtlasPrefix, nullptr, nullptr, nullptr, nullptr, nullptr, std::unordered_map<std::string, std::array<float, 5>>{} };
+			return StitchedAtlasSet{ set.AtlasPrefix, nullptr, nullptr, nullptr, nullptr, nullptr, std::unordered_map<TextureNames, std::array<float, 5>>{} };
 
 		MidStitchData data{};
 		int faceSize = DefaultFaceSize;
@@ -633,7 +621,7 @@ namespace Voxel
 		stitched.EmissiveImage = std::make_shared<Drawing::Image2DArray>( (size_t)faceCount * faceSize + (faceCount - 1) * 2, (size_t)faceCount * faceSize + (faceCount - 1) * 2, 1 );
 		stitched.NormalImage = std::make_shared<Drawing::Image2DArray>( (size_t)faceCount * faceSize + (faceCount - 1) * 2, (size_t)faceCount * faceSize + (faceCount - 1) * 2, 1 );
 		stitched.BumpImage = std::make_shared<Drawing::Image2DArray>( (size_t)faceCount * faceSize + (faceCount - 1) * 2, (size_t)faceCount * faceSize + (faceCount - 1) * 2, 1 );
-		stitched.FaceTextureLookup = std::unordered_map<std::string, std::array<float, 5>>();
+		stitched.FaceTextureLookup = std::unordered_map<TextureNames, std::array<float, 5>>();
 
 		auto& dif = stitched.DiffuseImage;
 		auto& norm = stitched.NormalImage;
@@ -742,14 +730,15 @@ namespace Voxel
 			block.Name = desc.Name;
 			for (int j = 0; j < 6; ++j)
 			{
+				auto& textureNames = desc.FaceTextures[j];
 				addFaceFunc(
-					stitched.FaceTextureLookup[desc.DiffuseFaceTextures[j]], 
-					desc.DiffuseFaceTextures[j], 
-					desc.SpecularFaceTextures[j],
-					desc.EmissiveFaceTextures[j], 
-					desc.NormalFaceTextures[j], 
-					desc.BumpFaceTextures[j],
-					stitched.FaceTextureLookup.count(desc.DiffuseFaceTextures[j])
+					stitched.FaceTextureLookup[textureNames], 
+					textureNames.DiffuseName, 
+					textureNames.SpecularName,
+					textureNames.EmissiveName, 
+					textureNames.NormalName, 
+					textureNames.BumpName,
+					stitched.FaceTextureLookup.count(textureNames)
 				);
 			}
 		}
@@ -790,7 +779,7 @@ namespace Voxel
 		vox.FaceOpaqueness = desc.FaceOpaqueness;
 		vox.MeshName = desc.MeshName;
 		vox.AtlasName = desc.AtlasName;
-		vox.DiffuseTexNames = desc.DiffuseFaceTextures;
+		vox.FaceTexNames = desc.FaceTextures;
 		vox.WantsUpdate = desc.WantsUpdate;
 		
 		auto* mesh = GetBlockVertices(desc.MeshName);
@@ -900,7 +889,7 @@ namespace Voxel
 		return nullptr;
 	}
 
-	floaty3 VoxelStore::ConvertToAtlasTexCoords(const std::string& atlasName, const std::string& diffuseName, floaty2 uv) const
+	floaty3 VoxelStore::ConvertToAtlasTexCoords(const std::string& atlasName, const TextureNames& diffuseName, floaty2 uv) const
 	{
 		if (auto it = _atlasLookup.find(atlasName); it != _atlasLookup.end())
 		{
@@ -933,6 +922,11 @@ namespace Voxel
 		if (_instance)
 			return;
 
+		_instance = std::make_unique<VoxelStore>(prestitchedDir, blockDir, faceTexDir, meshDir, builtInAtlases);
+	}
+
+	void VoxelStore::ReloadMeshes(const std::string& prestitchedDir, const std::string& blockDir, const std::string& faceTexDir, const std::string& meshDir, std::vector<UnStitchedAtlasSet> builtInAtlases)
+	{
 		_instance = std::make_unique<VoxelStore>(prestitchedDir, blockDir, faceTexDir, meshDir, builtInAtlases);
 	}
 
@@ -972,20 +966,16 @@ namespace Voxel
 		desc.Data.Data.Rotation = quat4::identity();
 		desc.FaceOpaqueness = { FaceClosedNess::OPEN_FACE, FaceClosedNess::OPEN_FACE, FaceClosedNess::OPEN_FACE, FaceClosedNess::OPEN_FACE, FaceClosedNess::OPEN_FACE, FaceClosedNess::OPEN_FACE };
 		desc.WantsUpdate = false;
-		desc.DiffuseFaceTextures = { std::string(), std::string(), std::string(), std::string(), std::string(), std::string() };
-		desc.NormalFaceTextures = { std::string(), std::string(), std::string(), std::string(), std::string(), std::string() };
-		desc.BumpFaceTextures = { std::string(), std::string(), std::string(), std::string(), std::string(), std::string() };
-		desc.SpecularFaceTextures = { std::string(), std::string(), std::string(), std::string(), std::string(), std::string() };
-		desc.EmissiveFaceTextures = { std::string(), std::string(), std::string(), std::string(), std::string(), std::string() };
+		desc.FaceTextures = { TextureNames{}, TextureNames{}, TextureNames{}, TextureNames{}, TextureNames{}, TextureNames{} };
 		return desc;
 	}
 
-	floaty3 StitchedAtlasSet::ConvertTexCoords(const std::string& diffuseName, floaty2 uvIn) const
+	floaty3 StitchedAtlasSet::ConvertTexCoords(const TextureNames& texNames, floaty2 uvIn) const
 	{
-		auto it = FaceTextureLookup.find(diffuseName);
+		auto it = FaceTextureLookup.find(texNames);
 		if (it == FaceTextureLookup.end())
 		{
-			DWARNING("Looking up unknown diffuse texture '" + diffuseName + "'!");
+			DWARNING("Looking up unknown texture names (Diffuse: '" + texNames.DiffuseName + "', Normal: '" + texNames.NormalName + "', Bump: '" + texNames.BumpName + "', Specular: " + texNames.SpecularName + ", Emissive: '" + texNames.EmissiveName + ")!");
 			return { 0.f, 0.f, 0.f };
 		}
 
