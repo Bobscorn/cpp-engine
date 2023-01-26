@@ -7,6 +7,17 @@
 
 namespace Drawing
 {
+	struct GLCubeMap : GLImage
+	{
+		GLuint _width = 0u, _height = 0u;
+	public:
+		GLCubeMap() {}
+		GLCubeMap(GLCubeMap&& other) noexcept : GLImage(other.Release()), _width(other._width), _height(other._height) { other._width = 0; other._height = 0; }
+		GLCubeMap(GLuint width, GLuint height, GLenum internalFormat = GL_RGBA); // Internal format likely to be GL_RGBA8 or GL_DEPTH_COMPONENT24
+		GLCubeMap(const GLCubeMap& other) = delete;
+		~GLCubeMap() {}
+	};
+
 	struct CubeMapTexture : GLImage
 	{
 	protected:

@@ -2,6 +2,25 @@
 
 namespace Drawing
 {
+	GLCubeMap::GLCubeMap(GLuint width, GLuint height, GLenum internalFormat)
+		: GLImage(0, GL_TEXTURE_CUBE_MAP)
+		, _width(width)
+		, _height(height)
+	{
+		CHECK_GL_ERR("Before Creating Cube Map");
+		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &_tex);
+		CHECK_GL_ERR("Creating Cube Map");
+
+		glTextureStorage2D(_tex, 1, internalFormat, _width, _height);
+		CHECK_GL_ERR("Allocating storage for Cube Map");
+
+		glTextureParameteri(_tex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTextureParameteri(_tex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTextureParameteri(_tex, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTextureParameteri(_tex, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		CHECK_GL_ERR("Setting Cube Map parameters");
+	}
+
 	CubeMapTexture::CubeMapTexture()
 		: GLImage()
 		, _width(0)
