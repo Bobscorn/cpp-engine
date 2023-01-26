@@ -65,8 +65,8 @@ namespace Config1
 		// Adds DPI Itself, do not apply api before setting font size
 		inline void SetScale(float newscale) 
 		{
-			float ScaleChange;
-			if (newscale != 0)
+			float ScaleChange = 1.f;
+			if (newscale != 0.f)
 				ScaleChange = newscale / FontScale;
 			FontScale = newscale; 
 			DoFontSizes(); 

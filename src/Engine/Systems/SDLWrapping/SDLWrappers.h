@@ -63,7 +63,7 @@ namespace SDLW
 				Create(desc.size);
 			return *this;
 		}
-		Font & operator=(Font&& f)
+		Font & operator=(Font&& f) noexcept
 		{
 			Destroy();
 			desc = f.desc;
@@ -111,7 +111,7 @@ namespace SDLW
 		GLContext() : GLC(NULL) {}
 		GLContext(SDL_Window *win) : GLC(Create(win)) {}
 		GLContext(SDL_GLContext e) : GLC(e) {}
-		GLContext(GLContext &&other) : GLC(other.GLC) { other.GLC = NULL; }
+		GLContext(GLContext &&other) noexcept : GLC(other.GLC) { other.GLC = NULL; }
 		~GLContext() { Reset(); }
 
 		inline void Reset(SDL_GLContext e = NULL)
@@ -126,7 +126,7 @@ namespace SDLW
 			return *this;
 		}
 
-		inline GLContext &operator=(GLContext &&other)
+		inline GLContext &operator=(GLContext &&other) noexcept
 		{
 			Reset(other.GLC);
 			other.GLC = NULL;

@@ -52,9 +52,12 @@ void Parkour::ParkourGeneratorShape::Generate()
 	
 	auto gen = Parkour::GenerateParkour(info);
 	DINFO("Parkour: Generated '" + std::to_string(gen.Blocks.size()) + "' blocks");
+	DINFO("Parkour: Starts at (" + std::to_string(info.StartPosition.x) + ", " + std::to_string(info.StartPosition.y) + ", " + std::to_string(info.StartPosition.z) + ")");
+
 	levelDat.EndPosition = Parkour::inty3ToBlockCoord(gen.EndPosition);
 	levelDat.EndFace = gen.EndDirection;
 	levelDat.GoalPosition = Parkour::inty3ToBlockCoord(gen.EndPosition - Voxel::BlockFaceHelper::GetDirectionI(gen.EndDirection) + Vector::inty3(0, 1, 0));
+	DINFO("Parkour: Ends at (" + std::to_string(gen.EndPosition.x) + ", " + std::to_string(gen.EndPosition.y) + ", " + std::to_string(gen.EndPosition.z) + ")");
 	m_LevelShape->SetLevelData(levelDat);
 
 	for (auto& block : gen.Blocks)
