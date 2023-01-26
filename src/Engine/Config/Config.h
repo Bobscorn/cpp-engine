@@ -137,7 +137,7 @@ namespace Config
 		SharedVariableLock(std::nullptr_t) : m_Key(), m_Variable(nullptr), m_Overlord(nullptr) {}
 		SharedVariableLock(Key key, std::any *var, IConfigThrone *overlord) : m_Key(key), m_Variable(var), m_Overlord(overlord) {}
 		SharedVariableLock(const SharedVariableLock &other);
-		SharedVariableLock(SharedVariableLock &&other) : m_Key(other.m_Key), m_Variable(other.m_Variable), m_Overlord(other.m_Overlord) { other.m_Key = {}; other.m_Variable = nullptr; other.m_Overlord = nullptr; }
+		SharedVariableLock(SharedVariableLock &&other) noexcept : m_Key(other.m_Key), m_Variable(other.m_Variable), m_Overlord(other.m_Overlord) { other.m_Key = {}; other.m_Variable = nullptr; other.m_Overlord = nullptr; }
 		~SharedVariableLock();
 
 		SharedVariableLock &operator=(const SharedVariableLock &other);
@@ -163,11 +163,11 @@ namespace Config
 		SharedLifetimeLock(std::nullptr_t) : m_Key(), m_Variable(nullptr), m_Overlord(nullptr) {}
 		SharedLifetimeLock(Key key, std::any *var, IConfigThrone *overlord) : m_Key(key), m_Variable(var), m_Overlord(overlord) {}
 		SharedLifetimeLock(const SharedLifetimeLock &other);
-		SharedLifetimeLock(SharedLifetimeLock &&other) : m_Key(other.m_Key), m_Variable(other.m_Variable), m_Overlord(other.m_Overlord) { other.m_Key = {}; other.m_Variable = nullptr; other.m_Overlord = nullptr; }
+		SharedLifetimeLock(SharedLifetimeLock &&other) noexcept : m_Key(other.m_Key), m_Variable(other.m_Variable), m_Overlord(other.m_Overlord) { other.m_Key = {}; other.m_Variable = nullptr; other.m_Overlord = nullptr; }
 		~SharedLifetimeLock();
 
 		SharedLifetimeLock &operator=(const SharedLifetimeLock &other);
-		SharedLifetimeLock &operator=(SharedLifetimeLock &&other);
+		SharedLifetimeLock &operator=(SharedLifetimeLock &&other) noexcept;
 
 		inline bool Alive() const { return m_Variable && m_Variable->has_value(); }
 

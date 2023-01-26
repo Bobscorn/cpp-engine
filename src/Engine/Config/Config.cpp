@@ -286,7 +286,7 @@ namespace Config
 			return *this;
 		}
 	}
-	SharedLifetimeLock &SharedLifetimeLock::operator=(SharedLifetimeLock &&other)
+	SharedLifetimeLock &SharedLifetimeLock::operator=(SharedLifetimeLock &&other) noexcept
 	{
 		Reset();
 		this->m_Key = other.m_Key;
