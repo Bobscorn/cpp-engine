@@ -96,8 +96,8 @@ namespace Parkour
 			throw std::runtime_error("Failed to pick altitude!");
 		};
 
-		inty3 currentPos = inty3(0, 0, 0);
-		quat4 currentRotation = quat4::identity();
+		inty3 currentPos = genInfo.StartPosition;
+		quat4 currentRotation = Voxel::GetWhatRotates(ParkourForwardDirection, genInfo.StartDirection);
 		inty3 nextDistance = inty3(0, 0, 0);
 		for (auto i = 0; i < genInfo.NumGeneratedSteps; ++i)
 		{
