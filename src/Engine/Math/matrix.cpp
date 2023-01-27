@@ -494,3 +494,184 @@ Matrixy4x4::operator btTransform() const
 	return out;
 }
 
+
+#ifdef CPP_ENGINE_TESTS
+
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
+
+using namespace testing;
+
+TEST(MatrixTests, DefaultConstructorIdentity)
+{
+	Matrixy4x4 mat{};
+	ASSERT_EQ(mat.m11, 1.f); ASSERT_EQ(mat.m21, 0.f); ASSERT_EQ(mat.m31, 0.f); ASSERT_EQ(mat.m41, 0.f);
+	ASSERT_EQ(mat.m12, 0.f); ASSERT_EQ(mat.m22, 1.f); ASSERT_EQ(mat.m32, 0.f); ASSERT_EQ(mat.m42, 0.f);
+	ASSERT_EQ(mat.m13, 0.f); ASSERT_EQ(mat.m23, 0.f); ASSERT_EQ(mat.m33, 1.f); ASSERT_EQ(mat.m43, 0.f);
+	ASSERT_EQ(mat.dx, 0.f);  ASSERT_EQ(mat.dy, 0.f);  ASSERT_EQ(mat.dz, 0.f);  ASSERT_EQ(mat.m44, 1.f);
+	ASSERT_EQ(mat, Matrixy4x4::Identity());
+}
+
+TEST(MatrixTests, IdentityTest)
+{
+	Matrixy4x4 mat = Matrixy4x4::Identity();
+	Matrixy4x4 mat2 = Matrixy4x4::Identity();
+	ASSERT_EQ(mat, mat2);
+	ASSERT_EQ(mat, Matrixy4x4::Identity());
+
+	ASSERT_EQ(mat.m11, 1.f); ASSERT_EQ(mat.m21, 0.f); ASSERT_EQ(mat.m31, 0.f); ASSERT_EQ(mat.m41, 0.f);
+	ASSERT_EQ(mat.m12, 0.f); ASSERT_EQ(mat.m22, 1.f); ASSERT_EQ(mat.m32, 0.f); ASSERT_EQ(mat.m42, 0.f);
+	ASSERT_EQ(mat.m13, 0.f); ASSERT_EQ(mat.m23, 0.f); ASSERT_EQ(mat.m33, 1.f); ASSERT_EQ(mat.m43, 0.f);
+	ASSERT_EQ(mat.dx, 0.f);  ASSERT_EQ(mat.dy, 0.f);  ASSERT_EQ(mat.dz, 0.f);  ASSERT_EQ(mat.m44, 1.f);
+}
+
+TEST(MatrixTests, ValidityOfUnionTest)
+{
+	Matrixy4x4 mat{};
+	std::memset(mat.ma, 0, sizeof(mat));
+	ASSERT_THAT(0.f, AllOf(mat.m11, mat._11, mat.m[0][0], mat.ma[0]));
+	ASSERT_THAT(0.f, AllOf(mat.m21, mat._21, mat.m[0][1], mat.ma[1]));
+	ASSERT_THAT(0.f, AllOf(mat.m31, mat._31, mat.m[0][2], mat.ma[2]));
+	ASSERT_THAT(0.f, AllOf(mat.m41, mat._41, mat.m[0][3], mat.ma[3]));
+
+	ASSERT_THAT(0.f, AllOf(mat.m12, mat._12, mat.m[1][0], mat.ma[4 * 1 + 0]));
+	ASSERT_THAT(0.f, AllOf(mat.m22, mat._22, mat.m[1][1], mat.ma[4 * 1 + 1]));
+	ASSERT_THAT(0.f, AllOf(mat.m32, mat._32, mat.m[1][2], mat.ma[4 * 1 + 2]));
+	ASSERT_THAT(0.f, AllOf(mat.m42, mat._42, mat.m[1][3], mat.ma[4 * 1 + 3]));
+
+	ASSERT_THAT(0.f, AllOf(mat.m13, mat._13, mat.m[2][0], mat.ma[0 + 2 * 4]));
+	ASSERT_THAT(0.f, AllOf(mat.m23, mat._23, mat.m[2][1], mat.ma[1 + 2 * 4]));
+	ASSERT_THAT(0.f, AllOf(mat.m33, mat._33, mat.m[2][2], mat.ma[2 + 2 * 4]));
+	ASSERT_THAT(0.f, AllOf(mat.m43, mat._43, mat.m[2][3], mat.ma[3 + 2 * 4]));
+
+	ASSERT_THAT(0.f, AllOf(mat.dx,  mat._14, mat.m[3][0], mat.ma[0 + 3 * 4]));
+	ASSERT_THAT(0.f, AllOf(mat.dy,  mat._24, mat.m[3][1], mat.ma[1 + 3 * 4]));
+	ASSERT_THAT(0.f, AllOf(mat.dz,  mat._34, mat.m[3][2], mat.ma[2 + 3 * 4]));
+	ASSERT_THAT(0.f, AllOf(mat.m44, mat._44, mat.m[3][3], mat.ma[3 + 3 * 4]));
+
+	mat = Matrixy4x4(1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f, 9.f, 10.f, 11.f, 12.f, 13.f, 14.f, 15.f, 16.f);
+	ASSERT_THAT(1.f, AllOf(mat.m11, mat._11, mat.m[0][0], mat.ma[0]));
+	ASSERT_THAT(2.f, AllOf(mat.m21, mat._21, mat.m[0][1], mat.ma[1]));
+	ASSERT_THAT(3.f, AllOf(mat.m31, mat._31, mat.m[0][2], mat.ma[2]));
+	ASSERT_THAT(4.f, AllOf(mat.m41, mat._41, mat.m[0][3], mat.ma[3]));
+
+	ASSERT_THAT(5.f, AllOf(mat.m12, mat._12, mat.m[1][0], mat.ma[4 * 1 + 0]));
+	ASSERT_THAT(6.f, AllOf(mat.m22, mat._22, mat.m[1][1], mat.ma[4 * 1 + 1]));
+	ASSERT_THAT(7.f, AllOf(mat.m32, mat._32, mat.m[1][2], mat.ma[4 * 1 + 2]));
+	ASSERT_THAT(8.f, AllOf(mat.m42, mat._42, mat.m[1][3], mat.ma[4 * 1 + 3]));
+
+	ASSERT_THAT(9.f,  AllOf(mat.m13, mat._13, mat.m[2][0], mat.ma[0 + 2 * 4]));
+	ASSERT_THAT(10.f, AllOf(mat.m23, mat._23, mat.m[2][1], mat.ma[1 + 2 * 4]));
+	ASSERT_THAT(11.f, AllOf(mat.m33, mat._33, mat.m[2][2], mat.ma[2 + 2 * 4]));
+	ASSERT_THAT(12.f, AllOf(mat.m43, mat._43, mat.m[2][3], mat.ma[3 + 2 * 4]));
+
+	ASSERT_THAT(13.f, AllOf(mat.dx,  mat._14, mat.m[3][0], mat.ma[0 + 3 * 4]));
+	ASSERT_THAT(14.f, AllOf(mat.dy,  mat._24, mat.m[3][1], mat.ma[1 + 3 * 4]));
+	ASSERT_THAT(15.f, AllOf(mat.dz,  mat._34, mat.m[3][2], mat.ma[2 + 3 * 4]));
+	ASSERT_THAT(16.f, AllOf(mat.m44, mat._44, mat.m[3][3], mat.ma[3 + 3 * 4]));
+
+	Matrixy4x4 mat2 = mat;
+	mat = mat2;
+	ASSERT_THAT(1.f, AllOf(mat.m11, mat._11, mat.m[0][0], mat.ma[0]));
+	ASSERT_THAT(2.f, AllOf(mat.m21, mat._21, mat.m[0][1], mat.ma[1]));
+	ASSERT_THAT(3.f, AllOf(mat.m31, mat._31, mat.m[0][2], mat.ma[2]));
+	ASSERT_THAT(4.f, AllOf(mat.m41, mat._41, mat.m[0][3], mat.ma[3]));
+
+	ASSERT_THAT(5.f, AllOf(mat.m12, mat._12, mat.m[1][0], mat.ma[4 * 1 + 0]));
+	ASSERT_THAT(6.f, AllOf(mat.m22, mat._22, mat.m[1][1], mat.ma[4 * 1 + 1]));
+	ASSERT_THAT(7.f, AllOf(mat.m32, mat._32, mat.m[1][2], mat.ma[4 * 1 + 2]));
+	ASSERT_THAT(8.f, AllOf(mat.m42, mat._42, mat.m[1][3], mat.ma[4 * 1 + 3]));
+
+	ASSERT_THAT(9.f,  AllOf(mat.m13, mat._13, mat.m[2][0], mat.ma[0 + 2 * 4]));
+	ASSERT_THAT(10.f, AllOf(mat.m23, mat._23, mat.m[2][1], mat.ma[1 + 2 * 4]));
+	ASSERT_THAT(11.f, AllOf(mat.m33, mat._33, mat.m[2][2], mat.ma[2 + 2 * 4]));
+	ASSERT_THAT(12.f, AllOf(mat.m43, mat._43, mat.m[2][3], mat.ma[3 + 2 * 4]));
+
+	ASSERT_THAT(13.f, AllOf(mat.dx,  mat._14, mat.m[3][0], mat.ma[0 + 3 * 4]));
+	ASSERT_THAT(14.f, AllOf(mat.dy,  mat._24, mat.m[3][1], mat.ma[1 + 3 * 4]));
+	ASSERT_THAT(15.f, AllOf(mat.dz,  mat._34, mat.m[3][2], mat.ma[2 + 3 * 4]));
+	ASSERT_THAT(16.f, AllOf(mat.m44, mat._44, mat.m[3][3], mat.ma[3 + 3 * 4]));
+
+	mat2 = mat;
+	mat = std::move(mat2);
+	ASSERT_THAT(1.f, AllOf(mat.m11, mat._11, mat.m[0][0], mat.ma[0]));
+	ASSERT_THAT(2.f, AllOf(mat.m21, mat._21, mat.m[0][1], mat.ma[1]));
+	ASSERT_THAT(3.f, AllOf(mat.m31, mat._31, mat.m[0][2], mat.ma[2]));
+	ASSERT_THAT(4.f, AllOf(mat.m41, mat._41, mat.m[0][3], mat.ma[3]));
+
+	ASSERT_THAT(5.f, AllOf(mat.m12, mat._12, mat.m[1][0], mat.ma[4 * 1 + 0]));
+	ASSERT_THAT(6.f, AllOf(mat.m22, mat._22, mat.m[1][1], mat.ma[4 * 1 + 1]));
+	ASSERT_THAT(7.f, AllOf(mat.m32, mat._32, mat.m[1][2], mat.ma[4 * 1 + 2]));
+	ASSERT_THAT(8.f, AllOf(mat.m42, mat._42, mat.m[1][3], mat.ma[4 * 1 + 3]));
+
+	ASSERT_THAT(9.f,  AllOf(mat.m13, mat._13, mat.m[2][0], mat.ma[0 + 2 * 4]));
+	ASSERT_THAT(10.f, AllOf(mat.m23, mat._23, mat.m[2][1], mat.ma[1 + 2 * 4]));
+	ASSERT_THAT(11.f, AllOf(mat.m33, mat._33, mat.m[2][2], mat.ma[2 + 2 * 4]));
+	ASSERT_THAT(12.f, AllOf(mat.m43, mat._43, mat.m[2][3], mat.ma[3 + 2 * 4]));
+
+	ASSERT_THAT(13.f, AllOf(mat.dx,  mat._14, mat.m[3][0], mat.ma[0 + 3 * 4]));
+	ASSERT_THAT(14.f, AllOf(mat.dy,  mat._24, mat.m[3][1], mat.ma[1 + 3 * 4]));
+	ASSERT_THAT(15.f, AllOf(mat.dz,  mat._34, mat.m[3][2], mat.ma[2 + 3 * 4]));
+	ASSERT_THAT(16.f, AllOf(mat.m44, mat._44, mat.m[3][3], mat.ma[3 + 3 * 4]));
+}
+
+bool ApproximatelyEqual(float a, float b)
+{
+	static constexpr float e = 0.0001f;
+
+	return a > b - e && a < b + e;
+}
+
+TEST(MatrixTests, RotationTest)
+{
+	static constexpr float e = 0.0001f;
+	Matrixy4x4 mat = Matrixy4x4::RotationAxisD(floaty3{ 0.f, 1.f, 0.f }, 90.f);
+	floaty3 vec = floaty3{ 1.f, 0.f, 0.f };
+	ASSERT_FLOAT_EQ(vec.x, 1.f);
+	ASSERT_FLOAT_EQ(vec.y, 0.f);
+	ASSERT_FLOAT_EQ(vec.z, 0.f);
+	vec = mat.TransformNormal(vec);
+
+	EXPECT_THAT(vec.x, FloatNear(0.f, e));
+	EXPECT_THAT(vec.y, FloatNear(0.f, e));
+	EXPECT_THAT(vec.z, FloatNear(1.f, e));
+
+	vec = mat.TransformNormal(vec);
+
+	EXPECT_THAT(vec.x, FloatNear(-1.f, e));
+	EXPECT_THAT(vec.y, FloatNear(0.f, e));
+	EXPECT_THAT(vec.z, FloatNear(0.f, e));
+
+	mat = Matrixy4x4::RotationAxisD(floaty3{ 1.f, 0.f, 0.f }, 90.f);
+	vec = mat.TransformNormal(floaty3{ 0.f, 1.f, 0.f });
+
+	EXPECT_THAT(vec.x, FloatNear(0.f, e));
+	EXPECT_THAT(vec.y, FloatNear(0.f, e));
+	EXPECT_THAT(vec.z, FloatNear(-1.f, e));
+
+	vec = mat.TransformNormal(vec);
+
+	EXPECT_THAT(vec.x, FloatNear(0.f, e));
+	EXPECT_THAT(vec.y, FloatNear(-1.f, e));
+	EXPECT_THAT(vec.z, FloatNear(0.f, e));
+
+}
+
+TEST(MatrixTests, ReflectionTest)
+{
+	Matrixy4x4 mat = Matrixy4x4::Reflection(floaty3{ 0.f, 1.f, 0.f }, floaty3{ 0.f, 0.f, 0.f });
+
+	floaty3 vec = floaty3{ 1.f / sqrtf(2.f), 1.f / sqrtf(2.f), 0.f };
+	EXPECT_TRUE(ApproximatelyEqual(vec.x, 1.f / sqrtf(2.f)));
+	EXPECT_TRUE(ApproximatelyEqual(vec.y, 1.f / sqrtf(2.f)));
+	EXPECT_TRUE(ApproximatelyEqual(vec.z, 0.f));
+
+	vec = mat.TransformNormal(vec);
+
+	EXPECT_TRUE(ApproximatelyEqual(vec.x, 1.f / sqrtf(2.f)));
+	EXPECT_TRUE(ApproximatelyEqual(vec.y, -(1.f / sqrtf(2.f))));
+	EXPECT_TRUE(ApproximatelyEqual(vec.z, 0.f));
+}
+
+#endif // CPP_ENGINE_TESTS
+
