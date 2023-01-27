@@ -59,6 +59,7 @@ struct Material
 #define LIGHT_DIRECTION 2u
 
 #define LIGHT_COUNT 32u
+#define MAX_SHADOW_LIGHT_COUNT 8u;
 
 enum LightType : uint32_t
 {
@@ -157,7 +158,7 @@ struct Light
 	// The type of the light.
 	unsigned int Type;
 
-	float Padding;
+	unsigned int ShadowIndex;
 	//--------------------------------------------------------------( 16 bytes )
 }; // 96 Bytes
 
@@ -186,11 +187,11 @@ struct IRen3D;
 struct GeoThing
 {
 	GeoThing(IRen3D *ren, size_t key) : m_Ren(ren), m_Key(key) {}
-	GeoThing(GeoThing &&other) : m_Ren(other.m_Ren), m_Key(other.m_Key) { other.m_Key = 0ull; other.m_Ren = nullptr; }
+	GeoThing(GeoThing &&other) noexcept : m_Ren(other.m_Ren), m_Key(other.m_Key) { other.m_Key = 0ull; other.m_Ren = nullptr; }
 	GeoThing(const GeoThing &other) = delete;
 	~GeoThing() { Reset(); }
 
-	inline GeoThing &operator=(GeoThing &&other)
+	inline GeoThing &operator=(GeoThing &&other) noexcept
 	{
 		Reset();
 

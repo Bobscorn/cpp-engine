@@ -129,3 +129,21 @@ GLuint Drawing::SDLImage::LoadGLTexture(std::string file, float *WidthScale, flo
 
 	return LoadGLTexture(surface.Get(), WidthScale, HeightScale, channels);
 }
+
+GLuint Drawing::Create2DGLTexture(GLenum internalFormat, GLuint width, GLuint height, GLvoid* initialDat, GLenum initialFormat, GLenum initialType, GLenum minFilter, GLenum maxFilter)
+{
+	GLuint out = 0;
+	glCreateTextures(GL_TEXTURE_2D, 1, &out);
+
+	glTextureStorage2D(out, 1, internalFormat, width, height);
+
+	if (initialDat)
+	{
+		glTextureSubImage2D(out, 0, 0, 0, width, height, initialFormat, initialType, initialDat);
+	}
+
+	glTextureParameteri(out, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTextureParameteri(out, GL_TEXTURE_MAG_FILTER, minFilter);
+
+	return out;
+}

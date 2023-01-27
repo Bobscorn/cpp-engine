@@ -74,7 +74,7 @@ struct StringyList
 	StringyList(std::string string) : Items(1ul, string) {}
 	StringyList(std::list<std::string>&& ass) : Items(ass) {}
 	StringyList(const std::list<std::string> &ass) : Items(ass) {}
-	StringyList(StringyList&& ass) : Items(ass.Items) {}
+	StringyList(StringyList&& ass) noexcept : Items(ass.Items) {}
 	StringyList(const StringyList &ass) : Items(ass.Items) {}
 
 	std::list<std::string> Items;

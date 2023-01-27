@@ -39,6 +39,7 @@ namespace Drawing
 
 	MaterialDescription ProcessMaterialYAML(const YAML::Node& node);
 	std::vector<TextureMapping> ProcessTextureMappings(const YAML::Node& node);
+	std::array<std::string, 3> ProcessShadowMapArrays(const YAML::Node& node);
 
 	void ProgramStore::LoadProgram(ProgramDescription desc)
 	{
@@ -247,6 +248,34 @@ namespace Drawing
 
 					desc.TextureMappings = ProcessTextureMappings(yaml["textures"]);
 
+					auto shadowMapArrays = ProcessShadowMapArrays(yaml);
+					desc.RegularShadowMapArrayName = shadowMapArrays[0];
+					desc.CubemapShadowMapArrayName = shadowMapArrays[1];
+					desc.CascadeShadowMapArrayName = shadowMapArrays[2];
+					desc.SupportsShadows = false;
+					desc.ShadowMatrixBufferName = "";
+					if (auto shadowSupNode = yaml["supports-shadows"])
+					{
+						if (!shadowSupNode.IsScalar() || !StringHelper::IfBool(shadowSupNode.Scalar(), &desc.SupportsShadows))
+							DWARNING("When processing '" + fileName + "' as Program (" + desc.ProgramName + "): Found invalid supports shadow tag!");
+					}
+
+					if (auto shadowBufNode = yaml["shadow-matrix-buffer"])
+					{
+						if (shadowBufNode.IsScalar())
+							desc.ShadowMatrixBufferName = shadowBufNode.Scalar();
+						else
+							DWARNING("When processing '" + fileName + "' as Program (" + desc.ProgramName + "): Found invalid shadow-matrix-buffer tag!");
+					}
+
+					if (auto cascadeBufNode = yaml["shadow-cascade-buffer"])
+					{
+						if (cascadeBufNode.IsScalar())
+							desc.ShadowCascadeBufferName = cascadeBufNode.Scalar();
+						else
+							DWARNING("When processing '" + fileName + "' as Program (" + desc.ProgramName + "): Found invalid shadow-cascade-buffer tag!");
+					}
+
 					LoadProgram(desc);
 				}
 				catch (YAML::Exception& e)
@@ -304,6 +333,38 @@ namespace Drawing
 		}
 
 		return mapping;
+	}
+
+	std::array<std::string, 3> ProcessShadowMapArrays(const YAML::Node& node)
+	{
+		std::array<std::string, 3> out{};
+
+		if (auto regular = node["shadow-maps-2d"])
+		{
+			if (regular.IsScalar())
+				out[0] = regular.Scalar();
+			else
+				DWARNING("Unrecognised 'shadow-maps-2d' tag found in program!");
+		}
+
+		if (auto cubemaps = node["shadow-maps-cube"])
+		{
+			if (cubemaps.IsScalar())
+				out[1] = cubemaps.Scalar();
+			else
+				DWARNING("Unrecognised 'shadow-maps-cube' tag found in program!");
+		}
+
+		if (auto cascade = node["shadow-maps-cascade"])
+		{
+			if (cascade.IsScalar())
+				out[2] = cascade.Scalar();
+			else
+				DWARNING("Unrecognised 'shadow-maps-cascade' tag found in program!");
+		}
+
+
+		return out;
 	}
 
 	MaterialDescription ProcessMaterialYAML(const YAML::Node& node)
@@ -535,6 +596,7 @@ namespace Drawing
 		: _program(GenerateShaders(desc))
 		, _desc(desc)
 		, _matDesc(desc.MaterialDesc)
+		, _supportsShadows(desc.SupportsShadows)
 		, _textureMappings()
 	{
 		glUseProgram(_program.Get());
@@ -543,9 +605,11 @@ namespace Drawing
 		glGenVertexArrays(1, &vao);
 		_inputVAO.Reset(vao);
 
-		GLuint matBuf = 0;
-		glGenBuffers(1, &matBuf);
-		_matBuffer.Reset(matBuf);
+		{
+			GLuint matBuf = 0;
+			glGenBuffers(1, &matBuf);
+			_matBuffer.Reset(matBuf);
+		}
 
 		_matBufBinding = BindingManager::GetNext();
 
@@ -553,9 +617,30 @@ namespace Drawing
 
 		std::vector<char> blankBuffer{ (size_t)byteSize, (char)0, std::allocator<char>()};
 
-		glBindBufferBase(GL_UNIFORM_BUFFER, _matBufBinding, matBuf);
+		glBindBufferBase(GL_UNIFORM_BUFFER, _matBufBinding, _matBuffer.Get());
 		glBufferData(GL_UNIFORM_BUFFER, byteSize, (GLvoid*)blankBuffer.data(), GL_DYNAMIC_DRAW);
+
+		if (_desc.ShadowMatrixBufferName.size())
+		{
+			GLuint buf = 0;
+			glGenBuffers(1, &buf);
+			_shadowMatrixBuffer.Reset(buf);
+			_shadowMatrixBinding = BindingManager::GetNext();
+			glBindBufferBase(GL_UNIFORM_BUFFER, _shadowMatrixBinding, _shadowMatrixBuffer.Get());
+			glBufferData(GL_UNIFORM_BUFFER, DrawCallRenderer::GetShadowMatrixBufferSize(), nullptr, GL_DYNAMIC_DRAW);
+		}
+		if (_desc.ShadowCascadeBufferName.size())
+		{
+			GLuint buf = 0;
+			glGenBuffers(1, &buf);
+			_shadowCascadeBuffer.Reset(buf);
+			_shadowCascadeBinding = BindingManager::GetNext();
+			glBindBufferBase(GL_UNIFORM_BUFFER, _shadowCascadeBinding, _shadowCascadeBuffer.Get());
+			glBufferData(GL_UNIFORM_BUFFER, sizeof(ShadowCascadeBuffer), nullptr, GL_DYNAMIC_DRAW);
+		}
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+
 
 		/*GLint index = glGetUniformBlockIndex(_program.Get(), _desc.PerObjectBufferName.c_str());
 		glUniformBlockBinding(_program.Get(), index, DrawCallRenderer::PerObjectBufBinding);*/
@@ -582,6 +667,59 @@ namespace Drawing
 			}
 			_textureMappings.emplace_back(std::move(mapping));
 		}
+		
+		// Shadowmaps v
+		if (desc.RegularShadowMapArrayName.size())
+		{
+			auto location = glGetUniformLocation(_program.Get(), desc.RegularShadowMapArrayName.c_str());
+			if (location != GL_INVALID_INDEX)
+			{
+				_shadowMap2DBinding = textureBind;
+				for (int i = 0; i < DrawCallRenderer::ShadowLightCount; ++i)
+				{
+					glProgramUniform1i(_program.Get(), location + i, _shadowMap2DBinding + i);
+					++textureBind;
+				}
+			}
+			else
+			{
+				DWARNING("When creating program '" + _desc.ProgramName + "': could not find Regular Shadow Map Array uniform '" + desc.RegularShadowMapArrayName + "'!");
+			}
+		}
+		if (desc.CubemapShadowMapArrayName.size())
+		{
+			auto location = glGetUniformLocation(_program.Get(), desc.CubemapShadowMapArrayName.c_str());
+			if (location != GL_INVALID_INDEX)
+			{
+				_shadowMapCubemapBinding = textureBind;
+				for (int i = 0; i < DrawCallRenderer::ShadowLightCount; ++i)
+				{
+					glProgramUniform1i(_program.Get(), location + i, _shadowMapCubemapBinding + i);
+					++textureBind;
+				}
+			}
+			else
+			{
+				DWARNING("When creating program '" + _desc.ProgramName + "': could not find Cubemap Shadow Map Array uniform '" + desc.CubemapShadowMapArrayName + "'!");
+			}
+		}
+		if (desc.CascadeShadowMapArrayName.size())
+		{
+			auto location = glGetUniformLocation(_program.Get(), desc.CascadeShadowMapArrayName.c_str());
+			if (location != GL_INVALID_INDEX)
+			{
+				_shadowCascadeMapBinding = textureBind;
+				for (int i = 0; i < 3; ++i)
+				{
+					glProgramUniform1i(_program.Get(), location + i, _shadowCascadeMapBinding + i);
+					++textureBind;
+				}
+			}
+			else
+			{
+				DWARNING("When creating program '" + _desc.ProgramName + "': could not find Cascade Shadow Map Array uniform '" + desc.CubemapShadowMapArrayName + "'!");
+			}
+		}
 
 		// Buffers v
 
@@ -606,6 +744,25 @@ namespace Drawing
 			glUniformBlockBinding(_program.Get(), blockIndex, DrawCallRenderer::GetPerObjectBufBinding());
 		else
 			DERROR("Failed to find program '" + _desc.ProgramName + "'s Per Object Buffer's UniformBlockIndex!");
+
+		if (_shadowMatrixBuffer)
+		{
+			blockIndex = glGetUniformBlockIndex(_program.Get(), _desc.ShadowMatrixBufferName.c_str());
+			if (blockIndex != GL_INVALID_INDEX)
+				glUniformBlockBinding(_program.Get(), blockIndex, _shadowMatrixBinding);
+			else
+				DERROR("Failed to find program '" + _desc.ProgramName + "'s Shadow Matrix Buffer's UniformBlockIndex!");
+		}
+
+		if (_shadowCascadeBuffer)
+		{
+			blockIndex = glGetUniformBlockIndex(_program.Get(), _desc.ShadowCascadeBufferName.c_str());
+			if (blockIndex != GL_INVALID_INDEX)
+				glUniformBlockBinding(_program.Get(), blockIndex, _shadowCascadeBinding);
+			else
+				DERROR("Failed to find program '" + _desc.ProgramName + "'s Shadow Matrix Buffer's UniformBlockIndex!");
+		}
+
 
 		CHECK_GL_ERR("Post-program initialization");
 		glUseProgram(0);
@@ -699,5 +856,14 @@ namespace Drawing
 		const auto& bytes = material.ToByteForm();
 
 		UpdateBuffer(_matBuffer, (void*)bytes.data(), bytes.size(), updateMode);
+	}
+
+	void Program::SetShadowMatrices(const std::vector<Matrixy4x4>& matrices, ShadowCascadeBuffer cascadeBuffer, BufferUpdateMode updateMode)
+	{
+		if (!_shadowMatrixBuffer || !_shadowCascadeBuffer)
+			return;
+
+		UpdateBuffer(_shadowMatrixBuffer, (void*)matrices.data(), matrices.size() * sizeof(Matrixy4x4), updateMode);
+		UpdateBuffer(_shadowCascadeBuffer, (void*)&cascadeBuffer, sizeof(ShadowCascadeBuffer), updateMode);
 	}
 }

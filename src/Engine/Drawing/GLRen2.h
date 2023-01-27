@@ -2,12 +2,14 @@
 
 #include <unordered_map>
 #include <functional>
+#include <variant>
 
 #include "DrawCall.h"
 #include "DrawCallReference.h"
 #include "Frustum.h"
 #include "IRen3D.h"
 #include "IRen3Dv2.h"
+#include "FrameBuffer.h"
 
 #include "Helpers/VectorHelper.h"
 
@@ -26,6 +28,9 @@ namespace Drawing
 	{
 	public:
 		static constexpr size_t LightCount = LIGHT_COUNT;
+		static constexpr size_t ShadowLightCount = MAX_SHADOW_LIGHT_COUNT;
+		static constexpr size_t ShadowMapSize = 1024;
+		static constexpr size_t CascadeCount = 3ull;
 
 	private:
 		static GLuint LightBufBinding;
@@ -52,6 +57,23 @@ namespace Drawing
 		void UpdatePerObject(Matrixy4x4 world, Matrixy4x4 view, Matrixy4x4 proj);
 		void UpdateMaterial(Program& prog, Material& mat);
 		void UpdateTextures(Program& prog, const Material& mat);
+		void UpdateShadowMaps(Program& prog);
+
+		GLProgram _shadowProgram;
+		GLFrameBuffer _shadowFBO;
+		std::array<std::unique_ptr<GLImage>, ShadowLightCount> _shadowTextures;
+		std::array<Matrixy4x4, ShadowLightCount> _shadowMatrices;
+
+		std::array<float, CascadeCount + 1> _shadowCascadeDistances = { 0.1f, 10.f, 100.f, 150.f };
+		std::array<GLImage, CascadeCount> _shadowCascadeTextures;
+		std::array<Matrixy4x4, CascadeCount> _shadowCascadeMatrices;
+		GLProgram CreateShadowProgram(const std::string& vertexShader, const std::string& fragmentShader);
+		GLFrameBuffer CreateShadowFBO();
+		void DrawShadows(Matrixy4x4 view, Matrixy4x4 proj);
+		void DrawPointShadows(const Light& light, size_t shadowIndex, GLuint mapSize);
+		void DrawSpotlightShadows(const Light& light, size_t shadowIndex, GLuint mapSize);
+		void DrawSunShadows(const Light& light, Matrixy4x4 view, Matrixy4x4 proj, GLuint mapSize);
+		void DrawShadowGeometry(Matrixy4x4 lightViewProj);
 
 
 		GLuint InitPerObjectBuffer();
@@ -63,6 +85,7 @@ namespace Drawing
 		static GLuint GetLightBufBinding();
 		static GLuint GetPerObjectBufBinding();
 		static GLuint GetMaterialBufBinding();
+		inline static GLsizei GetShadowMatrixBufferSize() { return ShadowLightCount * sizeof(Matrixy4x4); }
 
 
 		// Draw Calls v

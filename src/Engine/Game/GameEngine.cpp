@@ -97,6 +97,12 @@ Debug::DebugReturn Engine::GameEngine::Request(Requests::Request & action)
 		Drawing::MaterialStore::Instance().Reload("Materials");
 		return true;
 	}
+	else if (action.Name == "ReloadMeshes")
+	{
+		DINFO("Reloading voxel meshes...");
+		Voxel::VoxelStore::ReloadMeshes("PreStitched not implemented", "Blocks", "Textures", "Meshes");
+		return true;
+	}
 	return false;
 }
 #endif

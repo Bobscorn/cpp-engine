@@ -17,7 +17,7 @@ Parkour::ParkourTorchShape::ParkourTorchShape(G1::IShapeThings things, Pointer::
 	light.Range = 50.f;
 	light.Type = LIGHT_SPOT;
 	light.SpotlightAngle = Math::DegToRadF * 30.f;
-	light.Padding = 0.f;
+	light.ShadowIndex = 0;
 	m_LightShape = this->AddChild<G1I::LightShape>("Player Torch Light", light);
 }
 

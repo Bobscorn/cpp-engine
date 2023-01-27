@@ -20,6 +20,7 @@ void Parkour::ParkourLightBlock::OnLoaded()
 {
 	try
 	{
+		DINFO("Loading light shape");
 		auto pos = m_World->GetPhysPosFromBlockCoord(Voxel::BlockCoord{ m_Chunk->GetCoord(), m_Pos });
 
 		Light light;
@@ -34,7 +35,7 @@ void Parkour::ParkourLightBlock::OnLoaded()
 		light.Range = 50.f;
 		light.Type = LIGHT_SPOT;
 		light.SpotlightAngle = Math::DegToRadF * 35.f;
-		light.Padding = 0.f;
+		light.ShadowIndex = 0;
 		this->AddChild<G1I::LightShape>("Parkour Light", light);
 	}
 	catch (G1I::NoFreeLightException& e)
@@ -44,6 +45,7 @@ void Parkour::ParkourLightBlock::OnLoaded()
 
 void Parkour::ParkourLightBlock::OnUnloaded()
 {
+	DINFO("Unloading light shape");
 	for (int i = children.size(); i-- > 0; )
 	{
 		if (auto child = dynamic_cast<G1I::LightShape*>(children[i].get()); child)

@@ -1,0 +1,22 @@
+#version 420 core
+
+// Standard GLRenv2 PerObject buffer layout
+layout(std140) uniform PerObject
+{
+	mat4 World;
+	mat4 View;
+	mat4 Proj;
+	mat4 WorldView;
+	mat4 WorldViewProj;
+};
+
+layout(location = 0) in vec3 PosL;
+layout(location = 1) in vec3 NormalL;
+layout(location = 2) in vec3 BinormalL;
+layout(location = 3) in vec3 TangentL;
+layout(location = 4) in vec3 Tex;
+
+void main()
+{
+	gl_Position = WorldViewProj * vec4(PosL, 1.f);
+}

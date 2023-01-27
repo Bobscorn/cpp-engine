@@ -197,3 +197,11 @@ textures:
     specpower: SpecularPowerTexture
     normal: NormalTexture
     bump: BumpTexture
+
+# Shadow support is as follows
+supports-shadows: true
+shadow-matrix-buffer: ShadowMatrices
+shadow-cascade-buffer: ShadowCascades
+shadow-maps-2d: ShadowMaps
+shadow-maps-cube: PointShadowMaps
+shadow-maps-cascade: CascadeShadowMaps

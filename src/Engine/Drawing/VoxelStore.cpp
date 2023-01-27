@@ -316,12 +316,13 @@ namespace Voxel
 							DWARNING("Block '" + blockName + "' contains invalid texture group tag '" + groupNode.Tag() + "'");
 						}
 					};
-						
-					getTextureGroup(tex["diffuse"], desc.GetFacesFor(Voxel::AtlasType::DIFFUSE));
-					getTextureGroup(tex["normal"], desc.GetFacesFor(Voxel::AtlasType::NORMAL));
-					getTextureGroup(tex["specular"], desc.GetFacesFor(Voxel::AtlasType::SPECULAR));
-					getTextureGroup(tex["bump"], desc.GetFacesFor(Voxel::AtlasType::BUMP));
-					getTextureGroup(tex["emissive"], desc.GetFacesFor(Voxel::AtlasType::EMISSIVE));
+					
+					auto faces = desc.GetFacesFor(Voxel::AtlasType::DIFFUSE);
+					getTextureGroup(tex["diffuse"],		faces); faces = desc.GetFacesFor(Voxel::AtlasType::NORMAL);
+					getTextureGroup(tex["normal"],		faces); faces = desc.GetFacesFor(Voxel::AtlasType::SPECULAR);
+					getTextureGroup(tex["specular"],	faces); faces = desc.GetFacesFor(Voxel::AtlasType::BUMP);
+					getTextureGroup(tex["bump"],		faces); faces = desc.GetFacesFor(Voxel::AtlasType::EMISSIVE);
+					getTextureGroup(tex["emissive"],	faces);
 
 					if (std::any_of(desc.FaceTextures.begin(), desc.FaceTextures.end(), [](const TextureNames& s) { return s.DiffuseName.size(); }))
 						_unstitchedDescriptions.emplace_back(desc);

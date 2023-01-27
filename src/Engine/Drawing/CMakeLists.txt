@@ -4,8 +4,7 @@
 
 # Add test executable
 add_executable(DrawingTests
-	"Geometry.cpp"
-)
+	"Geometry.cpp")
 
 set_target_properties(DrawingTests
 	PROPERTIES

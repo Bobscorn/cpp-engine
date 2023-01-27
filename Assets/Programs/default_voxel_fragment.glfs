@@ -2,6 +2,7 @@
 
 #define MAX_LIGHT_COUNT 32
 #define MAX_SHADOW_LIGHT_COUNT 8
+#define MAX_SHADOW_CASCADES 3
 
 #define LIGHT_POINT 0u
 #define LIGHT_SPOT 1u
@@ -45,7 +46,7 @@ struct Light
 	float Range;
 	int Enabled;
 	uint Type;
-	float Padding;
+	int ShadowMapIndex;
 };
 
 
@@ -76,8 +77,21 @@ uniform sampler2DArray NormalTexture;
 uniform sampler2DArray BumpTexture;
 
 
+layout(std140) uniform ShadowMatrices
+{
+    mat4 ShadowProjectionViewMatrices[MAX_SHADOW_LIGHT_COUNT];
+};
 
-//uniform sampler2D ShadowMaps[MAX_SHADOW_LIGHT_COUNT];
+uniform sampler2D ShadowMaps[MAX_SHADOW_LIGHT_COUNT];
+uniform samplerCube PointShadowMaps[MAX_SHADOW_LIGHT_COUNT];
+uniform sampler2D CascadeShadowMaps[MAX_SHADOW_CASCADES];
+
+layout(std140) uniform ShadowCascades
+{
+    mat4 CascadeProjectionViewMatrices[MAX_SHADOW_CASCADES];
+    vec3 CascadeDistances;
+};
+
 
 // ^
 // Structs
@@ -203,7 +217,75 @@ LightingResult DirectionalLighting(Light light, Material mat, vec4 V, vec4 P, ve
     return result;
 }
 
-LightingResult Lighting(Material mat, vec4 Point, vec4 N)
+float PointShadow(Light light, vec3 P)
+{
+    if (light.ShadowMapIndex == 0)
+        return 0.0;
+
+    vec3 dir = normalize(light.PositionWS.xyz - P);
+
+    int realIndex = light.ShadowMapIndex - 1;
+    float depth = texture(PointShadowMaps[realIndex], dir).r;
+
+    vec4 projected = ShadowProjectionViewMatrices[realIndex] * vec4(P, 1.0);
+    projected = vec4(projected.xyz / projected.w, 1.0);
+    projected = projected * 0.5 + 0.5;
+
+    return projected.z > depth ? 0.0 : 1.0;
+}
+
+float DirectionalShadow(Light light, vec3 posVS, vec3 P)
+{
+    // Only support one cascaded directional light
+    if (light.ShadowMapIndex != 1)
+        return 0.0;
+
+    float fragDepth = posVS.z;
+    float lightDepth = 1.f;
+    vec4 projected = vec4(0.0, 0.0, 0.0, 1.0);
+    for (int i = 0; i < MAX_SHADOW_CASCADES; ++i)
+    {
+        if (fragDepth <= CascadeDistances[i])
+        {
+            projected = CascadeProjectionViewMatrices[i] * vec4(P, 1.0);
+            projected = vec4(projected.xyz / projected.w, 1.0);
+            projected = projected * 0.5 + 0.5;
+
+            vec2 uvCoords = projected.xy;
+            lightDepth = texture(CascadeShadowMaps[i], uvCoords).r;
+
+            break;
+        }
+    }
+
+    float depth = projected.z;
+
+    if (lightDepth < depth + 0.0001)
+        return 0.5;
+    else
+        return 1.0;
+}
+
+float SpotShadow(Light light, vec3 P)
+{
+    if (light.ShadowMapIndex == 0)
+        return 0.0;
+
+    int realIndex = light.ShadowMapIndex - 1;
+
+    vec4 projected = ShadowProjectionViewMatrices[realIndex] * vec4(P, 1.0);
+    projected = vec4(projected.xyz / projected.w, 1.0);
+    projected = projected * 0.5 + 0.5;
+
+    float fragDepth = projected.z;
+    vec2 uvCoords = projected.xy;
+
+    float lightDepth = texture(ShadowMaps[realIndex], uvCoords).r;
+
+    return fragDepth > lightDepth ? 0.0 : 1.0;
+}
+
+LightingResult Lighting(Material mat, vec4 Point, vec4 N, vec3 pWS)
 {
 	vec4 eyePos = { 0.0, 0.0, 0.0, 1.0 };
     vec4 V = normalize(eyePos - Point);
@@ -215,6 +297,7 @@ LightingResult Lighting(Material mat, vec4 Point, vec4 N)
     for (int i = 0; i < MAX_LIGHT_COUNT; ++i)
     {
         LightingResult result;
+        float shadow = 0.0;
 		Light light = lights[i];
 
         // Skip lights that are not enabled.
@@ -230,22 +313,25 @@ LightingResult Lighting(Material mat, vec4 Point, vec4 N)
         case LIGHT_DIRECTION:
         {
             result = DirectionalLighting(light, mat, V, Point, N);
+            shadow = DirectionalShadow(light, Point.xyz, pWS);
         }
         break;
         case LIGHT_POINT:
         {
             result = PointLighting(light, mat, V, Point, N);
+            shadow = PointShadow(light, pWS);
         }
         break;
         case LIGHT_SPOT:
         {
             result = SpotLighting(light, mat, V, Point, N);
+            shadow = SpotShadow(light, pWS);
         }
         break;
         }
 
-        totalResult.Diffuse += result.Diffuse;
-        totalResult.Specular += result.Specular;
+        totalResult.Diffuse += result.Diffuse;// * shadow;
+        totalResult.Specular += result.Specular;// * shadow;
     }
 
     return totalResult;
@@ -253,6 +339,7 @@ LightingResult Lighting(Material mat, vec4 Point, vec4 N)
 
 layout(early_fragment_tests) in;
 
+in vec3 PosWS;
 in vec3 PosVS;
 in vec3 TangentVS;
 in vec3 BinormalVS;
@@ -361,7 +448,7 @@ void main()
 
     vec4 P = vec4(PosVS, 1);
  
-    LightingResult lit = Lighting(mat, P, N);
+    LightingResult lit = Lighting(mat, P, N, PosWS);
  
     diffuse *= vec4(lit.Diffuse.rgb, 1.0); // Discard the alpha value from the lighting calculations.
  

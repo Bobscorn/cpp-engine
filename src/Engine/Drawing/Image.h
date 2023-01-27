@@ -21,6 +21,8 @@ namespace Drawing
 		std::string Name;
 	};
 
+	GLuint Create2DGLTexture(GLenum internalFormat, GLuint width, GLuint height, GLvoid* initialDat = nullptr, GLenum initialFormat = GL_RGBA, GLenum initialType = GL_FLOAT, GLenum minFilter = GL_NEAREST, GLenum maxFilter = GL_NEAREST);
+
 	/**
 	* Base class used for textures
 	*/
@@ -28,11 +30,12 @@ namespace Drawing
 	{
 	protected:
 		GLuint _tex;
+		GLenum _type;
 
 	public:
-		GLImage() : _tex(0) {}
-		GLImage(GLuint tex) : _tex(tex) {}
-		GLImage(GLImage&& other) noexcept : _tex(other._tex) { other._tex = 0; }
+		GLImage() : _tex(0), _type(GL_NONE) {}
+		GLImage(GLuint tex, GLenum type = GL_TEXTURE_2D) : _tex(tex), _type(type) {}
+		GLImage(GLImage&& other) noexcept : _tex(other._tex), _type(other._type) { other._tex = 0; }
 		GLImage(const GLImage& other) = delete;
 		virtual ~GLImage() { this->Destroy(); }
 
@@ -50,10 +53,11 @@ namespace Drawing
 			_tex = 0;
 		}
 
-		inline void Reset(GLuint tex = 0)
+		inline void Reset(GLuint tex = 0, GLenum type = GL_TEXTURE_2D)
 		{
 			Destroy();
 			_tex = tex;
+			_type = type;
 		}
 
 		inline GLuint Release()
@@ -67,7 +71,7 @@ namespace Drawing
 
 		inline GLuint Get() const { return _tex; }
 
-		virtual GLenum GetTarget() const = 0;
+		inline virtual GLenum GetTarget() const { return _type; }
 	};
 
 	struct SDLImage : public GLImage, FullResourceHolder

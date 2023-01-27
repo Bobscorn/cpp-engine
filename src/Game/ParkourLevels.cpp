@@ -199,18 +199,33 @@ namespace Parkour
 				LookingPoint{ Vector::inty3(0, 0, 0), ParkourForwardDirection }
 			}
 		};
+
+		// Sideview
+		// X
+		// 
+		// O
+		const ParkourStep LampSingleStep = ParkourStep
+		{
+			std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>>{
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(0, 0, 0)),
+				std::make_pair(Voxel::NamedBlock{ "lamp-light", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(0, 5, 0)),
+			},
+			std::vector<LookingPoint>{
+				LookingPoint{ Vector::inty3(0, 0, 0), ParkourBackDirection }
+			}
+		};
 	}
 
 	const std::array<Parkour::ParkourLevel, 5> Levels = {
 		Parkour::ParkourLevel{
-			Voxel::BlockCoord::Origin(),
+			Voxel::BlockCoord{ Voxel::ChunkCoord{ 0,0,0 }, Voxel::ChunkBlockCoord{0, 2, 5 }},
 			Voxel::BlockFace::Forward,
-			std::vector<ParkourStep>{ Parkour::Steps::Long4LineStep, Parkour::Steps::SingleBlockStepDecorLeft, Parkour::Steps::Fork2_2Step, Parkour::Steps::TriExitGaps, Parkour::Steps::TripleSidewaysStep, Parkour::Steps::HolyStairs },
+			std::vector<ParkourStep>{ Parkour::Steps::LampSingleStep, /*Parkour::Steps::Long4LineStep, Parkour::Steps::SingleBlockStepDecorLeft, Parkour::Steps::Fork2_2Step, Parkour::Steps::TriExitGaps, Parkour::Steps::TripleSidewaysStep, Parkour::Steps::HolyStairs*/ },
 			std::vector<std::pair<float, int>>{ std::make_pair(0.5f, 1), std::make_pair(1.0f, 2), std::make_pair(0.5f, 3) },
 			std::vector<std::pair<float, int>>{ std::make_pair(0.25f, 0), std::make_pair(0.75f, 1) },
-			20,
-			Voxel::BlockCoord{ Voxel::ChunkCoord{ 0, 0, 0 }, { 0, 2, 0 } },
-			Parkour::ParkourForwardDirection
+			1,
+			Voxel::BlockCoord{},
+			Voxel::BlockFace{}
 			},
 		Parkour::ParkourLevel{
 			Voxel::BlockCoord::Origin(),

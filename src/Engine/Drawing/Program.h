@@ -4,13 +4,21 @@
 #include "VertexBuffer.h"
 #include "Mesh.h"
 #include "Material.h"
+#include "Math/matrix.h"
 
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <array>
 
 namespace Drawing
 {
+	struct ShadowCascadeBuffer
+	{
+		Matrixy4x4 ProjectionViewMatrices[3];
+		float Distances[3];
+	};
+
 	struct TextureMapping
 	{
 		std::string MaterialName;
@@ -43,6 +51,14 @@ namespace Drawing
 
 		// Textures
 		std::vector<TextureMapping> TextureMappings;
+
+		// ShadowMaps
+		bool SupportsShadows;
+		std::string RegularShadowMapArrayName;
+		std::string CubemapShadowMapArrayName;
+		std::string CascadeShadowMapArrayName;
+		std::string ShadowMatrixBufferName;
+		std::string ShadowCascadeBufferName;
 
 		// True means this Program's Fragment shader has a Light buffer named by the LightBufferName string
 		// The format of this Light buffer must be this:
@@ -79,6 +95,14 @@ namespace Drawing
 		const VertexBuffer* _lastVertexBuffer;
 
 		std::vector<BoundTextureMapping> _textureMappings;
+		GLint _shadowMap2DBinding = -1;
+		GLint _shadowMapCubemapBinding = -1;
+		GLint _shadowCascadeMapBinding = -1;
+		GLBuffer _shadowMatrixBuffer;
+		GLuint _shadowMatrixBinding = 0;
+		GLBuffer _shadowCascadeBuffer;
+		GLuint _shadowCascadeBinding = 0;
+		bool _supportsShadows = false;
 
 		std::vector<GLShaderPair> GenerateShaders(const ProgramDescription& desc);
 
@@ -101,6 +125,12 @@ namespace Drawing
 		void SetMaterial(Material& material, BufferUpdateMode mode);
 
 		inline const std::vector<BoundTextureMapping>& GetTexMappings() const { return _textureMappings; }
+
+		inline GLint GetShadowMap2DBinding() const { return _shadowMap2DBinding; }
+		inline GLint GetShadowMapCubemapBinding() const { return _shadowMapCubemapBinding; }
+		inline GLint GetShadowCascadeBinding() const { return _shadowCascadeMapBinding; }
+		inline bool GetShadowSupport() const { return _supportsShadows; }
+		void SetShadowMatrices(const std::vector<Matrixy4x4>& matrices, ShadowCascadeBuffer cascadeData, BufferUpdateMode updateMode);
 	};
 
 	/// <summary>

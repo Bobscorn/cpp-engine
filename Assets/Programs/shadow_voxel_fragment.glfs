@@ -1,0 +1,7 @@
+#version 420 core
+
+// Fragments for shadow rendering only require the depth, which has already been calculated by the OpenGL driver
+// An empty Fragment shader is simply required for a complete OpenGL program
+void main()
+{
+}

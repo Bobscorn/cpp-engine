@@ -46,16 +46,16 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 		sunLight.Intensity = 0.5f;
 		sunLight.Attenuation = floaty3{ 2.f, 0.25f, 0.05f };
 		sunLight.Enabled = true;
-		sunLight.PositionWS = floaty4{ 0.f, 3.f, 0.f, 1.f };
+		sunLight.PositionWS = floaty4{ 0.f, 0.f, 0.f, 1.f };
 		sunLight.PositionVS = floaty4{};
-		sunLight.DirectionWS = floaty4{ floaty4::Normalized(floaty4{ 0.5f, -3.f, 0.5f, 0.f }).xyz(), 1.f };
+		sunLight.DirectionWS = floaty4{ floaty4::Normalized(floaty4{ -0.5f, -0.5f, 0.f, 0.f }).xyz(), 1.f };
 		sunLight.DirectionVS = floaty4{};
 		sunLight.Range = 50.f;
 		sunLight.Type = LIGHT_DIRECTION;
 		sunLight.SpotlightAngle = 0;
-		sunLight.Padding = 0.f;
+		sunLight.ShadowIndex = 0;
 
-		m_GSpace.GetRootShape()->AddChild<G1I::LightShape>("Sun Light", sunLight);
+		//m_GSpace.GetRootShape()->AddChild<G1I::LightShape>("Sun Light", sunLight);
 	}
 
 	Voxel::VoxelStore::GetMutable().RegisterUpdateBlock("lamp-light", std::make_unique<ParkourLightBlock>(&m_GSpace, mResources, m_WorldShape.get(), nullptr, Voxel::ChunkBlockCoord{}));
@@ -112,6 +112,11 @@ bool Parkour::ParkourScene::Receive(Events::IEvent* event)
 			{
 				DINFO("Sending record time request");
 				mResources->Request->Request(Requests::Request{ "RecordTime" });
+			}
+			else if (key_event->KeyCode == SDLK_PERIOD)
+			{
+				DINFO("Reloading meshes...");
+				mResources->Request->Request(Requests::Request{ "ReloadMeshes" });
 			}
 		}
 	}
@@ -220,7 +225,13 @@ void Parkour::ParkourScene::Resume()
 
 void Parkour::ParkourScene::SetDifficulty(int dif)
 {
-
+	m_Level = dif;
+	if (m_Level < 0 || m_Level >= Levels.size())
+	{
+		DERROR("Can not set to level of index '" + std::to_string(dif) + "' out of bounds!");
+		return;
+	}
+	m_LevelShape->SetLevelData(Levels[m_Level]);
 }
 
 Parkour::ParkourStartingScene::ParkourStartingScene(CommonResources* resources, std::unique_ptr<IParkourDifficultyScene> nextScene)
