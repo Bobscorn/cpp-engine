@@ -529,6 +529,19 @@ struct Matrixy4x4
 		return out;
 	}
 
+	constexpr static inline Matrixy4x4 OrthoProject(float minX, float maxX, float minY, float maxY, float nearZ, float farZ)
+	{
+		float width = (maxX - minX);
+		float height = (maxY - minY);
+		float depth = (farZ - nearZ);
+		Matrixy4x4 out{ Matrixy4x4::Identity() };
+		out.m[0][0] = 2.f / width;	out.m[0][1] = 0;			out.m[0][2] = 0;            out.m[0][3] = 0;
+		out.m[1][0] = 0;			out.m[1][1] = 2.f / height;	out.m[1][2] = 0;            out.m[1][3] = 0;
+		out.m[2][0] = 0;			out.m[2][1] = 0;			out.m[2][2] = -2.f / depth; out.m[2][3] = 0;
+		out.m[3][0] = -(maxX + minX) / width;out.m[3][1] = -(maxY + minY) / height;out.m[3][2] = -(farZ + nearZ) / depth;out.m[3][3] = 1.f;
+		return out;
+	}
+
 	static Matrixy4x4 LookAt(floaty3 eye, floaty3 target, floaty3 up);
 
 	static Matrixy4x4 PerspectiveFovD(float fov, float aspect, float nearZ, float farZ); // Fov in degrees (converted to radians)
