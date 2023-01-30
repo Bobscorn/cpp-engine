@@ -454,9 +454,9 @@ Matrixy4x4 Matrixy4x4::LookAt(floaty3 eye, floaty3 target, floaty3 up)
 	floaty3 u = floaty3::Normalized(s).cross(F);
 
 	return {
-		+s.x, +s.y, +s.z, 0.f,
-		+u.x, +u.y, +u.z, 0.f,
-		-F.x, -F.y, -F.z, 0.f,
+		+s.x, +s.y, +s.z, -eye.dot(s),
+		+u.x, +u.y, +u.z, -eye.dot(u),
+		-F.x, -F.y, -F.z, eye.dot(F),
 		+0.f, +0.f, +0.f, 1.f
 	};
 }
