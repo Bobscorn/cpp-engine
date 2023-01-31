@@ -53,6 +53,18 @@ namespace Drawing
 		return frustumCorners;
 	}
 
+	floaty3 getFrustumCenterWorldSpace(const Matrixy4x4& proj, const Matrixy4x4& view)
+	{
+		const auto inv = Matrixy4x4::InvertedOrIdentity(Matrixy4x4::Multiply(proj, view));
+
+		auto p1 = inv.Transform(floaty4{ 0.f, 0.f, -1.f, 1.f });
+		auto p2 = inv.Transform(floaty4{ 0.f, 0.f, 1.f, 1.f });
+		p1 /= p1.w;
+		p2 /= p2.w;
+
+		return ((p1 + p2) / 2.f).xyz();
+	}
+
 	GLProgram DrawCallRenderer::CreateShadowProgram(const std::string& vertexShader, const std::string& fragmentShader)
 	{
 		CHECK_GL_ERR("Before shadow program creation");
@@ -187,21 +199,29 @@ namespace Drawing
 			auto myNear = _shadowCascadeDistances[i];
 			auto myFar = _shadowCascadeDistances[i + 1];
 
-			auto myView = view;
-			myView.m[2][2] = (myFar + myNear) / (myNear - myFar);
-			myView.m[2][3] = (2.f * myFar * myNear) / (myNear - myFar);
+			
+			auto myProj = proj;
+			myProj.m[2][2] = (myFar + myNear) / (myNear - myFar);
+			myProj.m[3][2] = (2.f * myFar * myNear) / (myNear - myFar);
 
-			auto corners = getFrustumCornersWorldSpace(proj, myView);
+			auto corners = getFrustumCornersWorldSpace(myProj, view);
+			auto center = getFrustumCenterWorldSpace(myProj, view);
 
-			floaty3 center{ 0.f, 0.f, 0.f };
-			for (const auto& v : corners)
-			{
-				center += v.xyz();
-			}
+			//floaty3 center{ 0.f, 0.f, 0.f };
+			//for (const auto& v : corners)
+			//{
+			//	center += v.xyz();
+			//}
 
-			center /= corners.size();
+			//center /= corners.size();
 
-			const auto lightView = Matrixy4x4::LookAt(center - light.DirectionWS.xyz(), center, floaty3{ 0.f, 1.f, 0.f });
+			floaty3 up;
+			if (light.DirectionWS.y == 1.f || light.DirectionWS.y == -1.f)
+				up = floaty3{ 1.f, 0.f, 0.f };
+			else 
+				up = floaty3{ 0.f, 1.f, 0.f };
+
+			const auto lightView = Matrixy4x4::LookAt(center - light.DirectionWS.xyz(), center, up);
 
 			float minX = std::numeric_limits<float>::max();
 			float maxX = std::numeric_limits<float>::min();
@@ -222,7 +242,7 @@ namespace Drawing
 				maxZ = std::max(maxZ, realCorner.z);
 			}
 
-			constexpr float zMult = 1.0f;
+			constexpr float zMult = 5.0f;
 			if (minZ < 0.f)
 				minZ *= zMult;
 			else
@@ -381,7 +401,7 @@ namespace Drawing
 			UpdateDrawCalls();
 		PROFILE_POP_WITH(g_Engine->Resources.Profile);
 
-		//DrawShadows(View, Proj);
+		DrawShadows(View, Proj);
 
 		PROFILE_PUSH_WITH(g_Engine->Resources.Profile, "Executing Draw Calls");
 		for (auto& program_calls_pair : m_DrawCallGroups)
