@@ -216,10 +216,10 @@ namespace Drawing
 
 				minX = std::min(minX, realCorner.x);
 				maxX = std::max(maxX, realCorner.x);
-				minY = std::min(minX, realCorner.y);
-				maxY = std::max(maxX, realCorner.y);
-				minZ = std::min(minX, realCorner.z);
-				maxZ = std::max(maxX, realCorner.z);
+				minY = std::min(minY, realCorner.y);
+				maxY = std::max(maxY, realCorner.y);
+				minZ = std::min(minZ, realCorner.z);
+				maxZ = std::max(maxZ, realCorner.z);
 			}
 
 			constexpr float zMult = 1.0f;
