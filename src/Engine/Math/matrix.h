@@ -522,14 +522,14 @@ struct Matrixy4x4
 	{
 		// asumed r-l = width , t-b = height
 		Matrixy4x4 out;
-		out.m[0][0] = 2.f / width; out.m[0][1] = 0;              out.m[0][2] = 0;                      out.m[0][3] = 0;
-		out.m[1][0] = 0;           out.m[1][1] = 2.f / height;   out.m[1][2] = 0;                      out.m[1][3] = 0;
-		out.m[2][0] = 0;           out.m[2][1] = 0;              out.m[2][2] = -2.f / (fz - nz);       out.m[2][3] = 0;
-		out.m[3][0] = 0;           out.m[3][1] = 0;              out.m[3][2] = -(fz + nz) / (fz - nz); out.m[3][3] = 1.;
+		out.m[0][0] = 2.f / width; out.m[0][1] = 0;              out.m[0][2] = 0;				out.m[0][3] = 0;
+		out.m[1][0] = 0;           out.m[1][1] = 2.f / height;   out.m[1][2] = 0;				out.m[1][3] = 0;
+		out.m[2][0] = 0;           out.m[2][1] = 0;              out.m[2][2] = -2.f / (fz - nz);out.m[2][3] = -(fz + nz) / (fz - nz);
+		out.m[3][0] = 0;           out.m[3][1] = 0;              out.m[3][2] = 0;				out.m[3][3] = 1.;
 		return out;
 	}
 
-	constexpr static inline Matrixy4x4 OrthoProject(float minX, float maxX, float minY, float maxY, float nearZ, float farZ)
+	static inline Matrixy4x4 OrthoProject(float minX, float maxX, float minY, float maxY, float nearZ, float farZ)
 	{
 		float width = (maxX - minX);
 		float height = (maxY - minY);

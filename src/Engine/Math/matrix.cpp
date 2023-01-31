@@ -463,15 +463,7 @@ Matrixy4x4 Matrixy4x4::LookAt(floaty3 eye, floaty3 target, floaty3 up)
 
 Matrixy4x4 Matrixy4x4::PerspectiveFovD(float fov, float aspect, float nearZ, float farZ)
 {
-	float yScale = 1.f / tanf(Math::DegToRadF * fov / 2);
-	float xScale = yScale / aspect;
-	float nearmfar = nearZ - farZ;
-	return {
-		xScale, 0.f, 0.f, 0.f,
-		0.f, yScale, 0.f, 0.f,
-		0.f, 0.f, (farZ + nearZ) / nearmfar, -1.f,
-		0.f, 0.f, 2.f * farZ * nearZ / nearmfar, 0.f
-	};
+	return PerspectiveFovR(fov * Math::DegToRadF, aspect, nearZ, farZ);
 }
 
 Matrixy4x4 Matrixy4x4::PerspectiveFovR(float fov, float aspect, float nearZ, float farZ)
@@ -549,7 +541,8 @@ TEST(MatrixTests, ValidityOfUnionTest)
 	ASSERT_THAT(0.f, AllOf(mat.dz,  mat._34, mat.m[3][2], mat.ma[2 + 3 * 4]));
 	ASSERT_THAT(0.f, AllOf(mat.m44, mat._44, mat.m[3][3], mat.ma[3 + 3 * 4]));
 
-	mat = Matrixy4x4(1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f, 9.f, 10.f, 11.f, 12.f, 13.f, 14.f, 15.f, 16.f);
+	float data[16] = { 1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f, 9.f, 10.f, 11.f, 12.f, 13.f, 14.f, 15.f, 16.f };
+	mat = Matrixy4x4(data);
 	ASSERT_THAT(1.f, AllOf(mat.m11, mat._11, mat.m[0][0], mat.ma[0]));
 	ASSERT_THAT(2.f, AllOf(mat.m21, mat._21, mat.m[0][1], mat.ma[1]));
 	ASSERT_THAT(3.f, AllOf(mat.m31, mat._31, mat.m[0][2], mat.ma[2]));
@@ -634,7 +627,7 @@ TEST(MatrixTests, RotationTest)
 
 	EXPECT_THAT(vec.x, FloatNear(0.f, e));
 	EXPECT_THAT(vec.y, FloatNear(0.f, e));
-	EXPECT_THAT(vec.z, FloatNear(1.f, e));
+	EXPECT_THAT(vec.z, FloatNear(-1.f, e));
 
 	vec = mat.TransformNormal(vec);
 
@@ -647,7 +640,7 @@ TEST(MatrixTests, RotationTest)
 
 	EXPECT_THAT(vec.x, FloatNear(0.f, e));
 	EXPECT_THAT(vec.y, FloatNear(0.f, e));
-	EXPECT_THAT(vec.z, FloatNear(-1.f, e));
+	EXPECT_THAT(vec.z, FloatNear(1.f, e));
 
 	vec = mat.TransformNormal(vec);
 
