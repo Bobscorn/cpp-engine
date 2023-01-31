@@ -48,14 +48,14 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 		sunLight.Enabled = true;
 		sunLight.PositionWS = floaty4{ 0.f, 0.f, 0.f, 1.f };
 		sunLight.PositionVS = floaty4{};
-		sunLight.DirectionWS = floaty4{ floaty4::Normalized(floaty4{ -0.5f, -0.5f, 0.f, 0.f }).xyz(), 1.f };
+		sunLight.DirectionWS = floaty4{ floaty3::Normalized(floaty3{ -0.5f, -0.5f, -0.5f }), 1.f };
 		sunLight.DirectionVS = floaty4{};
 		sunLight.Range = 50.f;
 		sunLight.Type = LIGHT_DIRECTION;
 		sunLight.SpotlightAngle = 0;
 		sunLight.ShadowIndex = 0;
 
-		//m_GSpace.GetRootShape()->AddChild<G1I::LightShape>("Sun Light", sunLight);
+		m_GSpace.GetRootShape()->AddChild<G1I::LightShape>("Sun Light", sunLight);
 	}
 
 	Voxel::VoxelStore::GetMutable().RegisterUpdateBlock("lamp-light", std::make_unique<ParkourLightBlock>(&m_GSpace, mResources, m_WorldShape.get(), nullptr, Voxel::ChunkBlockCoord{}));
