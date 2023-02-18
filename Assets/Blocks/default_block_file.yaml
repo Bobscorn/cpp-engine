@@ -301,7 +301,36 @@ blocks:
         normal: worn-metal-normal.jpg
         bump: worn-metal-displace.jpg
         emissive: emissive.jpg
-    
+-
+    block-name: sign-base
+    atlas: global
+    mesh: sign-base
+    faces: 
+        pos-x: open
+        neg-x: open
+        pos-y: open
+        neg-y: semi-open
+        pos-z: open
+        neg-z: open
+    textures:
+        diffuse: wood-worn-color.jpg
+        normal: wood-worn-normal.jpg
+        bump: wood-worn-displace.jpg
+-
+    block-name: sign-board
+    atlas: global
+    mesh: sign-board
+    faces: 
+        pos-x: open
+        neg-x: open
+        pos-y: open
+        neg-y: semi-open
+        pos-z: open
+        neg-z: open
+    textures:
+        diffuse: wood-worn-color.jpg
+        normal: wood-worn-normal.jpg
+        bump: wood-worn-displace.jpg
 
 
     
