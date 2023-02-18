@@ -436,7 +436,9 @@ namespace Voxel
 		}
 
 		auto p = std::filesystem::path(path);
-		_voxelMeshLookup[p.stem().string()] = std::move(voxelVerts);
+		auto name = p.stem().string();
+		DINFO("Loaded mesh '" + name + "' (from '" + path + "') with face vertex counts of " + std::to_string(voxelVerts.FaceVertices[0].size()) + ", " + std::to_string(voxelVerts.FaceVertices[1].size()) + ", " + std::to_string(voxelVerts.FaceVertices[2].size()) + ", " + std::to_string(voxelVerts.FaceVertices[3].size()) + ", " + std::to_string(voxelVerts.FaceVertices[4].size()) + ", " + std::to_string(voxelVerts.FaceVertices[5].size()) + ".");
+		_voxelMeshLookup[name] = std::move(voxelVerts);
 	}
 
 	void VoxelStore::LoadMeshesFromDirectory(const std::string& path)
@@ -887,6 +889,7 @@ namespace Voxel
 		{
 			return &it->second;
 		}
+		DWARNING("Could not find block vertices of name '" + name + "'");
 		return nullptr;
 	}
 
