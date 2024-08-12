@@ -6,12 +6,12 @@ project(cpp_engine_game CXX)
 set(CP_ENG_GAME_SRCS 
 	"Parkour.cpp"
 	"ParkourShapes.cpp"
- "ParkourScene.cpp" "ParkourLevels.cpp"  "ParkourUI.cpp" "ParkourBlocks.cpp" "ParkourTorchShape.cpp")
+ "ParkourScene.cpp" "ParkourLevels.cpp"  "ParkourUI.cpp" "ParkourBlocks.cpp" "ParkourTorchShape.cpp" "ParkourSignShape.cpp")
    
 set(CP_ENGINE_GAME_HDRS 
 	"Parkour.h"
 	"ParkourShapes.h"
- "ParkourScene.h" "ParkourLevels.h"  "ParkourUI.h" "ParkourTorchShape.h")
+ "ParkourScene.h" "ParkourLevels.h"  "ParkourUI.h" "ParkourTorchShape.h" "ParkourSignShape.h")
 		
 add_executable(cpp_engine_game "Main.cpp" ${CP_ENG_GAME_SRCS} ${CP_ENGINE_GAME_HDRS})
 target_link_libraries(cpp_engine_game PRIVATE cpp_engine_lib)

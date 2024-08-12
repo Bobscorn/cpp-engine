@@ -82,6 +82,8 @@ namespace G1
 	};
 #endif // Polymorphic shape children
 
+	// The following 'property' structs were intended to be used for IShapes to store their configurations
+	// In typical programmer fashion, I'm going to declare that they aren't actually used without actually checking this
 	struct IShapeProperty
 	{
 		virtual ~IShapeProperty() {}
@@ -135,6 +137,9 @@ namespace G1
 		}
 	};
 
+	/*
+	* Convenience struct containing values to initialize an IShape
+	*/
 	struct IShapeThings
 	{
 		IGSpace *Container = nullptr;
@@ -148,6 +153,9 @@ namespace G1
 		}
 	};
 
+	/*
+	* Abstract class. Objects deriving this represent objects within a GSpace's hierachy (GSpaces can be thought of as scenes or levels)
+	*/
 	struct IShape : virtual FullResourceHolder
 	{
 		friend class IGSpace;

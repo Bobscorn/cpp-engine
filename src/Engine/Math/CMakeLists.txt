@@ -4,7 +4,7 @@
 
 # Add test executable
 add_executable(MathTests
-	"matrix.cpp")
+	"matrix.cpp" "conversion.h")
 
 set_target_properties(MathTests
 	PROPERTIES

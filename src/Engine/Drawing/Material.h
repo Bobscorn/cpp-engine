@@ -167,7 +167,9 @@ namespace Drawing
 		void Reload(std::string materialDirectory, std::vector<SerializableMaterial> builtIns = std::vector<SerializableMaterial>());
 
 		std::shared_ptr<Material> GetMaterial(const std::string& name) const;
+		std::shared_ptr<Material>& SetMaterial(const std::string& name);
 		std::shared_ptr<Material> operator[](const std::string& name) const;
+		std::shared_ptr<Material>& operator[](const std::string& name);
 
 		static void InitializeStore(std::string materialDirectory, std::vector<SerializableMaterial> builtIns = std::vector<SerializableMaterial>());
 	};

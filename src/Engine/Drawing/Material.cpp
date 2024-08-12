@@ -392,9 +392,19 @@ namespace Drawing
 		return it->second;
 	}
 
+	std::shared_ptr<Material>& MaterialStore::SetMaterial(const std::string& name)
+	{
+		return _store[name];
+	}
+
 	std::shared_ptr<Material> MaterialStore::operator[](const std::string& name) const
 	{
 		return GetMaterial(name);
+	}
+
+	std::shared_ptr<Material>& MaterialStore::operator[](const std::string& name)
+	{
+		return SetMaterial(name);
 	}
 
 	void MaterialStore::InitializeStore(std::string materialDirectory, std::vector<SerializableMaterial> builtIns)

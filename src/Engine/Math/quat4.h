@@ -31,6 +31,8 @@ struct quat4
 	inline constexpr bool operator!=(const quat4& other) const { return !operator==(other); }
 
 	inline bool approximately_equal(const quat4& other) const { return fabsf(x - other.x) < 0.0001f && fabsf(y - other.y) < 0.0001f && fabsf(z - other.z) < 0.0001f && fabsf(w - other.w) < 0.0001f; }
+	constexpr float length2() const { return x * x + y * y + w * w + z * z; }
+	inline float length() const { return sqrtf(length2()); }
 
 	inline quat4 operator*(const quat4& other) const { return btQuaternion(x, y, z, w) * (btQuaternion)other; }
 	inline quat4 operator*(const btQuaternion& other) const { return btQuaternion(x, y, z, w) * (btQuaternion)other; }

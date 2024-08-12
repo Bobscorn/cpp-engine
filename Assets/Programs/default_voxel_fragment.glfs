@@ -260,7 +260,7 @@ float DirectionalShadow(Light light, vec3 posVS, vec3 P)
 
     float depth = projected.z;
 
-    if (lightDepth < depth - 0.0002)
+    if (lightDepth < depth - 0.0009)
         return 0.5;
     else
         return 1.0;

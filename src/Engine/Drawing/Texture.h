@@ -42,10 +42,21 @@ namespace Drawing
 		TextureStore(const std::string& textureDirectory);
 
 		/**
+		* Returns whether a texture of a specific name exists and is not empty
+		*/
+		bool ContainsTexture(const std::string& name) const;
+
+		/**
 		* Returns a stored GLImage shared ptr if it exists, else an empty shared ptr.
 		* Will return a Voxel Atlas ptr if the name is prefixed with 'atlas-' and what follows the prefix is an existing atlas name.
 		*/
 		bool TryGetTexture(const std::string& name, std::shared_ptr<GLImage>& out);
+
+		/**
+		* Adds a texture to the store if it does not already exist
+		* Returns whether it successfully added a new texture, this depends on whether the input is not empty and whether there is an existing texture with the given name
+		*/
+		bool AddTexture(const std::string& name, std::shared_ptr<GLImage> in);
 
 		static void InitializeStore(const std::string& textureDirectory);
 	};

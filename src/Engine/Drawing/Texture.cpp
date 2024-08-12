@@ -73,6 +73,24 @@ namespace Drawing
 		return true;
 	}
 
+	bool TextureStore::AddTexture(const std::string& name, std::shared_ptr<GLImage> in)
+	{
+		if (!in)
+			return false;
+
+		auto it = _store.find(name);
+		if (it != _store.end())
+			return false;
+
+		ImageState newState;
+		newState.Filename = "";
+		newState.Image = std::move(in);
+		newState.Name = name;
+		_store[name] = std::move(newState);
+
+		return true;
+	}
+
 	void TextureStore::InitializeStore(const std::string& textureDirectory)
 	{
 		if (_instance)

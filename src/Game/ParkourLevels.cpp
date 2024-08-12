@@ -159,7 +159,8 @@ namespace Parkour
 		};
 
 		// Topdown:
-		// XOX
+		//    ^
+		// < XOX >
 		const ParkourStep TripleSidewaysStep = ParkourStep
 		{
 			std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>>{
@@ -171,6 +172,28 @@ namespace Parkour
 				LookingPoint{ Vector::inty3(0, 0, 0), ParkourForwardDirection },
 				LookingPoint{ Vector::inty3(+1, 0, 0), ParkourRightDirection },
 				LookingPoint{ Vector::inty3(-1, 0, 0), ParkourLeftDirection }
+			}
+		};
+
+		// Topdown:
+		//   ^
+		//  XOX >
+		// Sideview:
+		//  #
+		//  #
+		//  XOX
+		const ParkourStep TripleSidewaysStepWithSign = ParkourStep
+		{
+			std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>>{
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity()}}, Vector::inty3{0, 0, 0}),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -1, 0, 0 }),
+				std::make_pair(Voxel::NamedBlock{ "sign-base", Voxel::CubeData{ Voxel::GetWhatRotates(Voxel::BlockFace::FORWARD, Voxel::BlockFace::RIGHT) } }, Vector::inty3{ -1, 1, 0 }),
+				std::make_pair(Voxel::NamedBlock{ "sign-board", Voxel::CubeData{ Voxel::GetWhatRotates(Voxel::BlockFace::FORWARD, Voxel::BlockFace::RIGHT) } }, Vector::inty3{ -1, 2, 0 }),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ +1, 0, 0 })
+			},
+			std::vector<LookingPoint>{
+				LookingPoint{ Vector::inty3(0, 0, 0), ParkourForwardDirection },
+				LookingPoint{ Vector::inty3(+1, 0, 0), ParkourRightDirection }
 			}
 		};
 		
@@ -220,7 +243,7 @@ namespace Parkour
 		Parkour::ParkourLevel{
 			Voxel::BlockCoord{ Voxel::ChunkCoord{ 0,0,0 }, Voxel::ChunkBlockCoord{0, 2, 5 }},
 			Voxel::BlockFace::Forward,
-			std::vector<ParkourStep>{ Parkour::Steps::Long4LineStep, Parkour::Steps::SingleBlockStepDecorLeft, Parkour::Steps::Fork2_2Step, Parkour::Steps::TriExitGaps, Parkour::Steps::TripleSidewaysStep, Parkour::Steps::HolyStairs },
+			std::vector<ParkourStep>{ Parkour::Steps::TripleSidewaysStepWithSign },
 			std::vector<std::pair<float, int>>{ std::make_pair(0.5f, 1), std::make_pair(1.0f, 2), std::make_pair(0.5f, 3) },
 			std::vector<std::pair<float, int>>{ std::make_pair(0.25f, 0), std::make_pair(0.75f, 1) },
 			25,
