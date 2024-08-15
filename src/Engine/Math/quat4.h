@@ -34,6 +34,8 @@ struct quat4
 	constexpr float length2() const { return x * x + y * y + w * w + z * z; }
 	inline float length() const { return sqrtf(length2()); }
 
+	inline btQuaternion asBt() const { return btQuaternion(x, y, z, w); }
+
 	inline quat4 operator*(const quat4& other) const { return btQuaternion(x, y, z, w) * (btQuaternion)other; }
 	inline quat4 operator*(const btQuaternion& other) const { return btQuaternion(x, y, z, w) * (btQuaternion)other; }
 
