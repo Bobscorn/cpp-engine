@@ -58,8 +58,10 @@ std::unique_ptr<Voxel::ICube> Parkour::ParkourSignShape::Clone(Voxel::VoxelWorld
 	auto clone = std::make_unique<ParkourSignShape>(G1::IShapeThings{ Container, mResources, "Parkour Sign Clone" }, world, chunk, pos);
 	
 	auto rot = chunk->get_data(pos).Data.Rotation;
-	//std::shared_ptr<Matrixy4x4> mat = std::make_shared<Matrixy4x4>(Matrixy4x4::Rotat) // HOW CONVERT QUATERNION TO ROTATION MATIRX?
-	//clone->m_SignTextDrawCall = mResources->Ren3v2->SubmitDrawCall(Drawing::DrawCallv2{ SignMeshName, SignMaterialName, std::make_shared<Matrixy4x4>(), "Parkour Sign Clone"});
+	auto axis = rot.asBt().getAxis();
+	auto angle = rot.asBt().getAngle();
+	std::shared_ptr<Matrixy4x4> mat = std::make_shared<Matrixy4x4>(Matrixy4x4::RotationAxisR((floaty3)axis, angle));
+	clone->m_SignTextDrawCall = mResources->Ren3v2->SubmitDrawCall(Drawing::DrawCallv2{ SignMeshName, SignMaterialName, mat, "Parkour Sign Clone"});
 
 	return clone;
 }
