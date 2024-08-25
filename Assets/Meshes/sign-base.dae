@@ -3,10 +3,10 @@
   <asset>
     <contributor>
       <author>Blender User</author>
-      <authoring_tool>Blender 3.4.1 commit date:2022-12-19, commit time:17:00, hash:55485cb379f7</authoring_tool>
+      <authoring_tool>Blender 4.2.1 LTS commit date:2024-08-19, commit time:11:21, hash:396f546c9d82</authoring_tool>
     </contributor>
-    <created>2023-02-01T16:08:51</created>
-    <modified>2023-02-01T16:08:51</modified>
+    <created>2024-08-25T19:50:18</created>
+    <modified>2024-08-25T19:50:18</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -15,7 +15,7 @@
     <geometry id="neg-x-mesh" name="neg-x">
       <mesh>
         <source id="neg-x-mesh-positions">
-          <float_array id="neg-x-mesh-positions-array" count="18">-0.06198501 -0.4 0.03784108 -0.06198501 0.4 0.03784108 -0.06198501 -0.4 -0.03784108 -0.06198501 0.4 -0.03784108 0.08336657 -0.06053262 0.08289784 0.08336657 -0.06053262 0.007215678</float_array>
+          <float_array id="neg-x-mesh-positions-array" count="18">-0.06198501 -0.4 0.03784108 -0.02493751 0.4 0.05074453 -0.06198501 -0.4 -0.03784108 -0.02493751 0.4 -0.02493739 0.08336657 -0.06053262 0.08289784 0.08336657 -0.06053262 0.007215678</float_array>
           <technique_common>
             <accessor source="#neg-x-mesh-positions-array" count="6" stride="3">
               <param name="X" type="float"/>
@@ -25,7 +25,7 @@
           </technique_common>
         </source>
         <source id="neg-x-mesh-normals">
-          <float_array id="neg-x-mesh-normals-array" count="12">-0.9536302 -0.3009812 0 -0.9192767 0.3936118 0 -0.9536301 -0.3009812 0 -0.9192768 0.3936119 0</float_array>
+          <float_array id="neg-x-mesh-normals-array" count="12">-0.9734438 -0.2289261 0 -0.9192767 0.3936118 0 -0.9734438 -0.2289261 0 -0.9192767 0.3936118 0</float_array>
           <technique_common>
             <accessor source="#neg-x-mesh-normals-array" count="4" stride="3">
               <param name="X" type="float"/>
@@ -57,7 +57,7 @@
     <geometry id="neg-z-mesh" name="neg-z">
       <mesh>
         <source id="neg-z-mesh-positions">
-          <float_array id="neg-z-mesh-positions-array" count="18">-0.06198501 -0.4 -0.03784108 -0.06198501 0.4 -0.03784108 0.01369714 -0.4 -0.03784108 0.01369714 0.4 -0.03784108 0.08336657 -0.06053262 0.007215678 0.1590487 -0.06053262 0.007215678</float_array>
+          <float_array id="neg-z-mesh-positions-array" count="18">-0.06198501 -0.4 -0.03784108 -0.02493751 0.4 -0.02493739 0.01369714 -0.4 -0.03784108 0.05074459 0.4 -0.02493739 0.08336657 -0.06053262 0.007215678 0.1590487 -0.06053262 0.007215678</float_array>
           <technique_common>
             <accessor source="#neg-z-mesh-positions-array" count="6" stride="3">
               <param name="X" type="float"/>
@@ -67,7 +67,7 @@
           </technique_common>
         </source>
         <source id="neg-z-mesh-normals">
-          <float_array id="neg-z-mesh-normals-array" count="12">0 -0.09737128 -0.9952481 0 0.131574 -0.9913064 0 -0.09737128 -0.9952481 0 0.1315739 -0.9913064</float_array>
+          <float_array id="neg-z-mesh-normals-array" count="12">0 -0.06964772 -0.9975717 0 0.131574 -0.9913064 0 -0.06964772 -0.9975717 0 0.131574 -0.9913064</float_array>
           <technique_common>
             <accessor source="#neg-z-mesh-normals-array" count="4" stride="3">
               <param name="X" type="float"/>
@@ -99,7 +99,7 @@
     <geometry id="pos-y-mesh" name="pos-y">
       <mesh>
         <source id="pos-y-mesh-positions">
-          <float_array id="pos-y-mesh-positions-array" count="12">-0.06198501 0.4 0.03784108 -0.06198501 0.4 -0.03784108 0.01369714 0.4 0.03784108 0.01369714 0.4 -0.03784108</float_array>
+          <float_array id="pos-y-mesh-positions-array" count="12">-0.02493751 0.4 0.05074453 -0.02493751 0.4 -0.02493739 0.05074459 0.4 0.05074453 0.05074459 0.4 -0.02493739</float_array>
           <technique_common>
             <accessor source="#pos-y-mesh-positions-array" count="4" stride="3">
               <param name="X" type="float"/>
@@ -109,9 +109,9 @@
           </technique_common>
         </source>
         <source id="pos-y-mesh-normals">
-          <float_array id="pos-y-mesh-normals-array" count="3">0 1 0</float_array>
+          <float_array id="pos-y-mesh-normals-array" count="6">0 1 0 0 1 0</float_array>
           <technique_common>
-            <accessor source="#pos-y-mesh-normals-array" count="1" stride="3">
+            <accessor source="#pos-y-mesh-normals-array" count="2" stride="3">
               <param name="X" type="float"/>
               <param name="Y" type="float"/>
               <param name="Z" type="float"/>
@@ -119,7 +119,7 @@
           </technique_common>
         </source>
         <source id="pos-y-mesh-map-0">
-          <float_array id="pos-y-mesh-map-0-array" count="12">0.120101 0.008805334 0.004899084 0.1240072 0.004899084 0.008805334 0.120101 0.008805334 0.120101 0.1240072 0.004899084 0.1240072</float_array>
+          <float_array id="pos-y-mesh-map-0-array" count="12">0.004899084 0.008805334 0.120101 0.1240072 0.004899084 0.1240072 0.004899084 0.008805334 0.120101 0.008805334 0.120101 0.1240072</float_array>
           <technique_common>
             <accessor source="#pos-y-mesh-map-0-array" count="6" stride="2">
               <param name="S" type="float"/>
@@ -134,14 +134,14 @@
           <input semantic="VERTEX" source="#pos-y-mesh-vertices" offset="0"/>
           <input semantic="NORMAL" source="#pos-y-mesh-normals" offset="1"/>
           <input semantic="TEXCOORD" source="#pos-y-mesh-map-0" offset="2" set="0"/>
-          <p>1 0 0 2 0 1 3 0 2 1 0 3 0 0 4 2 0 5</p>
+          <p>3 0 0 0 0 1 2 0 2 3 1 3 1 1 4 0 1 5</p>
         </triangles>
       </mesh>
     </geometry>
     <geometry id="pos-z-mesh" name="pos-z">
       <mesh>
         <source id="pos-z-mesh-positions">
-          <float_array id="pos-z-mesh-positions-array" count="18">-0.06198501 -0.4 0.03784108 -0.06198501 0.4 0.03784108 0.01369714 -0.4 0.03784108 0.01369714 0.4 0.03784108 0.08336657 -0.06053262 0.08289784 0.1590487 -0.06053262 0.08289784</float_array>
+          <float_array id="pos-z-mesh-positions-array" count="18">-0.06198501 -0.4 0.03784108 -0.02493751 0.4 0.05074453 0.01369714 -0.4 0.03784108 0.05074459 0.4 0.05074453 0.08336657 -0.06053262 0.08289784 0.1590487 -0.06053262 0.08289784</float_array>
           <technique_common>
             <accessor source="#pos-z-mesh-positions-array" count="6" stride="3">
               <param name="X" type="float"/>
@@ -151,7 +151,7 @@
           </technique_common>
         </source>
         <source id="pos-z-mesh-normals">
-          <float_array id="pos-z-mesh-normals-array" count="12">0 0.09737128 0.9952481 0 -0.131574 0.9913064 0 0.09737128 0.9952481 0 -0.1315739 0.9913064</float_array>
+          <float_array id="pos-z-mesh-normals-array" count="12">0 0.06964802 0.9975717 0 -0.1315739 0.9913064 0 0.06964802 0.9975717 0 -0.1315739 0.9913064</float_array>
           <technique_common>
             <accessor source="#pos-z-mesh-normals-array" count="4" stride="3">
               <param name="X" type="float"/>
@@ -183,7 +183,7 @@
     <geometry id="pos-x-mesh" name="pos-x">
       <mesh>
         <source id="pos-x-mesh-positions">
-          <float_array id="pos-x-mesh-positions-array" count="18">0.01369714 -0.4 0.03784108 0.01369714 0.4 0.03784108 0.01369714 -0.4 -0.03784108 0.01369714 0.4 -0.03784108 0.1590487 -0.06053262 0.007215678 0.1590487 -0.06053262 0.08289784</float_array>
+          <float_array id="pos-x-mesh-positions-array" count="18">0.01369714 -0.4 0.03784108 0.05074459 0.4 0.05074453 0.01369714 -0.4 -0.03784108 0.05074459 0.4 -0.02493739 0.1590487 -0.06053262 0.007215678 0.1590487 -0.06053262 0.08289784</float_array>
           <technique_common>
             <accessor source="#pos-x-mesh-positions-array" count="6" stride="3">
               <param name="X" type="float"/>
@@ -193,7 +193,7 @@
           </technique_common>
         </source>
         <source id="pos-x-mesh-normals">
-          <float_array id="pos-x-mesh-normals-array" count="12">0.9536301 0.3009812 0 0.9192768 -0.3936118 0 0.9536302 0.3009812 0 0.9192768 -0.3936119 0</float_array>
+          <float_array id="pos-x-mesh-normals-array" count="12">0.9734438 0.2289261 0 0.9192767 -0.3936118 0 0.9734438 0.2289261 0 0.9192767 -0.3936118 0</float_array>
           <technique_common>
             <accessor source="#pos-x-mesh-normals-array" count="4" stride="3">
               <param name="X" type="float"/>
@@ -235,9 +235,9 @@
           </technique_common>
         </source>
         <source id="neg-y-mesh-normals">
-          <float_array id="neg-y-mesh-normals-array" count="3">0 -1 0</float_array>
+          <float_array id="neg-y-mesh-normals-array" count="6">0 -1 0 0 -1 0</float_array>
           <technique_common>
-            <accessor source="#neg-y-mesh-normals-array" count="1" stride="3">
+            <accessor source="#neg-y-mesh-normals-array" count="2" stride="3">
               <param name="X" type="float"/>
               <param name="Y" type="float"/>
               <param name="Z" type="float"/>
@@ -260,7 +260,7 @@
           <input semantic="VERTEX" source="#neg-y-mesh-vertices" offset="0"/>
           <input semantic="NORMAL" source="#neg-y-mesh-normals" offset="1"/>
           <input semantic="TEXCOORD" source="#neg-y-mesh-map-0" offset="2" set="0"/>
-          <p>3 0 0 0 0 1 1 0 2 3 0 3 2 0 4 0 0 5</p>
+          <p>3 0 0 0 0 1 1 0 2 3 1 3 2 1 4 0 1 5</p>
         </triangles>
       </mesh>
     </geometry>

@@ -187,8 +187,8 @@ namespace Parkour
 			std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>>{
 				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity()}}, Vector::inty3{0, 0, 0}),
 				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ -1, 0, 0 }),
-				std::make_pair(Voxel::NamedBlock{ "sign-base", Voxel::CubeData{ Voxel::GetWhatRotates(Voxel::BlockFace::FORWARD, Voxel::BlockFace::RIGHT) } }, Vector::inty3{ -1, 1, 0 }),
-				std::make_pair(Voxel::NamedBlock{ "sign-board", Voxel::CubeData{ Voxel::GetWhatRotates(Voxel::BlockFace::FORWARD, Voxel::BlockFace::RIGHT) } }, Vector::inty3{ -1, 2, 0 }),
+				std::make_pair(Voxel::NamedBlock{ "sign-base", Voxel::CubeData{ quat4::identity() }}, Vector::inty3{-1, 1, 0}),
+				std::make_pair(Voxel::NamedBlock{ "sign-board", Voxel::CubeData{ quat4::identity() }}, Vector::inty3{-1, 2, 0}),
 				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3{ +1, 0, 0 })
 			},
 			std::vector<LookingPoint>{
