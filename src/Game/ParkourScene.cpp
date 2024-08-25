@@ -18,6 +18,7 @@
 
 #include "ParkourLevels.h"
 #include "ParkourBlocks.h"
+#include "ParkourSignShape.h"
 
 Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	: FullResourceHolder(resources)
@@ -58,7 +59,9 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 		m_GSpace.GetRootShape()->AddChild<G1I::LightShape>("Sun Light", sunLight);
 	}
 
-	Voxel::VoxelStore::GetMutable().RegisterUpdateBlock("lamp-light", std::make_unique<ParkourLightBlock>(&m_GSpace, mResources, m_WorldShape.get(), nullptr, Voxel::ChunkBlockCoord{}));
+	auto& voxelStore = Voxel::VoxelStore::GetMutable();
+	voxelStore.RegisterUpdateBlock("lamp-light", std::make_unique<ParkourLightBlock>(&m_GSpace, mResources, m_WorldShape.get(), nullptr, Voxel::ChunkBlockCoord{}));
+	voxelStore.RegisterUpdateBlock("sign-board", std::make_unique<ParkourSignShape>(G1::IShapeThings{ &m_GSpace, mResources }, m_WorldShape.get(), nullptr, Voxel::ChunkBlockCoord{}));
 
 	m_UI.AddChildBottom(&m_Crosshair);
 	m_Menu.AddTo(m_UI);

@@ -320,6 +320,7 @@ blocks:
     block-name: sign-board
     atlas: global
     mesh: sign-board
+    wants-update: true
     faces: 
         pos-x: open
         neg-x: open
