@@ -125,5 +125,42 @@ namespace Drawing
 				return TexCoordOrder;
 			}
 		}
+
+		inline constexpr size_t OffsetOfComponent(VertexComponent comp) const
+		{
+			size_t order = 1;
+			switch (comp)
+			{
+			default:
+			case VertexComponent::POSITION:
+				order = PositionOrder;
+				break;
+			case VertexComponent::TANGENT:
+				order = TangentOrder;
+				break;
+			case VertexComponent::NORMAL:
+				order = NormalOrder;
+				break;
+			case VertexComponent::BINORMAL:
+				order = BinormalOrder;
+				break;
+			case VertexComponent::TEXCOORD:
+				order = TexCoordOrder;
+				break;
+			}
+			size_t offset = 0;
+			for (size_t tgt = 1; tgt < order; ++tgt)
+			{
+				for (auto& comp : VertexComponents)
+				{
+					if (OrderOfComponent(comp) == tgt)
+					{
+						offset += SizeOfComponent(comp);
+						break;
+					}
+				}
+			}
+			return offset;
+		}
 	};
 }

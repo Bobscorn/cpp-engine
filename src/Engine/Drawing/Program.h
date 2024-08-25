@@ -92,7 +92,7 @@ namespace Drawing
 
 		GLVertexArray _inputVAO;
 		GeometryDescription _lastGeoDesc;
-		const VertexBuffer* _lastVertexBuffer;
+		GLuint _lastVertexBuffer;
 
 		std::vector<BoundTextureMapping> _textureMappings;
 		GLint _shadowMap2DBinding = -1;

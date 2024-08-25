@@ -777,7 +777,7 @@ namespace Drawing
 	{
 		if (buf.GetDescription() == _lastGeoDesc)
 		{
-			if (&buf == _lastVertexBuffer)
+			if (buf.GetVBO().Get() == _lastVertexBuffer)
 				return;
 
 			// Just rebind to another VBO
@@ -793,14 +793,13 @@ namespace Drawing
 			}
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			_lastVertexBuffer = &buf;
+			_lastVertexBuffer = buf.GetVBO().Get();
 			return;
 		}
 
 		_inputVAO.ResetState();
 
 		GLuint vertexAttrib = 0;
-		GLuint offset = 0;
 		int nextOrder = 1;
 
 		auto& desc = buf.GetDescription();
@@ -829,12 +828,11 @@ namespace Drawing
 					state.Type = GL_FLOAT;
 					state.Normalized = IsVectorVertexComponent(comp);
 					state.Stride = compStride;
-					state.Offset = reinterpret_cast<GLvoid*>(sizeof(GLfloat) * ((size_t)offset));
+					state.Offset = reinterpret_cast<GLvoid*>(sizeof(GLfloat) * desc.OffsetOfComponent(comp));
 
 					_inputVAO.SetState(vertexAttrib, state);
 
 					vertexAttrib++;
-					offset += state.Size;
 					nextOrder++;
 					found = true;
 				}
@@ -843,7 +841,7 @@ namespace Drawing
 				break;
 		}
 		_lastGeoDesc = desc;
-		_lastVertexBuffer = &buf;
+		_lastVertexBuffer = buf.GetVBO().Get();
 	}
 
 	void Program::SetMaterial(Material& material, BufferUpdateMode updateMode)
