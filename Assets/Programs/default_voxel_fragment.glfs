@@ -282,7 +282,7 @@ float SpotShadow(Light light, vec3 P)
 
     float lightDepth = texture(ShadowMaps[realIndex], uvCoords).r;
 
-    return fragDepth > lightDepth ? 0.0 : 1.0;
+    return (fragDepth - 0.0009) > lightDepth ? 0.0 : 1.0;
 }
 
 LightingResult Lighting(Material mat, vec4 Point, vec4 N, vec3 pWS)
