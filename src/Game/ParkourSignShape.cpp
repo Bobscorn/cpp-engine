@@ -153,12 +153,19 @@ Parkour::ParkourSignShape::ParkourSignShape(G1::IShapeThings things, Voxel::Voxe
 void Parkour::ParkourSignShape::OnLoaded()
 {
 	floaty3 real_pos = m_World->GetPhysPosFromBlockCoord(Voxel::BlockCoord{ m_Chunk->GetCoord(), m_Pos });
-	auto rot = m_Chunk->get_data(m_Pos).Data.Rotation;
+	
+	auto text_rot = btQuaternion();
+	text_rot.setEulerZYX(15.f * Math::DegToRadF, 0.f, 0.f);
+	text_rot = m_Chunk->get_data(m_Pos).Data.Rotation.asBt() * text_rot;
+
+	quat4 rot = quat4(text_rot);
 	auto axis = rot.asBt().getAxis();
 	auto angle = rot.asBt().getAngle();
+	
 	auto rot_matrix = Matrixy4x4::RotationAxisR((floaty3)axis, angle);
 	auto translate_matrix = Matrixy4x4::Translate(real_pos);
 	auto final_mat = Matrixy4x4::Multiply(translate_matrix, rot_matrix);
+	
 	std::shared_ptr<Matrixy4x4> mat = std::make_shared<Matrixy4x4>(final_mat);
 
 	m_SignTextDrawCall = mResources->Ren3v2->SubmitDrawCall(Drawing::DrawCallv2{ m_SignTextMesh, Drawing::MaterialReference(SignMaterialName).GetMaterial(), std::move(mat), "Parkour Sign Text" });
