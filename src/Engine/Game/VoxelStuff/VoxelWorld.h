@@ -40,7 +40,10 @@ namespace Voxel
 	struct LoadingStuff
 	{
 		Threading::ThreadedQueue<ChunkCoord> ToLoad;
+		Threading::ThreadedQueue<std::pair<ChunkCoord, std::unique_ptr<ChunkData>>> ToRecompute;
+
 		Threading::ThreadedQueue<std::unique_ptr<LoadedChunk>> Loaded;
+		Threading::ThreadedQueue<std::unique_ptr<LoadedChunk>> Recomputed;
 		std::atomic<bool> QuitVal;
 	};
 
@@ -114,6 +117,10 @@ namespace Voxel
 		void AddProjectile<RayProjectile, floaty3, floaty3, float, Entity *, DamageDescription>(floaty3, floaty3, float, Entity *, DamageDescription);
 		template<>
 		void AddProjectile<HitScanProjectile, floaty3, floaty3, Entity *, DamageDescription>(floaty3, floaty3, Entity *, DamageDescription);
+
+		// Publicly accessible chunk recomputing
+		// Possibly move to a protected interface and give to consumers?
+		void ReloadChunkAt(ChunkCoord at, const ChunkData& srcData);
 
 
 		// Chunk Unloading

@@ -63,7 +63,7 @@ namespace Threading
 					return false;
 			}
 
-			outVal = _queue.front();
+			outVal = std::move(_queue.front());
 			_queue.pop();
 			return true;
 		}

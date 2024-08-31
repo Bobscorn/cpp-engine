@@ -639,6 +639,11 @@ void Voxel::VoxelWorld::RemoveEntity(Entity *entity)
 	this->m_ToRemoveEntities.emplace_back(entity);
 }
 
+void Voxel::VoxelWorld::ReloadChunkAt(ChunkCoord at, const ChunkData& srcData)
+{
+	m_LoadingStuff->ToRecompute.push(std::make_pair(at, std::make_unique<ChunkData>(srcData)));
+}
+
 void Voxel::VoxelWorld::UnloadChunk(std::unique_ptr<VoxelChunk> chunk)
 {
 	if (!chunk)
@@ -806,6 +811,7 @@ void Voxel::VoxelWorld::CheckLoadingThread()
 	{
 		if (!chunkDat)
 			continue;
+
 		{
 			std::shared_lock lock(m_ChunksMutex);
 			auto it = m_Chunks.find(chunkDat->Coord);
@@ -814,7 +820,7 @@ void Voxel::VoxelWorld::CheckLoadingThread()
 			if (it == m_Chunks.end())
 				continue;
 
-			// Skip if there's already a chunk there
+			// If there's already a chunk, simply give it the new data
 			if (it->second)
 				continue;
 		}
@@ -822,6 +828,9 @@ void Voxel::VoxelWorld::CheckLoadingThread()
 		std::unique_lock lock(m_ChunksMutex);
 		auto coord = chunkDat->Coord;
 		auto chunkIt = m_Chunks.insert_or_assign(coord, std::make_unique<VoxelChunk>(GetContainer(), mResources, this, ChunkOrigin(coord), std::move(chunkDat)));
+
+		chunkDat.reset();
+
 		auto& chunk = chunkIt.first->second;
 		{
 			auto it = m_BlockChanges.find(coord);
@@ -846,6 +855,27 @@ void Voxel::VoxelWorld::CheckLoadingThread()
 				m_UpdateBlockChanges.erase(it);
 			}
 		}
+	}
+	while (m_LoadingStuff->Recomputed.try_pop(chunkDat))
+	{
+		if (!chunkDat)
+			continue;
+
+
+		std::shared_lock lock(m_ChunksMutex);
+		auto it = m_Chunks.find(chunkDat->Coord);
+
+		// Skip if not an expected chunk (expected chunks are put into m_Chunks as nullptrs)
+		if (it == m_Chunks.end())
+			continue;
+
+		// If the chunk is empty, don't do anything as recomputing only happens for existing chunks
+		if (!it->second)
+			continue;
+		
+		it->second->SetFrom(std::move(chunkDat), false);
+		chunkDat.reset();
+		continue;
 	}
 }
 
@@ -934,6 +964,15 @@ void Voxel::DoChunkLoading(std::shared_ptr<LoadingStuff> stuff, LoadingOtherStuf
 			loaded->ChunkDat = std::move(*data);
 
 			stuff->Loaded.push(std::move(loaded));
+		}
+		if (std::pair<ChunkCoord, std::unique_ptr<ChunkData>> toRecompute; stuff->ToRecompute.try_pop(toRecompute, 10ms))
+		{
+			const auto coord = toRecompute.first;
+			const auto& data = *toRecompute.second;
+
+			auto recomputed = Voxel::GenerateChunkMesh(data, coord, other.GetBlockIdFunc);
+
+			stuff->Recomputed.push(std::move(recomputed));
 		}
 	}
 }

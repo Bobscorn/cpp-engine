@@ -323,7 +323,8 @@ namespace Voxel
 
 		auto& world = *m_World;
 
-		SetFrom(GenerateChunkMesh(m_Data, m_Coord, [&world](BlockCoord coord) { return world.GetCubeDataAt(coord); }), false);
+		//SetFrom(GenerateChunkMesh(m_Data, m_Coord, [&world](BlockCoord coord) { return world.GetCubeDataAt(coord); }), false);
+		world.ReloadChunkAt(m_Coord, m_Data);
 	}
 
 	std::string VoxelChunk::CreateChunkName(ChunkCoord coord)
