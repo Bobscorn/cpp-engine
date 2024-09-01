@@ -326,122 +326,148 @@ void ProfileMcGee::FillOutFrame(double frametime, double parenttime, TimedEvent 
 	}
 }
 
-void BigBoiStats::WriteToFile(const BigBoiStats& stats, std::string filename)
+
+constexpr int nameSpace = 20;
+constexpr int maxCharacters = 100;
+constexpr char indicatorChar = '#';
+constexpr char spaceChar = ' ';
+constexpr char indentChar = ' ';
+constexpr size_t indentSize = 1; // number of spaces indent_char takes up
+
+void PrintEvent(std::ofstream& file, const TimedEvent& e, int indent)
+{
+	int64_t namePadding = indent * indentSize + nameSpace - e.Name.length();
+	std::string realName = e.Name;
+	if (namePadding < 0)
+	{
+		realName = realName.substr(namePadding * -1, realName.length() + namePadding);
+		namePadding = 0;
+	}
+	int myMax = (maxCharacters - realName.length() - namePadding);
+	int numIndicators = (int)roundf(e.PercentOfFrame * (float)myMax);
+	int numSpaces = myMax - numIndicators;
+	file << std::string(namePadding, indentChar) << realName << "-" << std::string(numIndicators, indicatorChar) << std::string(numSpaces, spaceChar) << "| " << e.TimeString();
+	if (e.Aggregate)
+		file << " [Aggregate of " << e.Aggregations + 1 << "]";
+	file << std::endl;
+	for (int i = 0; i < e.ChildEvents.size(); ++i)
+		PrintEvent(file, e.ChildEvents[i], indent + 1);
+}
+
+void FindHighContributors(std::vector<const TimedEvent*>& vec, double minTime, const TimedEvent& e)
+{
+	if (e.ChildEvents.empty() && e.Time > minTime)
+		vec.push_back(&e);
+
+	for (int i = 0; i < e.ChildEvents.size(); ++i)
+		FindHighContributors(vec, minTime, e.ChildEvents[i]);
+}
+
+void WriteFrameToStream(std::ofstream& file, const TimedEvent& frame)
+{
+	file << "Frame took " << frame.Time * 1000 << "ms " << std::endl;
+
+	// Print highest contributors first
+	std::vector<const TimedEvent*> highestContributors{};
+	double minTime = 0.001;
+	FindHighContributors(highestContributors, minTime, frame);
+
+	std::sort(highestContributors.begin(), highestContributors.end(), [](const const TimedEvent*& a, const const TimedEvent*& b) { return a->Time < b->Time; });
+
+	file << "Highest Contributors (child-less events with time > 1ms):" << std::endl;
+	for (int i = 0; i < highestContributors.size(); ++i)
+	{
+		int charsUsed = 0;
+		const auto& contrib = highestContributors[i];
+		file << '\t';
+		std::vector<std::string> names;
+		for (auto e = contrib; e; e = e->Parent)
+			names.push_back(e->Name);
+
+		for (auto it = names.rbegin(); it != names.rend(); it++)
+		{
+			file << *it;
+			charsUsed += it->length();
+			if (it + 1 != names.rend())
+			{
+				file << "-";
+				charsUsed += 1;
+			}
+			else
+			{
+				file << ": ";
+				charsUsed += 2;
+			}
+		}
+
+		int targetPadding = 80;
+		int neededPadding = targetPadding - charsUsed;
+		if (neededPadding < 0)
+			neededPadding = 0;
+
+		file << std::string(neededPadding, ' ');
+
+
+		file << contrib->TimeString() << std::endl;
+	}
+	file << ". . . . END HIGH CONTRIBUTORS . . . ." << std::endl;
+
+	int indent = 0;
+	std::string realName = frame.Name;
+	int64_t namePadding = (nameSpace + indent * indentSize) - frame.Name.length();
+	if (namePadding < 0)
+	{
+		realName = realName.substr(namePadding * -1, realName.length() + namePadding);
+		namePadding = 0;
+	}
+
+	int myMax = (maxCharacters - realName.length() - namePadding);
+	int num_indicators = (int)roundf(frame.PercentOfFrame * (float)myMax);
+	int num_spaces = myMax - num_indicators;
+
+	file << std::string(namePadding, ' ') << frame.Name << "-" << std::string(num_indicators, indicatorChar) << std::string(num_spaces, spaceChar) << "| " << frame.TimeString() << std::endl;
+
+	for (int j = 0; j < frame.ChildEvents.size(); ++j)
+		PrintEvent(file, frame.ChildEvents[j], 1);
+
+	file << "---------------------------------------------------------------------------------------" << std::endl;
+}
+
+void BigBoiStats::WriteToFile(const BigBoiStats& stats, std::string filename, float frameTimeThreshold)
 {
 
 	std::ofstream file{ filename, std::ios::binary };
-
-	int nameSpace = 20;
-	int maxCharacters = 100;
-	constexpr char indicatorChar = '#';
-	constexpr char spaceChar = ' ';
-	constexpr char indentChar = ' ';
-	constexpr size_t indentSize = 1; // number of spaces indent_char takes up
-
-	std::function<void(const TimedEvent&, int indent)> print_event;
-	print_event = [&](const TimedEvent& e, int indent)
-	{
-		int64_t namePadding = indent * indentSize + nameSpace - e.Name.length();
-		std::string realName = e.Name;
-		if (namePadding < 0)
-		{
-			realName = realName.substr(namePadding * -1, realName.length() + namePadding);
-			namePadding = 0;
-		}
-		int myMax = (maxCharacters - realName.length() - namePadding);
-		int numIndicators = (int)roundf(e.PercentOfFrame * (float)myMax);
-		int numSpaces = myMax - numIndicators;
-		file << std::string(namePadding, indentChar) << realName << "-" << std::string(numIndicators, indicatorChar) << std::string(numSpaces, spaceChar) << "| " << e.TimeString();
-		if (e.Aggregate)
-			file << " [Aggregate of " << e.Aggregations + 1 << "]";
-		file << std::endl;
-		for (int i = 0; i < e.ChildEvents.size(); ++i)
-			print_event(e.ChildEvents[i], indent + 1);
-	};
-
-	std::function<void(std::vector<const TimedEvent*>&, double, const TimedEvent&)> findHighContributors;
-	findHighContributors = [&findHighContributors](std::vector<const TimedEvent*>& vec, double minTime, const TimedEvent& e)
-	{
-		if (e.ChildEvents.empty() && e.Time > minTime)
-			vec.push_back(&e);
-
-		for (int i = 0; i < e.ChildEvents.size(); ++i)
-			findHighContributors(vec, minTime, e.ChildEvents[i]);
-	};
 
 	if (file.good())
 	{
 
 		file << "------------ Profile Information -------------" << std::endl;
-		for (int i = 0; i < stats.Frames.size(); ++i)
+		if (frameTimeThreshold > 0.f)
 		{
-			const auto& frame = stats.Frames[i];
-			file << "Frame took " << frame.Time * 1000 << "ms " << std::endl;
+			file << "Long frames only (>" << frameTimeThreshold << "ms)" << std::endl;
+			auto longFrames = std::vector<std::reference_wrapper<const TimedEvent>>();
 
-			// Print highest contributors first
-			std::vector<const TimedEvent*> highestContributors{};
-			double minTime = 0.001;
-			findHighContributors(highestContributors, minTime, frame);
-
-			std::sort(highestContributors.begin(), highestContributors.end(), [](const const TimedEvent*& a, const const TimedEvent*& b) { return a->Time < b->Time; });
-
-			file << "Highest Contributors (child-less events with time > 1ms):" << std::endl;
-			for (int i = 0; i < highestContributors.size(); ++i)
+			for (const auto& frame : stats.Frames)
 			{
-				int charsUsed = 0;
-				const auto& contrib = highestContributors[i];
-				file << '\t';
-				std::vector<std::string> names;
-				for (auto e = contrib; e; e = e->Parent)
-					names.push_back(e->Name);
-
-				for (auto it = names.rbegin(); it != names.rend(); it++)
-				{
-					file << *it;
-					charsUsed += it->length();
-					if (it + 1 != names.rend())
-					{
-						file << "-";
-						charsUsed += 1;
-					}
-					else
-					{
-						file << ": ";
-						charsUsed += 2;
-					}
-				}
-
-				int targetPadding = 80;
-				int neededPadding = targetPadding - charsUsed;
-				if (neededPadding < 0)
-					neededPadding = 0;
-
-				file << std::string(neededPadding, ' ');
-
-
-				file << contrib->TimeString() << std::endl;
-			}
-			file << ". . . . END HIGH CONTRIBUTORS . . . ." << std::endl;
-
-			int indent = 0;
-			std::string realName = frame.Name;
-			int64_t namePadding = (nameSpace + indent * indentSize) - frame.Name.length();
-			if (namePadding < 0)
-			{
-				realName = realName.substr(namePadding * -1, realName.length() + namePadding);
-				namePadding = 0;
+				if ((frame.Time * 1000.f) > frameTimeThreshold)
+					longFrames.push_back(std::cref(frame));
 			}
 
-			int myMax = (maxCharacters - realName.length() - namePadding);
-			int num_indicators = (int)roundf(frame.PercentOfFrame * (float)myMax);
-			int num_spaces = myMax - num_indicators;
+			std::sort(longFrames.begin(), longFrames.end(), [](std::reference_wrapper<const TimedEvent> lhs, std::reference_wrapper<const TimedEvent> rhs) { return lhs.get().Time > rhs.get().Time; });
+			for (const auto& frame : longFrames)
+			{
+				WriteFrameToStream(file, frame);
+			}
+		}
+		else
+		{
+			file << "All Frames" << std::endl;
+			for (int i = 0; i < stats.Frames.size(); ++i)
+			{
+				const auto& frame = stats.Frames[i];
 
-			file << std::string(namePadding, ' ') << frame.Name << "-" << std::string(num_indicators, indicatorChar) << std::string(num_spaces, spaceChar) << "| " << frame.TimeString() << std::endl;
-
-			for (int j = 0; j < frame.ChildEvents.size(); ++j)
-				print_event(frame.ChildEvents[j], 1);
-
-			file << "---------------------------------------------------------------------------------------" << std::endl;
+				WriteFrameToStream(file, frame);
+			}
 		}
 		file << "------------ End Profile Information ------------" << std::endl;
 	}
