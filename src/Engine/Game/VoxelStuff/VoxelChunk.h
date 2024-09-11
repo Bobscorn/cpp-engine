@@ -67,6 +67,23 @@ namespace Voxel
 	typedef std::array<std::array<std::array<SerialBlock, Chunk_Size>, Chunk_Height>, Chunk_Size> ChunkData;
 	std::unique_ptr<ChunkData> ConvertMapToData(const RawChunkDataMap& m);
 
+	struct IChunkLoader
+	{
+		virtual RawChunkDataMap LoadChunk(int64_t x, int64_t y, int64_t z) = 0;
+		inline RawChunkDataMap LoadChunk(ChunkCoord coord) { return LoadChunk(coord.X, coord.Y, coord.Z); }
+	};
+
+	struct IChunkMemory
+	{
+		virtual std::unique_ptr<ChunkData> GetChunkData(ChunkCoord coord) const = 0;
+		virtual void SetChunkData(ChunkCoord coord, std::unique_ptr<ChunkData> data) = 0;
+	};
+
+	struct IChunkUnloader
+	{
+		virtual void UnloadChunk(std::unique_ptr<VoxelChunk> chunk) = 0;
+	};
+
 	struct LoadedChunk
 	{
 		ChunkCoord Coord;
@@ -106,6 +123,8 @@ namespace Voxel
 		ICube* get(ChunkBlockCoord coord);
 		const SerialBlock& get_data(ChunkBlockCoord coord) const;
 		ChunkCoord GetCoord() const;
+
+		const ChunkData& GetSerialChunkData() const;
 
 		// Use with caution, will remove the block from this chunk
 		std::unique_ptr<ICube> take(ChunkBlockCoord coord);

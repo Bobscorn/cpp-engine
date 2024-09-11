@@ -9,6 +9,7 @@
 #include "Game/VoxelStuff/VoxelPlayer.h"
 #include "Game/VoxelStuff/VoxelChunk.h"
 #include "Game/VoxelStuff/VoxelWorld.h"
+#include "Game/VoxelStuff/VoxelMemoryLevel.h"
 
 #include "Game/VoxelStuff/VoxelPlayerUI.h"
 
@@ -49,7 +50,8 @@ namespace Voxel
 
 		// The world
 		Pointer::f_ptr<Voxel::VoxelWorld> m_World;
-		DefaultWorldLoader m_Boi;
+		DefaultWorldLoader m_Loader;
+		VoxelMemoryLevel m_ChunkMemory;
 
 		// Player
 		Pointer::f_ptr<Voxel::VoxelPlayer> m_Player;

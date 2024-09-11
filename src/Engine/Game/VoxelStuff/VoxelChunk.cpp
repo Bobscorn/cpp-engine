@@ -215,6 +215,11 @@ namespace Voxel
 		return m_Coord;
 	}
 
+	const ChunkData& VoxelChunk::GetSerialChunkData() const
+	{
+		return m_Data;
+	}
+
 	std::unique_ptr<ICube> VoxelChunk::take(ChunkBlockCoord coord)
 	{
 		auto it = m_UpdateBlocks.find(coord);
@@ -323,7 +328,6 @@ namespace Voxel
 
 		auto& world = *m_World;
 
-		//SetFrom(GenerateChunkMesh(m_Data, m_Coord, [&world](BlockCoord coord) { return world.GetCubeDataAt(coord); }), false);
 		world.ReloadChunkAt(m_Coord, m_Data);
 	}
 

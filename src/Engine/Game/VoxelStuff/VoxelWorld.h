@@ -6,6 +6,7 @@
 #include "Systems/Threading/ThreadedQueue.h"
 
 #include "VoxelChunk.h"
+#include "VoxelMemoryLevel.h"
 #include "Entities/VoxelProjectiles.h"
 
 #include <unordered_set>
@@ -24,17 +25,6 @@ namespace Voxel
 	struct IWorldUpdater
 	{
 		virtual void DisplaceWorld(floaty3 by) = 0;
-	};
-
-	struct IChunkLoader
-	{
-		virtual RawChunkDataMap LoadChunk(int64_t x, int64_t y, int64_t z) = 0;
-		inline RawChunkDataMap LoadChunk(ChunkCoord coord) { return LoadChunk(coord.X, coord.Y, coord.Z); }
-	};
-
-	struct IChunkUnloader
-	{
-		virtual void UnloadChunk(std::unique_ptr<VoxelChunk> chunk) = 0;
 	};
 
 	struct LoadingStuff
@@ -61,6 +51,7 @@ namespace Voxel
 	{
 		IWorldUpdater *m_WorldUpdater;
 		IChunkLoader *m_ChunkLoader;
+		IChunkMemory* m_ChunkMemory;
 		IChunkUnloader *m_ChunkUnloader;
 		// The half extent of extra chunks along the X/Y/Z Axes, there will always be the very centre chunk
 		size_t HalfBonusWidth = 4;
@@ -146,6 +137,8 @@ namespace Voxel
 		std::shared_ptr<LoadingStuff> m_LoadingStuff;
 		std::thread m_LoadingThread;
 		mutable std::shared_mutex m_ChunksMutex; // Synchronise access to chunks to allow for reading from a separate loading thread
+		mutable std::shared_mutex m_ChunkMemoryMutex; // Synchronise access to chunk memory to allow for reading from a separate loading thread
+		// CODESMELL ^ VoxelWorld holding the mutex guarding access to the Chunk Memory seems fishy when it doesn't even own the memory (it's given a pointer that's assumed to live at least as long as the world)
 
 		// Store a list of pre-calculated offsets from the centre/player to load as the player/centre moves
 		std::vector<ChunkCoord> m_ChunkLoadingOffsets;

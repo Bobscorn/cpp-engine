@@ -10,7 +10,7 @@
 Voxel::VoxelScene::VoxelScene(CommonResources *resources) 
 	: FullResourceHolder(resources)
 	, m_GSpace(resources)
-	, m_World(m_GSpace.FindShapeyRaw("")->AddChild<Voxel::VoxelWorld>("Voxel World", WorldStuff{&m_Boi, &m_Boi, &m_Boi, 2, 1, 2}))
+	, m_World(m_GSpace.FindShapeyRaw("")->AddChild<Voxel::VoxelWorld>("Voxel World", WorldStuff{&m_Loader, &m_Loader, &m_ChunkMemory, &m_Loader, 2, 1, 2}))
 	, m_Player(m_GSpace.FindShapeyRaw("")->AddChild<Voxel::VoxelPlayer>("Voxel Player", m_World.get(), VoxelPlayerStuff{{0.f, 10.f, 0.f}, {0.f, 0.f, -1.f}}))
 	, m_UI(resources)
 {

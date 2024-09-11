@@ -40,7 +40,19 @@ Voxel::VoxelWorld::VoxelWorld(G1::IShapeThings things, WorldStuff stuff)
 
 	LoadingOtherStuff funcs;
 	funcs.GetBlockIdFunc = [this](BlockCoord coord) { return GetBlockIdInWorld(this, coord); };
-	funcs.GetChunkDataFunc = [gen = m_Stuff.m_ChunkLoader](ChunkCoord coord) -> std::unique_ptr<Voxel::ChunkData> { if (!gen) return {}; return ConvertMapToData(gen->LoadChunk(coord.X, coord.Y, coord.Z)); };
+	funcs.GetChunkDataFunc = [gen = m_Stuff.m_ChunkLoader, mem = m_Stuff.m_ChunkMemory, &mem_lock = this->m_ChunkMemoryMutex](ChunkCoord coord) -> std::unique_ptr<Voxel::ChunkData> 
+		{
+			if (mem)
+			{
+				std::shared_lock lock(mem_lock);
+				if (auto possible_dat = mem->GetChunkData(coord); possible_dat)
+					return possible_dat;
+			}
+
+			if (!gen) 
+				return {}; 
+			return ConvertMapToData(gen->LoadChunk(coord.X, coord.Y, coord.Z)); 
+		};
 	m_LoadingThread = std::thread(DoChunkLoading, m_LoadingStuff, std::move(funcs));
 }
 
@@ -651,38 +663,15 @@ void Voxel::VoxelWorld::UnloadChunk(std::unique_ptr<VoxelChunk> chunk)
 {
 	if (!chunk)
 		return;
-	// Rudimentary diff saving
-	auto chunkPos = chunk->GetCoord();
-	//DINFO("Unloading chunk (" + std::to_string(chunkPos.X) + ", " + std::to_string(chunkPos.Y) + ", " + std::to_string(chunkPos.Z) + ")");
-	auto generatedData = (m_Stuff.m_ChunkLoader ? m_Stuff.m_ChunkLoader->LoadChunk(chunkPos) : Voxel::RawChunkDataMap{});
 
-	for (uint8_t x = 0; x < Chunk_Size; ++x)
+	// Save the chunk contents to chunk data storage
 	{
-		for (uint8_t y = 0; y < Chunk_Height; ++y)
-		{
-			for (uint8_t z = 0; z < Chunk_Size; ++z)
-			{
-				auto key = ChunkBlockCoord{ x, y, z };
-				auto it = generatedData.find(key);
-				if (it == generatedData.end())
-				{
-					if (chunk->get(x, y, z) != nullptr)
-					{
-						m_UpdateBlockChanges[chunkPos].emplace_back(std::make_pair(key, std::move(chunk->take(key))));
-					}
-					else if (chunk->get_data(key).ID != 0)
-					{
-						m_BlockChanges[chunkPos].emplace_back(std::make_pair(key, chunk->get_data(key)));
-					}
-				}
-				else if (chunk->get_data(key) != it->second)
-				{
-					m_BlockChanges[chunkPos].emplace_back(std::make_pair(key, chunk->get_data(key)));
-				}
-			}
-		}
+		std::unique_lock lock(m_ChunkMemoryMutex);
+		if (m_Stuff.m_ChunkMemory)
+			m_Stuff.m_ChunkMemory->SetChunkData(chunk->GetCoord(), std::make_unique<ChunkData>(chunk->GetSerialChunkData()));
 	}
 
+	// Destroy the chunk
 	chunk = nullptr;
 }
 
@@ -695,6 +684,7 @@ void Voxel::VoxelWorld::Reset()
 
 Voxel::VoxelWorld::ChunkStatus Voxel::VoxelWorld::GetChunkStatus(ChunkCoord coord)
 {
+	std::shared_lock lock(m_ChunksMutex);
 	auto it = m_Chunks.find(coord);
 	if (it == m_Chunks.end())
 		return NOT_IN_WORLD;
@@ -889,20 +879,21 @@ void Voxel::VoxelWorld::Load(ChunkCoord at)
 	std::shared_lock lock(m_ChunksMutex);
 	auto it = m_Chunks.find(at);
 	PROFILE_POP();
-	if (it == m_Chunks.end())
+
+	// If the chunk exists, it is either being loaded in the loading thread, or has already been loaded
+	if (it != m_Chunks.end())
 	{
-		// Multi threaded:
-		// TODO: Add a chunk to loading thread's queue and mark it as 'being loaded' so it isn't re-added
-		lock.unlock();
-		{
-			std::unique_lock write_lock(m_ChunksMutex);
-			m_Chunks.emplace(std::make_pair(at, nullptr));
-		}
-		m_LoadingStuff->ToLoad.push(at);
-		PROFILE_PUSH("Chunk Emplace");
-		//m_Chunks.emplace(at, std::make_unique<VoxelChunk>(GetContainer(), GetResources(), this, ChunkOrigin(at), m_Stuff.m_ChunkLoader->LoadChunk(at.X, at.Y, at.Z), at)); // Single threaded
 		PROFILE_POP();
+		return;
 	}
+
+	// Chunk doesn't exist already, so queue it up for loading, and insert an empty pointer to the chunk container to indicate it is being loaded
+	lock.unlock();
+	{
+		std::unique_lock write_lock(m_ChunksMutex);
+		m_Chunks.emplace(std::make_pair(at, nullptr));
+	}
+	m_LoadingStuff->ToLoad.push(at);
 	PROFILE_POP();
 }
 
@@ -914,12 +905,14 @@ void Voxel::VoxelWorld::Unload(ChunkCoord at)
 	PROFILE_POP();
 	if (auto it = m_Chunks.find(at); it != m_Chunks.end())
 	{
-		// TODO: write unloading crap
+		// Delete the chunk from the chunks container
 		PROFILE_PUSH("Moving/Erasing");
 		std::unique_ptr<VoxelChunk> tmp = std::move(it->second);
 		m_Chunks.erase(it);
 		PROFILE_POP();
 		PROFILE_PUSH("Chunk Unloader");
+		// Give the removed chunk to a deleting interface, this decouples any special logic (like saving the chunk's state) from the voxel world
+		// Though note the VoxelWorld is currently it's own IChunkUnloader
 		m_Stuff.m_ChunkUnloader->UnloadChunk(std::move(tmp));
 		PROFILE_POP();
 	}
@@ -962,6 +955,12 @@ void Voxel::VoxelWorld::AddProjectile<Voxel::HitScanProjectile, floaty3, floaty3
 	m_HitscanProjectiles.emplace_back(direction, start, source, dam);
 }
 
+/// <summary>
+/// This is the entrypoint for the loading thread.
+/// It is in charge of generating/regenerating chunk data, meshes, and physics meshes/materials
+/// </summary>
+/// <param name="stuff">Container for the queues and quit param shared with the main thread</param>
+/// <param name="other">Container for the functions to generate/lookup block data</param>
 void Voxel::DoChunkLoading(std::shared_ptr<LoadingStuff> stuff, LoadingOtherStuff other)
 {
 	using namespace std::chrono;
