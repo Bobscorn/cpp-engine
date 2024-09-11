@@ -354,13 +354,13 @@ void PrintEvent(std::ofstream& file, const TimedEvent& e, int indent)
 		PrintEvent(file, e.ChildEvents[i], indent + 1);
 }
 
-void FindHighContributors(std::vector<const TimedEvent*>& vec, double minTime, const TimedEvent& e)
+void FindLeafEventsLongerThan(std::vector<const TimedEvent*>& vec, double minTime, const TimedEvent& e)
 {
 	if (e.ChildEvents.empty() && e.Time > minTime)
 		vec.push_back(&e);
 
 	for (int i = 0; i < e.ChildEvents.size(); ++i)
-		FindHighContributors(vec, minTime, e.ChildEvents[i]);
+		FindLeafEventsLongerThan(vec, minTime, e.ChildEvents[i]);
 }
 
 void WriteFrameToStream(std::ofstream& file, const TimedEvent& frame)
@@ -370,7 +370,7 @@ void WriteFrameToStream(std::ofstream& file, const TimedEvent& frame)
 	// Print highest contributors first
 	std::vector<const TimedEvent*> highestContributors{};
 	double minTime = 0.001;
-	FindHighContributors(highestContributors, minTime, frame);
+	FindLeafEventsLongerThan(highestContributors, minTime, frame);
 
 	std::sort(highestContributors.begin(), highestContributors.end(), [](const const TimedEvent*& a, const const TimedEvent*& b) { return a->Time < b->Time; });
 
