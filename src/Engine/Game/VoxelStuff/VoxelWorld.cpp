@@ -388,6 +388,7 @@ floaty3 Voxel::VoxelWorld::Update(floaty3 New_Centre)
 
 	PROFILE_POP();
 	PROFILE_PUSH("Chunk Unloading");
+	PROFILE_PUSH("Distance Selection");
 	std::vector<ChunkCoord> to_unload;
 	
 	for (auto& chunkPair : m_Chunks)
@@ -401,10 +402,12 @@ floaty3 Voxel::VoxelWorld::Update(floaty3 New_Centre)
 			to_unload.push_back(chunkCoord);
 		}
 	}
-	
+	PROFILE_POP();
+	PROFILE_PUSH("Unloading");
 	for (auto& chunkCoord : to_unload)
 		Unload(chunkCoord);
 	
+	PROFILE_POP();
 	PROFILE_POP();
 
 	return { 0.f, 0.f, 0.f };
@@ -905,14 +908,22 @@ void Voxel::VoxelWorld::Load(ChunkCoord at)
 
 void Voxel::VoxelWorld::Unload(ChunkCoord at)
 {
+	PROFILE_PUSH_AGG("Unload Chunk");
+	PROFILE_PUSH("Acquire Lock");
 	std::unique_lock lock(m_ChunksMutex);
+	PROFILE_POP();
 	if (auto it = m_Chunks.find(at); it != m_Chunks.end())
 	{
 		// TODO: write unloading crap
+		PROFILE_PUSH("Moving/Erasing");
 		std::unique_ptr<VoxelChunk> tmp = std::move(it->second);
 		m_Chunks.erase(it);
+		PROFILE_POP();
+		PROFILE_PUSH("Chunk Unloader");
 		m_Stuff.m_ChunkUnloader->UnloadChunk(std::move(tmp));
+		PROFILE_POP();
 	}
+	PROFILE_POP();
 }
 
 floaty3 Voxel::VoxelWorld::ChunkOrigin(ChunkCoord of)
