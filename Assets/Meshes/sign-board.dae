@@ -3,14 +3,52 @@
   <asset>
     <contributor>
       <author>Blender User</author>
-      <authoring_tool>Blender 4.2.1 LTS commit date:2024-08-19, commit time:11:21, hash:396f546c9d82</authoring_tool>
+      <authoring_tool>Blender 4.2.3 LTS commit date:2024-10-14, commit time:15:20, hash:0e22e4fcea03</authoring_tool>
     </contributor>
-    <created>2024-08-25T19:45:41</created>
-    <modified>2024-08-25T19:45:41</modified>
+    <created>2024-10-24T16:54:52</created>
+    <modified>2024-10-24T16:54:52</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
-  <library_images/>
+  <library_effects>
+    <effect id="Material-effect">
+      <profile_COMMON>
+        <newparam sid="wood-worn-color_jpg-surface">
+          <surface type="2D">
+            <init_from>wood-worn-color_jpg</init_from>
+          </surface>
+        </newparam>
+        <newparam sid="wood-worn-color_jpg-sampler">
+          <sampler2D>
+            <source>wood-worn-color_jpg-surface</source>
+          </sampler2D>
+        </newparam>
+        <technique sid="common">
+          <lambert>
+            <emission>
+              <color sid="emission">0 0 0 1</color>
+            </emission>
+            <diffuse>
+              <texture texture="wood-worn-color_jpg-sampler" texcoord="UVMap"/>
+            </diffuse>
+            <index_of_refraction>
+              <float sid="ior">1.5</float>
+            </index_of_refraction>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
+  </library_effects>
+  <library_images>
+    <image id="wood-worn-color_jpg" name="wood-worn-color_jpg">
+      <init_from>wood-worn-color.jpg</init_from>
+    </image>
+  </library_images>
+  <library_materials>
+    <material id="Material-material" name="Material">
+      <instance_effect url="#Material-effect"/>
+    </material>
+  </library_materials>
   <library_geometries>
     <geometry id="neg-z-mesh" name="neg-z">
       <mesh>
@@ -35,7 +73,7 @@
           </technique_common>
         </source>
         <source id="neg-z-mesh-map-0">
-          <float_array id="neg-z-mesh-map-0-array" count="180">0.1245078 0.1672325 0.09325784 0.2505659 0.09325784 0.1672325 -4.92156e-4 0.1672325 0.1245078 0.2505659 -4.92156e-4 0.2505659 0.1245078 5.65886e-4 -4.92156e-4 0.08389919 -4.92156e-4 5.65886e-4 -4.92156e-4 0.08389919 0.1245078 0.1672325 -4.92156e-4 0.1672325 0.09325784 5.65886e-4 0.1245078 0.08389919 0.09325784 0.08389919 0.09325784 0.08389919 0.1245078 0.1672325 0.09325784 0.1672325 -4.92156e-4 0.08389919 0.03075784 0.1672325 -4.92156e-4 0.1672325 0.03075784 0.08389919 0.06200784 0.1672325 0.03075784 0.1672325 0.09325784 0.08389919 0.06200784 0.1672325 0.06200784 0.08389919 -4.92156e-4 5.65886e-4 0.03075784 0.08389919 -4.92156e-4 0.08389919 0.03075784 5.65886e-4 0.06200784 0.08389919 0.03075784 0.08389919 0.09325784 5.65886e-4 0.06200784 0.08389919 0.06200784 5.65886e-4 0.03075784 0.1672325 -4.92156e-4 0.2505659 -4.92156e-4 0.1672325 0.06200784 0.1672325 0.03075784 0.2505659 0.03075784 0.1672325 0.06200784 0.1672325 0.09325784 0.2505659 0.06200784 0.2505659 0.1245078 0.1672325 0.1245078 0.2505659 0.09325784 0.2505659 -4.92156e-4 0.1672325 0.1245078 0.1672325 0.1245078 0.2505659 0.1245078 5.65886e-4 0.1245078 0.08389919 -4.92156e-4 0.08389919 -4.92156e-4 0.08389919 0.1245078 0.08389919 0.1245078 0.1672325 0.09325784 5.65886e-4 0.1245078 5.65886e-4 0.1245078 0.08389919 0.09325784 0.08389919 0.1245078 0.08389919 0.1245078 0.1672325 -4.92156e-4 0.08389919 0.03075784 0.08389919 0.03075784 0.1672325 0.03075784 0.08389919 0.06200784 0.08389919 0.06200784 0.1672325 0.09325784 0.08389919 0.09325784 0.1672325 0.06200784 0.1672325 -4.92156e-4 5.65886e-4 0.03075784 5.65886e-4 0.03075784 0.08389919 0.03075784 5.65886e-4 0.06200784 5.65886e-4 0.06200784 0.08389919 0.09325784 5.65886e-4 0.09325784 0.08389919 0.06200784 0.08389919 0.03075784 0.1672325 0.03075784 0.2505659 -4.92156e-4 0.2505659 0.06200784 0.1672325 0.06200784 0.2505659 0.03075784 0.2505659 0.06200784 0.1672325 0.09325784 0.1672325 0.09325784 0.2505659</float_array>
+          <float_array id="neg-z-mesh-map-0-array" count="180">0.9834968 0.4899087 0.9631982 0.5060076 0.951999 0.4962083 0.4795314 0.4899087 0.6230216 0.5060076 0.4795314 0.5060076 0.6244215 0.4584109 0.4795314 0.4738098 0.4795314 0.4584109 0.4795314 0.4738098 0.6349207 0.4899087 0.4795314 0.4899087 0.9638981 0.4570109 0.9834968 0.4738098 0.9554987 0.4724099 0.9554987 0.4724099 0.9834968 0.4899087 0.951999 0.4962083 0.6349207 0.4738098 0.6867172 0.777589 0.6349207 0.4899087 0.6370206 0.1609312 0.9386999 0.7845885 0.6867172 0.777589 0.9554987 0.4724099 0.9386999 0.7845885 0.9491991 0.09373587 0.6244215 0.4584109 0.6370206 0.1609312 0.6349207 0.4738098 0.6244215 0.1518319 0.9491991 0.09373587 0.6370206 0.1609312 0.9638981 0.4570109 0.9491991 0.09373587 0.9596984 0.08113676 0.6867172 0.777589 0.6230216 0.5060076 0.6349207 0.4899087 0.9386999 0.7845885 0.6769179 0.7894881 0.6867172 0.777589 0.9386999 0.7845885 0.9631982 0.5060076 0.9498991 0.7978876 0.9834968 0.4899087 0.9834968 0.5060076 0.9631982 0.5060076 0.4795314 0.4899087 0.6349207 0.4899087 0.6230216 0.5060076 0.6244215 0.4584109 0.6349207 0.4738098 0.4795314 0.4738098 0.4795314 0.4738098 0.6349207 0.4738098 0.6349207 0.4899087 0.9638981 0.4570109 0.9834968 0.4584109 0.9834968 0.4738098 0.9554987 0.4724099 0.9834968 0.4738098 0.9834968 0.4899087 0.6349207 0.4738098 0.6370206 0.1609312 0.6867172 0.777589 0.6370206 0.1609312 0.9491991 0.09373587 0.9386999 0.7845885 0.9554987 0.4724099 0.951999 0.4962083 0.9386999 0.7845885 0.6244215 0.4584109 0.6244215 0.1518319 0.6370206 0.1609312 0.6244215 0.1518319 0.9596984 0.08113676 0.9491991 0.09373587 0.9638981 0.4570109 0.9554987 0.4724099 0.9491991 0.09373587 0.6867172 0.777589 0.6769179 0.7894881 0.6230216 0.5060076 0.9386999 0.7845885 0.9498991 0.7978876 0.6769179 0.7894881 0.9386999 0.7845885 0.951999 0.4962083 0.9631982 0.5060076</float_array>
           <technique_common>
             <accessor source="#neg-z-mesh-map-0-array" count="90" stride="2">
               <param name="S" type="float"/>
@@ -46,7 +84,7 @@
         <vertices id="neg-z-mesh-vertices">
           <input semantic="POSITION" source="#neg-z-mesh-positions"/>
         </vertices>
-        <triangles count="30">
+        <triangles material="Material-material" count="30">
           <input semantic="VERTEX" source="#neg-z-mesh-vertices" offset="0"/>
           <input semantic="NORMAL" source="#neg-z-mesh-normals" offset="1"/>
           <input semantic="TEXCOORD" source="#neg-z-mesh-map-0" offset="2" set="0"/>
@@ -77,7 +115,7 @@
           </technique_common>
         </source>
         <source id="pos-x-mesh-map-0">
-          <float_array id="pos-x-mesh-map-0-array" count="60">0.2020176 0.04552155 0.1970774 0.2955216 0.1970774 0.04552155 0.1482568 0.04552155 0.0770176 0.2955216 0.0770176 0.04552155 0.1186843 0.04552155 0.02325677 0.2968748 0.02325677 0.04687482 0.1603509 0.04552155 0.1186843 0.2955216 0.1186843 0.04552155 0.1970774 0.04552155 0.1603509 0.2955216 0.1603509 0.04552155 0.2020176 0.04552155 0.2020176 0.2955216 0.1970774 0.2955216 0.1482568 0.04552155 0.1482568 0.2955216 0.0770176 0.2955216 0.1186843 0.04552155 0.1186843 0.2955216 0.02325677 0.2968748 0.1603509 0.04552155 0.1603509 0.2955216 0.1186843 0.2955216 0.1970774 0.04552155 0.1970774 0.2955216 0.1603509 0.2955216</float_array>
+          <float_array id="pos-x-mesh-map-0-array" count="60">0.8910361 0.8630222 0.9114878 0.813737 0.9114878 0.8630222 0.7836233 0.6903291 0.9320771 0.641044 0.9320771 0.6903291 0.7696065 0.6709137 0.8646103 0.9581832 0.8159218 0.9658295 0.6613332 0.7891726 0.9434934 0.7398875 0.9434934 0.7891726 0.795084 0.6657335 0.7405624 0.9670789 0.6941091 0.9506136 0.8910361 0.8630222 0.8910361 0.813737 0.9114878 0.813737 0.7836233 0.6903291 0.7836233 0.641044 0.9320771 0.641044 0.7696065 0.6709137 0.818295 0.6632674 0.8646103 0.9581832 0.6613332 0.7891726 0.6613332 0.7398875 0.9434934 0.7398875 0.795084 0.6657335 0.8415374 0.6821988 0.7405624 0.9670789</float_array>
           <technique_common>
             <accessor source="#pos-x-mesh-map-0-array" count="30" stride="2">
               <param name="S" type="float"/>
@@ -88,7 +126,7 @@
         <vertices id="pos-x-mesh-vertices">
           <input semantic="POSITION" source="#pos-x-mesh-positions"/>
         </vertices>
-        <triangles count="10">
+        <triangles material="Material-material" count="10">
           <input semantic="VERTEX" source="#pos-x-mesh-vertices" offset="0"/>
           <input semantic="NORMAL" source="#pos-x-mesh-normals" offset="1"/>
           <input semantic="TEXCOORD" source="#pos-x-mesh-map-0" offset="2" set="0"/>
@@ -119,7 +157,7 @@
           </technique_common>
         </source>
         <source id="pos-y-mesh-map-0">
-          <float_array id="pos-y-mesh-map-0-array" count="12">0.120101 0.008805334 0.004899084 0.1240072 0.004899084 0.008805334 0.120101 0.008805334 0.120101 0.1240072 0.004899084 0.1240072</float_array>
+          <float_array id="pos-y-mesh-map-0-array" count="12">0.159005 0.02718526 0.101404 0.08478623 0.101404 0.02718526 0.159005 0.02718526 0.159005 0.08478623 0.101404 0.08478623</float_array>
           <technique_common>
             <accessor source="#pos-y-mesh-map-0-array" count="6" stride="2">
               <param name="S" type="float"/>
@@ -130,7 +168,7 @@
         <vertices id="pos-y-mesh-vertices">
           <input semantic="POSITION" source="#pos-y-mesh-positions"/>
         </vertices>
-        <triangles count="2">
+        <triangles material="Material-material" count="2">
           <input semantic="VERTEX" source="#pos-y-mesh-vertices" offset="0"/>
           <input semantic="NORMAL" source="#pos-y-mesh-normals" offset="1"/>
           <input semantic="TEXCOORD" source="#pos-y-mesh-map-0" offset="2" set="0"/>
@@ -161,7 +199,7 @@
           </technique_common>
         </source>
         <source id="neg-x-mesh-map-0">
-          <float_array id="neg-x-mesh-map-0-array" count="60">0.1245078 5.65886e-4 0.1164957 0.2505659 0.1164957 5.65886e-4 0.1245078 5.65886e-4 0.07157033 0.2505659 0.07157033 5.65886e-4 -4.92156e-4 5.65886e-4 0.07157033 0.2505659 -4.92156e-4 0.2505659 0.06200784 5.65886e-4 -4.92156e-4 0.2505659 -4.92156e-4 5.65886e-4 0.1164957 5.65886e-4 0.06200784 0.2505659 0.06200784 5.65886e-4 0.1245078 5.65886e-4 0.1245078 0.2505659 0.1164957 0.2505659 0.1245078 5.65886e-4 0.1245078 0.2505659 0.07157033 0.2505659 -4.92156e-4 5.65886e-4 0.07157033 5.65886e-4 0.07157033 0.2505659 0.06200784 5.65886e-4 0.06200784 0.2505659 -4.92156e-4 0.2505659 0.1164957 5.65886e-4 0.1164957 0.2505659 0.06200784 0.2505659</float_array>
+          <float_array id="neg-x-mesh-map-0-array" count="60">0.8789117 0.129943 0.893233 0.09395158 0.893233 0.129943 0.8213948 0.07139724 0.9128388 0.2870111 0.8779383 0.2958049 0.9268634 0.2726655 0.8173452 0.236674 0.9268634 0.236674 0.6916948 0.1937912 0.947303 0.1577998 0.947303 0.1937912 0.9245248 0.04440814 0.8433293 0.3186882 0.8103782 0.3042107 0.8789117 0.129943 0.8789117 0.09395158 0.893233 0.09395158 0.8213948 0.07139724 0.8562954 0.06260341 0.9128388 0.2870111 0.9268634 0.2726655 0.8173452 0.2726655 0.8173452 0.236674 0.6916948 0.1937912 0.6916948 0.1577998 0.947303 0.1577998 0.9245248 0.04440814 0.957476 0.05888563 0.8433293 0.3186882</float_array>
           <technique_common>
             <accessor source="#neg-x-mesh-map-0-array" count="30" stride="2">
               <param name="S" type="float"/>
@@ -172,7 +210,7 @@
         <vertices id="neg-x-mesh-vertices">
           <input semantic="POSITION" source="#neg-x-mesh-positions"/>
         </vertices>
-        <triangles count="10">
+        <triangles material="Material-material" count="10">
           <input semantic="VERTEX" source="#neg-x-mesh-vertices" offset="0"/>
           <input semantic="NORMAL" source="#neg-x-mesh-normals" offset="1"/>
           <input semantic="TEXCOORD" source="#neg-x-mesh-map-0" offset="2" set="0"/>
@@ -203,7 +241,7 @@
           </technique_common>
         </source>
         <source id="pos-z-mesh-map-0">
-          <float_array id="pos-z-mesh-map-0-array" count="180">0.1317129 0.1769981 0.190914 0.2603315 0.1317129 0.2603315 0.06591409 0.1769981 0.1381189 0.2603315 0.06591409 0.2603315 0.1381189 0.01033151 0.06591409 0.09366482 0.06591409 0.01033151 0.1381189 0.09366482 0.06591409 0.1769981 0.06591409 0.09366482 0.190914 0.01033151 0.1317129 0.09366482 0.1317129 0.01033151 0.1317129 0.09366482 0.190914 0.1769981 0.1317129 0.1769981 0.07251173 0.09366482 0.01331055 0.1769981 0.01331055 0.09366482 0.1317129 0.09366482 0.07251173 0.1769981 0.07251173 0.09366482 0.01331055 0.01033151 0.07251173 0.09366482 0.01331055 0.09366482 0.07251173 0.01033151 0.1317129 0.09366482 0.07251173 0.09366482 0.07251173 0.1769981 0.01331055 0.2603315 0.01331055 0.1769981 0.1317129 0.1769981 0.07251173 0.2603315 0.07251173 0.1769981 0.190914 0.2603315 0.190914 0.1769981 0.190914 0.2603315 0.190914 0.01033151 0.190914 0.09366482 0.190914 0.09366482 0.190914 0.09366482 0.190914 0.1769981 0.190914 0.09366482 0.1317129 0.1769981 0.190914 0.1769981 0.190914 0.2603315 0.06591409 0.1769981 0.1381189 0.1769981 0.1381189 0.2603315 0.1381189 0.01033151 0.1381189 0.09366482 0.06591409 0.09366482 0.1381189 0.09366482 0.1381189 0.1769981 0.06591409 0.1769981 0.190914 0.01033151 0.190914 0.09366482 0.1317129 0.09366482 0.1317129 0.09366482 0.190914 0.09366482 0.190914 0.1769981 0.07251173 0.09366482 0.07251173 0.1769981 0.01331055 0.1769981 0.1317129 0.09366482 0.1317129 0.1769981 0.07251173 0.1769981 0.01331055 0.01033151 0.07251173 0.01033151 0.07251173 0.09366482 0.07251173 0.01033151 0.1317129 0.01033151 0.1317129 0.09366482 0.07251173 0.1769981 0.07251173 0.2603315 0.01331055 0.2603315 0.1317129 0.1769981 0.1317129 0.2603315 0.07251173 0.2603315 0.190914 0.2603315 0.190914 0.1769981 0.190914 0.1769981 0.190914 0.01033151 0.190914 0.01033151 0.190914 0.09366482 0.190914 0.09366482 0.190914 0.1769981 0.190914 0.1769981</float_array>
+          <float_array id="pos-z-mesh-map-0-array" count="180">0.04401302 0.2086165 0.02747273 0.6141138 0.03227013 0.1947401 0.5684908 0.6328676 0.4064376 0.6151391 0.5684908 0.6151391 0.4082891 0.6683244 0.5684908 0.650596 0.5684908 0.6683244 0.3832849 0.650596 0.5684908 0.6328676 0.5684908 0.650596 0.02858233 0.6693081 0.05501675 0.9804977 0.04364931 0.9947401 0.05501675 0.9804977 0.03994071 0.6328675 0.04401302 0.2086165 0.3403196 0.9689601 0.3832849 0.6328675 0.3832849 0.650596 0.05501675 0.9804977 0.391967 0.2814795 0.3403196 0.9689601 0.4082891 0.6683244 0.3403196 0.9689601 0.3832849 0.650596 0.3481215 0.9848099 0.05501675 0.9804977 0.3403196 0.9689601 0.391967 0.2814795 0.4064376 0.6151391 0.3832849 0.6328675 0.04401302 0.2086165 0.4064376 0.2731631 0.391967 0.2814795 0.02747273 0.6141138 0.00629419 0.6324276 0.00629419 0.6152135 0.02858233 0.6693081 0.00629419 0.650596 0.03994071 0.650596 0.00629419 0.650596 0.03994071 0.6328675 0.03994071 0.650596 0.04401302 0.2086165 0.03994071 0.6328675 0.02747273 0.6141138 0.5684908 0.6328676 0.3832849 0.6328675 0.4064376 0.6151391 0.4082891 0.6683244 0.3832849 0.650596 0.5684908 0.650596 0.3832849 0.650596 0.3832849 0.6328675 0.5684908 0.6328676 0.02858233 0.6693081 0.03994071 0.650596 0.05501675 0.9804977 0.05501675 0.9804977 0.03994071 0.650596 0.03994071 0.6328675 0.3403196 0.9689601 0.391967 0.2814795 0.3832849 0.6328675 0.05501675 0.9804977 0.04401302 0.2086165 0.391967 0.2814795 0.4082891 0.6683244 0.3481215 0.9848099 0.3403196 0.9689601 0.3481215 0.9848099 0.04364931 0.9947401 0.05501675 0.9804977 0.391967 0.2814795 0.4064376 0.2731631 0.4064376 0.6151391 0.04401302 0.2086165 0.03227013 0.1947401 0.4064376 0.2731631 0.02747273 0.6141138 0.03994071 0.6328675 0.00629419 0.6324276 0.02858233 0.6693081 0.00629419 0.6682084 0.00629419 0.650596 0.00629419 0.650596 0.00629419 0.6324276 0.03994071 0.6328675</float_array>
           <technique_common>
             <accessor source="#pos-z-mesh-map-0-array" count="90" stride="2">
               <param name="S" type="float"/>
@@ -214,7 +252,7 @@
         <vertices id="pos-z-mesh-vertices">
           <input semantic="POSITION" source="#pos-z-mesh-positions"/>
         </vertices>
-        <triangles count="30">
+        <triangles material="Material-material" count="30">
           <input semantic="VERTEX" source="#pos-z-mesh-vertices" offset="0"/>
           <input semantic="NORMAL" source="#pos-z-mesh-normals" offset="1"/>
           <input semantic="TEXCOORD" source="#pos-z-mesh-map-0" offset="2" set="0"/>
@@ -245,7 +283,7 @@
           </technique_common>
         </source>
         <source id="neg-y-mesh-map-0">
-          <float_array id="neg-y-mesh-map-0-array" count="12">0.004232466 0.008138716 0.1207676 0.1246739 0.004232466 0.1246739 0.004232466 0.008138716 0.1207676 0.008138716 0.1207676 0.1246739</float_array>
+          <float_array id="neg-y-mesh-map-0-array" count="12">0.02587538 0.02196913 0.08414292 0.08023667 0.02587538 0.08023667 0.02587538 0.02196913 0.08414292 0.02196913 0.08414292 0.08023667</float_array>
           <technique_common>
             <accessor source="#neg-y-mesh-map-0-array" count="6" stride="2">
               <param name="S" type="float"/>
@@ -256,7 +294,7 @@
         <vertices id="neg-y-mesh-vertices">
           <input semantic="POSITION" source="#neg-y-mesh-positions"/>
         </vertices>
-        <triangles count="2">
+        <triangles material="Material-material" count="2">
           <input semantic="VERTEX" source="#neg-y-mesh-vertices" offset="0"/>
           <input semantic="NORMAL" source="#neg-y-mesh-normals" offset="1"/>
           <input semantic="TEXCOORD" source="#neg-y-mesh-map-0" offset="2" set="0"/>
@@ -269,27 +307,75 @@
     <visual_scene id="Scene" name="Scene">
       <node id="neg-z" name="neg-z" type="NODE">
         <matrix sid="transform">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
-        <instance_geometry url="#neg-z-mesh" name="neg-z"/>
+        <instance_geometry url="#neg-z-mesh" name="neg-z">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="Material-material" target="#Material-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
       </node>
       <node id="pos-x" name="pos-x" type="NODE">
         <matrix sid="transform">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
-        <instance_geometry url="#pos-x-mesh" name="pos-x"/>
+        <instance_geometry url="#pos-x-mesh" name="pos-x">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="Material-material" target="#Material-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
       </node>
       <node id="pos-y" name="pos-y" type="NODE">
         <matrix sid="transform">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
-        <instance_geometry url="#pos-y-mesh" name="pos-y"/>
+        <instance_geometry url="#pos-y-mesh" name="pos-y">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="Material-material" target="#Material-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
       </node>
       <node id="neg-x" name="neg-x" type="NODE">
         <matrix sid="transform">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
-        <instance_geometry url="#neg-x-mesh" name="neg-x"/>
+        <instance_geometry url="#neg-x-mesh" name="neg-x">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="Material-material" target="#Material-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
       </node>
       <node id="pos-z" name="pos-z" type="NODE">
         <matrix sid="transform">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
-        <instance_geometry url="#pos-z-mesh" name="pos-z"/>
+        <instance_geometry url="#pos-z-mesh" name="pos-z">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="Material-material" target="#Material-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
       </node>
       <node id="neg-y" name="neg-y" type="NODE">
         <matrix sid="transform">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
-        <instance_geometry url="#neg-y-mesh" name="neg-y"/>
+        <instance_geometry url="#neg-y-mesh" name="neg-y">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="Material-material" target="#Material-material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
       </node>
     </visual_scene>
   </library_visual_scenes>

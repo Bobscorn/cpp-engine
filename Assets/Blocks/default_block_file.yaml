@@ -320,7 +320,6 @@ blocks:
     block-name: sign-board
     atlas: global
     mesh: sign-board
-    wants-update: true
     faces: 
         pos-x: open
         neg-x: open
@@ -329,7 +328,7 @@ blocks:
         pos-z: open
         neg-z: open
     textures:
-        diffuse: wood-worn-color.jpg
+        diffuse: wood-worn-with-text.jpg
         normal: wood-worn-normal.jpg
         bump: wood-worn-displace.jpg
 
