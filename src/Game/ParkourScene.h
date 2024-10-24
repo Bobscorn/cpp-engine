@@ -68,6 +68,7 @@ namespace Parkour
 		G1I::BasicGSpace m_GSpace;
 
 		Voxel::DefaultWorldLoader m_Loader;
+		Voxel::VoxelMemoryLevel m_ChunkMemory;
 		Pointer::f_ptr<Voxel::VoxelWorld> m_WorldShape;
 
 		Pointer::f_ptr<Voxel::VoxelPlayer> m_PlayerShape;
