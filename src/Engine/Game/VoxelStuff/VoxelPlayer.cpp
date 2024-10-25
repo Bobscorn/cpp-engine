@@ -103,7 +103,10 @@ void Voxel::VoxelPlayer::AfterDraw()
 
 	UpdateCache();
 
-	DoWalkFrame(btScalar(*mResources->DeltaTime));
+	if (!m_IsDashing)
+		DoWalkFrame();
+	else
+		DoDashing();
 
 	CheckForUnloadedChunk();
 }
@@ -226,6 +229,17 @@ bool Voxel::VoxelPlayer::Receive(Event::KeyInput *key)
 	else if (key->KeyCode == SDLK_LSHIFT)
 	{
 		m_sprint = key->State;
+	}
+	else if (key->KeyCode == SDLK_x)
+	{
+		if (key->State)
+		{
+			if (CanDash())
+			{
+				PLAYER_INFO("Dashed");
+				Dash(DashPower);
+			}
+		}
 	}
 	else if (key->KeyCode == SDLK_LCTRL)
 	{
@@ -474,6 +488,17 @@ void Voxel::VoxelPlayer::Jump(const btVector3 &jump)
 	m_RigidBody->applyCentralImpulse(jump * Fatness);
 }
 
+void Voxel::VoxelPlayer::Dash(float power)
+{
+	if (m_DashesRemaining < 1)
+		return;
+	m_DashesRemaining--;
+	m_DashTimer.Reset();
+	m_DashTimer.Start();
+	m_IsDashing = true;
+	m_DashVector = m_LookHorizontal * power;
+}
+
 Voxel::VoxelPlayer::RayReturn Voxel::VoxelPlayer::FirstHit(float raylength)
 {
 	(void)raylength;
@@ -568,9 +593,8 @@ void Voxel::VoxelPlayer::SetCrouchState(bool state)
 		ApplyCrouchForce();
 }
 
-void Voxel::VoxelPlayer::DoWalkFrame(btScalar dt)
+void Voxel::VoxelPlayer::DoWalkFrame()
 {
-	(void)dt;
 	btVector3 walkdir = { 0.f, 0.f, 0.f };
 	if (forwardness)
 		walkdir += m_LookHorizontal * forwardness;
@@ -585,18 +609,42 @@ void Voxel::VoxelPlayer::DoWalkFrame(btScalar dt)
 	m_RigidBody->setLinearVelocity({ final_vel.x(), m_RigidBody->getLinearVelocity().y(), final_vel.z() });
 }
 
+void Voxel::VoxelPlayer::DoDashing()
+{
+	if (m_DashTimer.Stopped())
+	{
+		m_IsDashing = false;
+		return;
+	}
+
+	m_DashTimer.Tick();
+	if (m_DashTimer.TotalTime() > DashTime)
+	{
+		m_DashTimer.Stop();
+		m_DashTimer.Reset();
+		m_IsDashing = false;
+	}
+	m_RigidBody->setLinearVelocity(m_DashVector);
+}
+
 void Voxel::VoxelPlayer::ResetState()
 {
 	forwardness = rightness = 0.f;
 	forward = back = right = left = m_sprint = false;
 
 	m_Crouched = false;
+	m_IsDashing = false;
 	m_RigidBody->setLinearVelocity(btVector3{ 0.f, 0.f, 0.f });
 }
 
 bool Voxel::VoxelPlayer::CanJump()
 {
 	return m_OnGround;
+}
+
+bool Voxel::VoxelPlayer::CanDash()
+{
+	return m_DashesRemaining && !m_IsDashing;
 }
 
 void Voxel::VoxelPlayer::Die()
@@ -1125,6 +1173,7 @@ void Voxel::VoxelPlayer::DoFeetRays()
 
 	if (m_OnGround)
 	{
+		m_DashesRemaining = 1;
 		if (m_RigidBody->getGravity().length2() > (SIMD_EPSILON * SIMD_EPSILON))
 		{
 			PLAYER_INFO("Disabling Gravity");

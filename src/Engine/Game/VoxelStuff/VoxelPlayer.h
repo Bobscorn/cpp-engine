@@ -70,6 +70,7 @@ namespace Voxel
 		void SpiritMode();
 		void NormalMode();
 		void Jump(const btVector3 &jump);
+		void Dash(float power);
 
 		struct RayReturn
 		{
@@ -93,10 +94,12 @@ namespace Voxel
 		bool m_sprint = false;
 
 		void SetCrouchState(bool state);
-		void DoWalkFrame(btScalar dt);
+		void DoWalkFrame();
+		void DoDashing();
 		void ResetState();
 
 		bool CanJump();
+		bool CanDash();
 
 		//void getWorldTransform(btTransform &t) const override;
 		//void setWorldTransform(const btTransform &t) override;
@@ -178,6 +181,9 @@ namespace Voxel
 		constexpr static float MinGroundDot = 0.57357643635104609610803191282616f;
 		constexpr static float MaxGroundIntersection = 0.015f;
 
+		constexpr static float DashTime = 0.3f;
+		constexpr static float DashPower = 10.f;
+
 		VoxelPlayerStuff m_Stuff;
 		std::string m_SelectedBlockName = "";
 
@@ -231,5 +237,9 @@ namespace Voxel
 		bool m_IsSpirit = false;
 		bool m_DisableGroundPull = false;
 		bool m_ReenablePullNextRequirement = false;
+		unsigned int m_DashesRemaining = 0;
+		bool m_IsDashing = false;
+		btVector3 m_DashVector;
+		GameTimer m_DashTimer;
 	};
 }
