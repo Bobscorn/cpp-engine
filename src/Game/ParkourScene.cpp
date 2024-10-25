@@ -18,7 +18,6 @@
 
 #include "ParkourLevels.h"
 #include "ParkourBlocks.h"
-#include "ParkourSignShape.h"
 
 Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	: FullResourceHolder(resources)
@@ -30,7 +29,7 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	, m_GeneratorShape(m_GSpace.GetRootShape()->AddChild<ParkourGeneratorShape>("Parkour Generator", m_LevelShape, m_WorldShape, false))
 	, m_TrackerShape(m_GSpace.GetRootShape()->AddChild<PlayerTrackerShape>("Parkour Player Tracker", PlayerTrackingData{ m_PlayerShape, m_WorldShape, m_LevelShape, 1.f, -20.f }))
 	, m_ParkourEndShape(m_GSpace.GetRootShape()->AddChild<ParkourEndShape>("Parkour End Shape", m_LevelShape, m_WorldShape))
-	//, m_TorchShape(m_GSpace.GetRootShape()->AddChild<ParkourTorchShape>("Player Torch Shape", m_PlayerShape))
+	, m_TorchShape(m_GSpace.GetRootShape()->AddChild<ParkourTorchShape>("Player Torch Shape", m_PlayerShape))
 	, m_UI(resources)
 	, m_Crosshair()
 	, m_HUD(resources)
