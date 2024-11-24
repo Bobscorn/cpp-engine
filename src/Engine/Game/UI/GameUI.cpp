@@ -151,20 +151,20 @@ Debug::DebugReturn UI1I::TitleText::Initialize()
 
 floaty2 UI1I::UIPosition::Transform(floaty2 in, floaty4 parentBounds) const 
 {
-	floaty2 preAnchor = in + floaty2{ m_HalfBounds.x * m_Pivot.x, m_HalfBounds.y * m_Pivot.y };
-	floaty2 parentDims = floaty2{ parentBounds.z - parentBounds.x, parentBounds.w - parentBounds.y };
+	floaty2 preAnchor = in + floaty2{ m_HalfBounds.x * -m_Pivot.x, m_HalfBounds.y * -m_Pivot.y };
+	floaty2 halfParentDims = floaty2{ 0.5f * (parentBounds.z - parentBounds.x), 0.5f * (parentBounds.w - parentBounds.y) };
 
-	floaty2 anchorOrigin = parentBounds.xy() + floaty2{ parentDims.x * m_Anchor.x, parentDims.y * m_Anchor.y };
+	floaty2 anchorOrigin = parentBounds.xy() + halfParentDims + floaty2{ halfParentDims.x * m_Anchor.x, halfParentDims.y * m_Anchor.y };
 	return preAnchor + anchorOrigin;
 }
 
 floaty4 UI1I::UIPosition::Transform(floaty4 myBounds, floaty4 parentBounds) const 
 {
-	floaty2 pivotOrigin = floaty2{ m_HalfBounds.x * m_Pivot.x, m_HalfBounds.y * m_Pivot.y };
+	floaty2 pivotOrigin = floaty2{ m_HalfBounds.x * -m_Pivot.x, m_HalfBounds.y * -m_Pivot.y };
 	floaty4 preAnchor = myBounds + floaty4{ pivotOrigin.x, pivotOrigin.y, pivotOrigin.x, pivotOrigin.y };
-	floaty2 parentDims = floaty2{ parentBounds.z - parentBounds.x, parentBounds.w - parentBounds.y };
+	floaty2 halfParentDims = floaty2{ 0.5f * (parentBounds.z - parentBounds.x), 0.5f * (parentBounds.w - parentBounds.y) };
 
-	floaty2 anchorOrigin = parentBounds.xy() + floaty2{ parentDims.x * m_Anchor.x, parentDims.y * m_Anchor.y };
+	floaty2 anchorOrigin = parentBounds.xy() + halfParentDims + floaty2{ halfParentDims.x * m_Anchor.x, halfParentDims.y * m_Anchor.y };
 	return preAnchor + floaty4{ anchorOrigin.x, anchorOrigin.y, anchorOrigin.x, anchorOrigin.y };
 }
 
@@ -179,4 +179,15 @@ void UI1I::SizedUITextBox::IDraw()
 	
 	floaty4 bounds = m_Position.GetTransformedBounds(m_ParentBounds);
 	mResources->Ren2->DrawImage(&Text, LocalBounds);
+}
+
+void UI1I::UIImage::IDraw()
+{
+	mResources->Ren2->SetTransform(this->LocalToWorld);
+
+	// Pretend parent bounding box is the window
+	floaty4 windowBounds{ -(*mResources->HalfWindowWidth), -(*mResources->HalfWindowHeight), *mResources->HalfWindowWidth, *mResources->HalfWindowHeight};
+	floaty4 realBounds = m_Position.GetTransformedBounds(windowBounds);
+
+	mResources->Ren2->DrawImage(m_Image.get(), PointRect{ realBounds.x, realBounds.w, realBounds.z, realBounds.y });
 }

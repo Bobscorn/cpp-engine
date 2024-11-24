@@ -26,7 +26,7 @@ namespace UI1I
 		/// <summary>
 		/// Transforms a point based on stored Anchor, Pivot and Half Bound values.
 		/// The anchor specifies which corner of the parent's space to base the origin off of. The Anchor is normalized -1..+1
-		/// The Pivot specifies which corner of the Bounds is used. 
+		/// The Pivot specifies which corner of the Bounds is used as the origin. 
 		/// A pivot of 0.f, 0.f does nothing, a pivot of -1, +1 makes the point (HalfWidth, HalfHeight) into (0, Height)
 		/// </summary>
 		/// <param name="in">The point to transform</param>
@@ -218,6 +218,21 @@ namespace UI1I
 		virtual inline Stringy GetName() const override { return Text.GetText() + " Title Text"; }
 		
 	protected:
+	};
+
+	class UIImage : public UI1::BlankElement, public UIPositioner::RectangleInfo
+	{
+		Stringy m_Name;
+		std::unique_ptr<Drawing::SDLImage> m_Image;
+		UIPosition m_Position;
+
+	public:
+		UIImage(CommonResources* resources, Stringy name, std::unique_ptr<Drawing::SDLImage> image, UIPosition position) : FullResourceHolder(resources), m_Name(std::move(name)), m_Image(std::move(image)), m_Position(position) { this->LocalBounds = Recty{0.f, 0.f, (float)m_Image->GetWidth(), (float)m_Image->GetHeight()}; }
+
+		void IDraw() override;
+		virtual void IDebugDraw() override { UIElement::IDebugDraw(); RectangleInfo::DebugDraw(mResources); }
+
+		inline Stringy GetName() const override { return m_Name; }
 	};
 }
 #pragma warning(default:4250)
