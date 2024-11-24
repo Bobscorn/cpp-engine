@@ -29,7 +29,7 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	, m_GeneratorShape(m_GSpace.GetRootShape()->AddChild<ParkourGeneratorShape>("Parkour Generator", m_LevelShape, m_WorldShape, false))
 	, m_TrackerShape(m_GSpace.GetRootShape()->AddChild<PlayerTrackerShape>("Parkour Player Tracker", PlayerTrackingData{ m_PlayerShape, m_WorldShape, m_LevelShape, 1.f, -20.f }))
 	, m_ParkourEndShape(m_GSpace.GetRootShape()->AddChild<ParkourEndShape>("Parkour End Shape", m_LevelShape, m_WorldShape))
-	, m_TorchShape(m_GSpace.GetRootShape()->AddChild<ParkourTorchShape>("Player Torch Shape", m_PlayerShape))
+	//, m_TorchShape(m_GSpace.GetRootShape()->AddChild<ParkourTorchShape>("Player Torch Shape", m_PlayerShape))
 	, m_UI(resources)
 	, m_Crosshair()
 	, m_ControlsImage(resources, "Controls Image", std::make_unique<Drawing::SDLFileImage>(resources, "Textures/keyboard_controls.png"), UI1I::UIPosition({ -1.f, -1.f }, { -1.f, -1.f }, { 208.f, 198.f }))
@@ -44,7 +44,7 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	{
 		Light sunLight{};
 		sunLight.Color = floaty3{ 1.f, 1.f, 1.f };
-		sunLight.Intensity = 0.5f;
+		sunLight.Intensity = 0.75f;
 		sunLight.Attenuation = floaty3{ 2.f, 0.25f, 0.05f };
 		sunLight.Enabled = true;
 		sunLight.PositionWS = floaty4{ 0.f, 0.f, 0.f, 1.f };
@@ -57,6 +57,11 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 		sunLight.ShadowIndex = 0;
 
 		m_GSpace.GetRootShape()->AddChild<G1I::LightShape>("Sun Light", sunLight);
+
+		sunLight.DirectionWS = floaty4{ floaty3::Normalized(floaty3{ 1.f, 0.f, 1.f }), 1.f };
+		sunLight.Intensity = 0.35f;
+
+		m_GSpace.GetRootShape()->AddChild<G1I::LightShape>("Backup Sun Light", sunLight);
 	}
 
 	auto& voxelStore = Voxel::VoxelStore::GetMutable();

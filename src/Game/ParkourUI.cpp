@@ -34,8 +34,10 @@ Parkour::ParkourInGameHUD::ParkourInGameHUD(CommonResources* resources)
 	, m_FPSDisplay(resources, "Frame Time: ", Requests::Request{ "DoNothing" })
 	, m_LightCountDisplay(resources, "Lights: ", Requests::Request{ "DoNothing" })
 {
+#ifdef _DEBUG
 	m_Container.AddButton(&m_FPSDisplay);
 	m_Container.AddButton(&m_LightCountDisplay);
+#endif
 }
 
 void Parkour::ParkourInGameHUD::AddTo(UI1::RootElement& root)

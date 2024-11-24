@@ -76,7 +76,7 @@ namespace Parkour
 		Pointer::f_ptr<ParkourGeneratorShape> m_GeneratorShape;
 		Pointer::f_ptr<PlayerTrackerShape> m_TrackerShape;
 		Pointer::f_ptr<ParkourEndShape> m_ParkourEndShape;
-		Pointer::f_ptr<ParkourTorchShape> m_TorchShape;
+		//Pointer::f_ptr<ParkourTorchShape> m_TorchShape;
 
 		UI1::RootElement m_UI;
 		Voxel::Crosshair m_Crosshair;
