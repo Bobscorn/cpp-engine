@@ -220,7 +220,7 @@ LightingResult DirectionalLighting(Light light, Material mat, vec4 V, vec4 P, ve
 float PointShadow(Light light, vec3 P)
 {
     if (light.ShadowMapIndex == 0)
-        return 0.0;
+        return 1.0;
 
     vec3 dir = normalize(light.PositionWS.xyz - P);
 
@@ -238,7 +238,7 @@ float DirectionalShadow(Light light, vec3 posVS, vec3 P)
 {
     // Only support one cascaded directional light
     if (light.ShadowMapIndex != 1)
-        return 0.0;
+        return 1.0;
 
     float fragDepth = posVS.z * -1.f;
     float lightDepth = 1.f;
@@ -269,7 +269,7 @@ float DirectionalShadow(Light light, vec3 posVS, vec3 P)
 float SpotShadow(Light light, vec3 P)
 {
     if (light.ShadowMapIndex == 0)
-        return 0.0;
+        return 1.0;
 
     int realIndex = light.ShadowMapIndex - 1;
 
