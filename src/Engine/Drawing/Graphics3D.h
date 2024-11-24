@@ -59,7 +59,7 @@ struct Material
 #define LIGHT_DIRECTION 2u
 
 #define LIGHT_COUNT 32u
-#define MAX_SHADOW_LIGHT_COUNT 8u;
+#define MAX_SHADOW_LIGHT_COUNT 8u
 
 enum LightType : uint32_t
 {
