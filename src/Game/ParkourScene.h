@@ -80,6 +80,7 @@ namespace Parkour
 
 		UI1::RootElement m_UI;
 		Voxel::Crosshair m_Crosshair;
+		UI1I::UIImage m_ControlsImage;
 		ParkourInGameMenu m_Menu;
 		ParkourInGameHUD m_HUD;
 		ParkourFinishMenu m_FinishMenu;

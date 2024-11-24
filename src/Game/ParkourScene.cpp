@@ -32,6 +32,7 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	, m_TorchShape(m_GSpace.GetRootShape()->AddChild<ParkourTorchShape>("Player Torch Shape", m_PlayerShape))
 	, m_UI(resources)
 	, m_Crosshair()
+	, m_ControlsImage(resources, "Controls Image", std::make_unique<Drawing::SDLFileImage>(resources, "Textures/keyboard_controls.png"), UI1I::UIPosition({ -1.f, -1.f }, { -1.f, -1.f }, { 208.f, 198.f }))
 	, m_HUD(resources)
 	, m_Menu(resources)
 	, m_FinishMenu(resources)
@@ -62,6 +63,7 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	voxelStore.RegisterUpdateBlock("lamp-light", std::make_unique<ParkourLightBlock>(&m_GSpace, mResources, m_WorldShape.get(), nullptr, Voxel::ChunkBlockCoord{}));
 
 	m_UI.AddChildBottom(&m_Crosshair);
+	m_UI.AddChildBottom(&m_ControlsImage);
 	m_Menu.AddTo(m_UI);
 	m_Menu.Disable();
 	m_HUD.AddTo(m_UI);
