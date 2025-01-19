@@ -86,9 +86,13 @@ namespace Parkour
 		virtual void BeforeDraw() override;
 		virtual void AfterDraw() override;
 
-		inline void Reset() { m_HasSentWinRequest = false; }
+		inline void SetRespawnPosition(floaty3 position) { m_RespawnOverride = std::make_unique<floaty3>(position); }
+		inline const floaty3 const* GetRespawnPosition() const { return m_RespawnOverride.get(); }
+
+		inline void Reset() { m_HasSentWinRequest = false; m_RespawnOverride = nullptr; }
 	protected:
 		PlayerTrackingData m_Data;
+		std::unique_ptr<floaty3> m_RespawnOverride;
 		bool m_HasSentWinRequest = false;
 	};
 

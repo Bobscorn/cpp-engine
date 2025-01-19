@@ -331,6 +331,14 @@ blocks:
         diffuse: wood-worn-with-text.jpg
         normal: wood-worn-normal.jpg
         bump: wood-worn-displace.jpg
-
+-
+    block-name: checkpoint
+    atlas: global
+    faces: closed
+    wants-update: true
+    textures:
+        diffuse: shinier-metal-color.jpg
+        normal: shinier-metal-normal.jpg
+        specular: shinier-metal-roughness.jpg
 
     

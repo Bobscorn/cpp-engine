@@ -57,6 +57,25 @@ namespace Parkour
 		// Topdown:
 		// O#
 		extern const ParkourStep SingleBlockStepDecorRight;
+
+		// Sideview:
+		//   #
+		//  #
+		// #
+		// #
+		// O
+		// Topdown:
+		// ##O
+		// #
+		// #
+		extern const ParkourStep StepsToTheRight;
+		extern const ParkourStep StepsToTheLeft;
+
+		// Topdown:
+		// X <-- exit
+		// C <-- checkpoint
+		// O <-- entrance
+		extern const ParkourStep Checkpoint1;
 	}
 
 	extern const std::array<Parkour::ParkourLevel, 5> Levels;

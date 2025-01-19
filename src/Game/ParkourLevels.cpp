@@ -239,6 +239,45 @@ namespace Parkour
 		};
 	}
 
+		// Topdown:
+		// X <-- exit
+		// C <-- checkpoint
+		// O <-- entrance
+		const ParkourStep Checkpoint1 = ParkourStep
+		{
+			std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>>{
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(0, 0, 0)),
+				std::make_pair(Voxel::NamedBlock{ "checkpoint", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(0, 0, -1)),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(0, 0, -2)),
+			},
+			std::vector<LookingPoint>{
+				LookingPoint{ Vector::inty3(0, 0, -2), ParkourForwardDirection },
+			}
+		};
+
+		// Topdown:
+		// #X# 
+		// #C# 
+		// #O# 
+		const ParkourStep Checkpoint2 = ParkourStep
+		{
+			std::vector<std::pair<Voxel::NamedBlock, Vector::inty3>>{
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(0, 0, 0)),
+				std::make_pair(Voxel::NamedBlock{ "checkpoint", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(0, 0, -1)),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(0, 0, -2)),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(-1, 0, 0)),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(-1, 0, -1)),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(-1, 0, -2)),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(1, 0, 0)),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(1, 0, -1)),
+				std::make_pair(Voxel::NamedBlock{ "wood", Voxel::CubeData{ quat4::identity() } }, Vector::inty3(1, 0, -2)),
+			},
+			std::vector<LookingPoint>{
+				LookingPoint{ Vector::inty3(0, 0, -2), ParkourForwardDirection },
+				LookingPoint{ Vector::inty3(-1, 0, -2), ParkourLeftDirection },
+				LookingPoint{ Vector::inty3(1, 0, -2), ParkourRightDirection },
+			}
+		};
 	const std::array<Parkour::ParkourLevel, 5> Levels = {
 		Parkour::ParkourLevel{
 			Voxel::BlockCoord{ Voxel::ChunkCoord{ 0,0,0 }, Voxel::ChunkBlockCoord{0, 2, 5 }},

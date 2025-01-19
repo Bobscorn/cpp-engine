@@ -66,6 +66,7 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 
 	auto& voxelStore = Voxel::VoxelStore::GetMutable();
 	voxelStore.RegisterUpdateBlock("lamp-light", std::make_unique<ParkourLightBlock>(&m_GSpace, mResources, m_WorldShape.get(), nullptr, Voxel::ChunkBlockCoord{}));
+	voxelStore.RegisterUpdateBlock("checkpoint", std::make_unique<ParkourCheckpointBlock>(&m_GSpace, mResources, m_WorldShape.get(), nullptr, Voxel::ChunkBlockCoord{}));
 
 	m_UI.AddChildBottom(&m_Crosshair);
 	m_UI.AddChildBottom(&m_ControlsImage);

@@ -93,8 +93,8 @@ void Parkour::PlayerTrackerShape::BeforeDraw()
 	if (m_Data.Player->GetPosition().y < m_Data.MinimumY)
 	{
 		// Player fell
-		// Tp them back to start
-		auto newPos = m_Data.World->GetPhysPosFromBlockCoord(m_Data.Level->GetLevelData().StartPos) + floaty3{ 0.f, 1.5f, 0.f };
+		// Tp them back to start or checkpoint
+		auto newPos = (m_RespawnOverride ? *m_RespawnOverride : m_Data.World->GetPhysPosFromBlockCoord(m_Data.Level->GetLevelData().StartPos) + floaty3{ 0.f, 1.5f, 0.f });
 		DINFO("Parkour: Resetting player to: floaty3(" + std::to_string(newPos.x) + ", " + std::to_string(newPos.y) + ", " + std::to_string(newPos.z) + ")");
 		m_Data.Player->SetPosition(newPos);
 		m_Data.Player->SetVelocity({ 0.f, 0.f, 0.f });

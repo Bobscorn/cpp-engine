@@ -13,7 +13,6 @@ Parkour::ParkourLightBlock::ParkourLightBlock(
 	, IShape(container, "Parkour Light Block")
 	, ICube(world, chunk, pos)
 {
-
 }
 
 void Parkour::ParkourLightBlock::OnLoaded()
@@ -61,3 +60,54 @@ std::unique_ptr<Voxel::ICube> Parkour::ParkourLightBlock::Clone(Voxel::VoxelWorl
 	return std::make_unique<ParkourLightBlock>(GetContainer(), mResources, world, chunk, pos);
 }
 
+Parkour::ParkourCheckpointBlock::ParkourCheckpointBlock(G1::IGSpace* container, CommonResources* resources, Voxel::VoxelWorld* world, Voxel::VoxelChunk* chunk, Voxel::ChunkBlockCoord pos)
+	: FullResourceHolder(resources)
+	, G1::IShape(container, "Parkour Checkpoint Block")
+	, Voxel::ICube(world, chunk, pos)
+	, m_Player()
+	, m_Tracker()
+{
+}
+
+void Parkour::ParkourCheckpointBlock::AfterDraw()
+{
+	if (!m_Player)
+	{
+		m_Player = this->Container->FindShapeFPtr("Puzzle Controller").SketchyCopy<Voxel::VoxelPlayer>();
+	}
+
+	if (!m_Tracker)
+	{
+		m_Tracker = this->Container->FindShapeFPtr("Parkour Player Tracker").SketchyCopy<PlayerTrackerShape>();
+	}
+
+	if (!m_Player)
+	{
+		DERROR("Could not find Player object!");
+		return;
+	}
+	if (!m_Tracker)
+	{
+		DERROR("Could not find Tracker object!");
+		return;
+	}
+
+	auto myPos = m_World->GetPhysPosOfBlock(this);
+	auto airAboveCheckpoint = myPos + floaty3{ 0.f, 1.5f, 0.f };
+
+	if (m_Tracker->GetRespawnPosition() && *m_Tracker->GetRespawnPosition() == airAboveCheckpoint)
+		return;
+
+	auto playerPos = m_Player->GetPosition();
+
+	if (airAboveCheckpoint.manhattan_distance(playerPos) < 2.f)
+	{
+		DINFO(std::string("Checkpoint set: (") + std::to_string(airAboveCheckpoint.x) + ", " + std::to_string(airAboveCheckpoint.y) + ", " + std::to_string(airAboveCheckpoint.z) + ")");
+		m_Tracker->SetRespawnPosition(airAboveCheckpoint);
+	}
+}
+
+std::unique_ptr<Voxel::ICube> Parkour::ParkourCheckpointBlock::Clone(Voxel::VoxelWorld* world, Voxel::VoxelChunk* chunk, Voxel::ChunkBlockCoord pos) const
+{
+	return std::make_unique<ParkourCheckpointBlock>(Container, mResources, world, chunk, pos);
+}
