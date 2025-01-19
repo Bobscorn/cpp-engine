@@ -95,6 +95,7 @@ Debug::DebugReturn Parkour::ParkourScene::Initialize()
 		mResources->Request->Add(this);
 
 	m_GeneratorShape->Generate();
+	m_PlayerShape->SetPosition(m_WorldShape->GetPhysPosFromBlockCoord(m_LevelShape->GetLevelData().StartPos) + floaty3{ 0.f, 1.5f, 0.f });
 
 	return true;
 }
