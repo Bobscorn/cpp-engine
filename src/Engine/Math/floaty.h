@@ -228,6 +228,15 @@ struct floaty3
 		return out;
 	};
 
+	inline float manhattan_distance(const floaty3& other)
+	{
+		return (
+			fabsf(x - other.x) +
+			fabsf(y - other.y) +
+			fabsf(z - other.z)
+			);
+	}
+
 	inline operator floaty2() const { return floaty2{ x, y }; }
 
 	union
