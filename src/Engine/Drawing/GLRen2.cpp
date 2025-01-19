@@ -265,34 +265,47 @@ namespace Drawing
 
 	void DrawCallRenderer::DrawShadows(Matrixy4x4 view, Matrixy4x4 proj)
 	{
-		GLuint shadowIndex = 0;
-
 		GLint viewport[4] = { 0, 0, 0, 0 };
 		glGetIntegerv(GL_VIEWPORT, viewport);
 		glBindFramebuffer(GL_FRAMEBUFFER, _shadowFBO.Get());
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 
-		for (size_t i = 0; i < _lights.size() && shadowIndex < ShadowLightCount; ++i)
+		GLuint nonDirectionShadowIndex = 1;
+		GLuint directionShadowsIndex = 1;
+
+		for (size_t i = 0; i < _lights.size(); ++i)
 		{
 			auto& light = _lights[i];
 			if (!light.Enabled)
 				continue;
 
-			// if (!light.CastsShadow)
-			//     return;
-			light.ShadowIndex = ++shadowIndex; // (Pre-increment means the first index will be 1, this is desired)
-
 			switch (light.Type)
 			{
 			default:
 			case LIGHT_POINT:
-				DrawPointShadows(light, shadowIndex, ShadowMapSize);
+				if (nonDirectionShadowIndex > MAX_SHADOW_LIGHT_COUNT)
+				{
+					continue;
+				}
+				light.ShadowIndex = nonDirectionShadowIndex++;
+				DrawPointShadows(light, nonDirectionShadowIndex, ShadowMapSize);
 				break;
 			case LIGHT_SPOT:
-				DrawSpotlightShadows(light, shadowIndex, ShadowMapSize);
+				if (nonDirectionShadowIndex > MAX_SHADOW_LIGHT_COUNT)
+				{
+					continue;
+				}
+				light.ShadowIndex = nonDirectionShadowIndex++;
+				DrawSpotlightShadows(light, nonDirectionShadowIndex, ShadowMapSize);
 				break;
 			case LIGHT_DIRECTION:
+				if (directionShadowsIndex > 1)
+				{
+					//DWARNING("Can not render shadows for more than one directional light");
+					continue;
+				}
+				light.ShadowIndex = directionShadowsIndex++;
 				DrawSunShadows(light, view, proj, ShadowMapSize);
 				break;
 			}
