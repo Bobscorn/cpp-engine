@@ -70,8 +70,8 @@ namespace Drawing
 		GLProgram CreateShadowProgram(const std::string& vertexShader, const std::string& fragmentShader);
 		GLFrameBuffer CreateShadowFBO();
 		void DrawShadows(Matrixy4x4 view, Matrixy4x4 proj);
-		void DrawPointShadows(const Light& light, size_t shadowIndex, GLuint mapSize);
-		void DrawSpotlightShadows(const Light& light, size_t shadowIndex, GLuint mapSize);
+		void DrawPointShadows(const Light& light, GLuint mapSize);
+		void DrawSpotlightShadows(const Light& light, GLuint mapSize);
 		void DrawSunShadows(const Light& light, Matrixy4x4 view, Matrixy4x4 proj, GLuint mapSize);
 		void DrawShadowGeometry(Matrixy4x4 lightViewProj);
 

@@ -95,8 +95,9 @@ namespace Drawing
 		return out;
 	}
 
-	void DrawCallRenderer::DrawPointShadows(const Light& light, size_t shadowIndex, GLuint mapSize)
+	void DrawCallRenderer::DrawPointShadows(const Light& light, GLuint mapSize)
 	{
+		auto shadowIndex = light.ShadowIndex;
 		auto& shadowTex = *_shadowTextures[shadowIndex - 1];
 		if (!_shadowTextures[shadowIndex - 1] || _shadowTextures[shadowIndex - 1]->GetTarget() != GL_TEXTURE_CUBE_MAP)
 		{
@@ -139,8 +140,9 @@ namespace Drawing
 		}
 	}
 
-	void DrawCallRenderer::DrawSpotlightShadows(const Light& light, size_t shadowIndex, GLuint mapSize)
+	void DrawCallRenderer::DrawSpotlightShadows(const Light& light, GLuint mapSize)
 	{
+		auto shadowIndex = light.ShadowIndex;
 		auto& shadowMap = _shadowTextures[shadowIndex - 1];
 		if (!shadowMap || shadowMap->GetTarget() != GL_TEXTURE_2D)
 		{
@@ -289,7 +291,7 @@ namespace Drawing
 					continue;
 				}
 				light.ShadowIndex = nonDirectionShadowIndex++;
-				DrawPointShadows(light, nonDirectionShadowIndex, ShadowMapSize);
+				DrawPointShadows(light, ShadowMapSize);
 				break;
 			case LIGHT_SPOT:
 				if (nonDirectionShadowIndex > MAX_SHADOW_LIGHT_COUNT)
@@ -297,7 +299,7 @@ namespace Drawing
 					continue;
 				}
 				light.ShadowIndex = nonDirectionShadowIndex++;
-				DrawSpotlightShadows(light, nonDirectionShadowIndex, ShadowMapSize);
+				DrawSpotlightShadows(light, ShadowMapSize);
 				break;
 			case LIGHT_DIRECTION:
 				if (directionShadowsIndex > 1)
