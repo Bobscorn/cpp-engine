@@ -1,5 +1,7 @@
 #include "ParkourScene.h"
 
+#include <SDL2/SDL_keycode.h>
+
 #include <Structure/BasicShapes.h>
 #include <Structure/Shapes/SkyBoxShape.h>
 #include <Structure/Shapes/SimpleRenderShape.h>
@@ -30,9 +32,10 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	, m_TrackerShape(m_GSpace.GetRootShape()->AddChild<PlayerTrackerShape>("Parkour Player Tracker", PlayerTrackingData{ m_PlayerShape, m_WorldShape, m_LevelShape, 1.f, -20.f }))
 	, m_ParkourEndShape(m_GSpace.GetRootShape()->AddChild<ParkourEndShape>("Parkour End Shape", m_LevelShape, m_WorldShape))
 	//, m_TorchShape(m_GSpace.GetRootShape()->AddChild<ParkourTorchShape>("Player Torch Shape", m_PlayerShape))
+	, m_ToggleControlsShape(m_GSpace.GetRootShape()->AddChild<ParkourUIToggleShape>("Parkour UI Image Toggle Shape", SDLK_TAB, std::vector<std::weak_ptr<UI1::UIElement>>{ std::weak_ptr<UI1::UIElement>(m_ControlsImage) }))
 	, m_UI(resources)
 	, m_Crosshair()
-	, m_ControlsImage(resources, "Controls Image", std::make_unique<Drawing::SDLFileImage>(resources, "Textures/keyboard_controls.png"), UI1I::UIPosition({ -1.f, -1.f }, { -1.f, -1.f }, { 208.f, 198.f }))
+	, m_ControlsImage(std::make_shared<UI1I::UIImage>(resources, "Controls Image", std::make_unique<Drawing::SDLFileImage>(resources, "Textures/keyboard_controls.png"), UI1I::UIPosition({ -1.f, -1.f }, { -1.f, -1.f }, { 208.f, 198.f })))
 	, m_HUD(resources)
 	, m_Menu(resources)
 	, m_FinishMenu(resources)
@@ -69,7 +72,7 @@ Parkour::ParkourScene::ParkourScene(CommonResources *resources, int level)
 	voxelStore.RegisterUpdateBlock("checkpoint", std::make_unique<ParkourCheckpointBlock>(&m_GSpace, mResources, m_WorldShape.get(), nullptr, Voxel::ChunkBlockCoord{}));
 
 	m_UI.AddChildBottom(&m_Crosshair);
-	m_UI.AddChildBottom(&m_ControlsImage);
+	m_UI.AddChildBottom(m_ControlsImage.get());
 	m_Menu.AddTo(m_UI);
 	m_Menu.Disable();
 	m_HUD.AddTo(m_UI);

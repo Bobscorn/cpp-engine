@@ -80,7 +80,10 @@ namespace Parkour
 
 		UI1::RootElement m_UI;
 		Voxel::Crosshair m_Crosshair;
-		UI1I::UIImage m_ControlsImage;
+		std::shared_ptr<UI1I::UIImage> m_ControlsImage;  // shared_ptr so it can be used in ParkourUIToggleShape
+
+		Pointer::f_ptr<ParkourUIToggleShape> m_ToggleControlsShape; // Needs to be created after m_ControlsImage, otherwise the shared ptr won't exist yet
+
 		ParkourInGameMenu m_Menu;
 		ParkourInGameHUD m_HUD;
 		ParkourFinishMenu m_FinishMenu;

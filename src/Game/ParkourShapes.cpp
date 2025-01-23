@@ -176,3 +176,35 @@ Debug::DebugReturn Parkour::ParkourTimeMeasuringShape::Request(Requests::Request
 
 	return false;
 }
+
+Parkour::ParkourUIToggleShape::ParkourUIToggleShape(G1::IShapeThings things, Input::Key inputKey, std::vector<std::weak_ptr<UI1::UIElement>> ui)
+	: G1::IShape(things)
+	, FullResourceHolder(things.Resources)
+	, m_UIToToggle(ui)
+	, m_ToggleKey(inputKey)
+{
+	mResources->Event->Add(this);
+}
+
+bool Parkour::ParkourUIToggleShape::Receive(Event::KeyInput* e)
+{
+	if (e->KeyCode == m_ToggleKey && e->State)
+	{
+		for (auto& ui_ref : m_UIToToggle)
+		{
+			if (auto ui = ui_ref.lock())
+			{
+				if (ui->IsUIEnabled())
+				{
+					ui->DisableUI();
+				}
+				else
+				{
+					ui->EnableUI();
+				}
+			}
+		}
+		return true;
+	}
+	return false;
+}

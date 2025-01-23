@@ -4,6 +4,8 @@
 #include <Drawing/GLRen2.h>
 #include <Game/VoxelStuff/VoxelWorld.h>
 #include <Game/VoxelStuff/VoxelPlayer.h>
+#include <UI/UI1.h>
+#include <Systems/Input/Input.h>
 
 #include <Math/matrix.h>
 
@@ -87,7 +89,7 @@ namespace Parkour
 		virtual void AfterDraw() override;
 
 		inline void SetRespawnPosition(floaty3 position) { m_RespawnOverride = std::make_unique<floaty3>(position); }
-		inline const floaty3 const* GetRespawnPosition() const { return m_RespawnOverride.get(); }
+		inline const floaty3* GetRespawnPosition() const { return m_RespawnOverride.get(); }
 
 		inline void Reset() { m_HasSentWinRequest = false; m_RespawnOverride = nullptr; }
 	protected:
@@ -135,5 +137,24 @@ namespace Parkour
 		unsigned int m_StartUpdateID = 0;
 		float m_Period = 10.f;
 		unsigned int m_NumRuns = 5;
+	};
+
+	class ParkourUIToggleShape : public virtual G1::IShape, public Events::IEventListenerT<Events::KeyEvent>
+	{
+	protected:
+		std::vector<std::weak_ptr<UI1::UIElement>> m_UIToToggle;
+		Input::Key m_ToggleKey;
+
+	public:
+		ParkourUIToggleShape(G1::IShapeThings things, Input::Key toggleKey, std::vector<std::weak_ptr<UI1::UIElement>> uiElements);
+		~ParkourUIToggleShape() {}
+
+		inline virtual void BeforeDraw() override {}
+		inline virtual void AfterDraw() override {}
+
+		inline virtual bool Receive(Events::IEvent* e) override { (void)e; return false; }
+		virtual bool Receive(Event::KeyInput* e) override;
+
+		inline virtual Stringy GetName() const override { return Name; }
 	};
 }
