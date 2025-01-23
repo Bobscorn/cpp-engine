@@ -39,13 +39,15 @@ void Parkour::ParkourLightBlock::OnLoaded()
 	}
 	catch (G1I::NoFreeLightException& e)
 	{
+		(void)e;
+		DINFO("No lights available!");
 	}
 }
 
 void Parkour::ParkourLightBlock::OnUnloaded()
 {
 	DINFO("Unloading light shape");
-	for (int i = children.size(); i-- > 0; )
+	for (size_t i = children.size(); i-- > 0; )
 	{
 		if (auto child = dynamic_cast<G1I::LightShape*>(children[i].get()); child)
 		{

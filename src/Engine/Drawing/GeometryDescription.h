@@ -151,11 +151,11 @@ namespace Drawing
 			size_t offset = 0;
 			for (size_t tgt = 1; tgt < order; ++tgt)
 			{
-				for (auto& comp : VertexComponents)
+				for (auto& v_comp : VertexComponents)
 				{
-					if (OrderOfComponent(comp) == tgt)
+					if (OrderOfComponent(v_comp) == tgt)
 					{
-						offset += SizeOfComponent(comp);
+						offset += SizeOfComponent(v_comp);
 						break;
 					}
 				}
