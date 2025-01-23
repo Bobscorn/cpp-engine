@@ -142,10 +142,10 @@ namespace Voxel
 		float GetNewYStage3(btScalar current, btScalar time, btScalar &out); // Returns excess time
 
 		// Controller Movement/Body stuff
-		constexpr static float CapsuleHeight = 0.6f;
+		constexpr static float CapsuleHeight = 0.55f;
 		constexpr static float CapsuleRadius = .25f;
 		constexpr static float CapsuleRadiusBonus = -0.015625f;
-		constexpr static float LegLength = .65f;
+		constexpr static float LegLength = .6f;
 		constexpr static float DeadZoneLength = .015625f;
 		constexpr static float FeetLength = .25f;
 		constexpr static float StubLength = .01f;
