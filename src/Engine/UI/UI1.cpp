@@ -314,7 +314,7 @@ bool UI1::RootElement::Receive(Event::MouseMove * mm)
 bool UI1::RootElement::Receive(Event::KeyInput * key)
 {
 	(void)key;
-	return false;
+	return true;
 }
 
 void UI1::RootElement::Superseded()
