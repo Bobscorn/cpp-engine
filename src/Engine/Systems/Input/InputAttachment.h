@@ -19,11 +19,11 @@ namespace InputAttach
 		virtual ~IAttachable();
 
 		// Input methods
-		inline virtual bool Receive(Event::KeyInput* e) { (void)e;  return false; }
-		inline virtual bool Receive(Event::MouseMove* e) { (void)e; return false; }
-		inline virtual bool Receive(Event::MouseButton* e) { (void)e; return false; }
-		inline virtual bool Receive(Event::MouseWheel* e) { (void)e; return false; }
-		inline virtual bool Receive(Event::MouseWheelButton* e) { (void)e; return false; };
+		inline virtual bool Receive(Event::KeyInput* e)			{ (void)e; return false; }
+		inline virtual bool Receive(Event::MouseMove* e)		{ (void)e; return false; }
+		inline virtual bool Receive(Event::MouseButton* e)		{ (void)e; return false; }
+		inline virtual bool Receive(Event::MouseWheel* e)		{ (void)e; return false; }
+		inline virtual bool Receive(Event::MouseWheelButton* e)	{ (void)e; return false; }
 
 		// Attachment event methods
 		inline virtual void Reinstated() {}
@@ -43,35 +43,36 @@ namespace InputAttach
 		inline bool Receive(Events::IEvent *e) override { (void)e; return false; }
 		inline bool Receive(Event::KeyInput *e) override
 		{
-			if (Attachments.size())
-				return Attachments.back()->Receive(e);
-			return false;
+			return this->DoReceive(e);
 		}
 		inline bool Receive(Event::MouseMove *e) override
 		{
-			if (Attachments.size())
-				return Attachments.back()->Receive(e);
-			return false;
+			return this->DoReceive(e);
 		}
 		inline bool Receive(Event::MouseButton *e) override
 		{
-			if (Attachments.size())
-				return Attachments.back()->Receive(e);
-			return false;
+			return this->DoReceive(e);
 		}
 		inline bool Receive(Event::MouseWheel *e) override
 		{
-			if (Attachments.size())
-				return Attachments.back()->Receive(e);
-			return false;
+			return this->DoReceive(e);
 		}
 		inline bool Receive(Event::MouseWheelButton *e) override
 		{
-			if (Attachments.size())
-				return Attachments.back()->Receive(e);
+			return this->DoReceive(e);
+		}
+
+		template<class T> bool DoReceive(T* e)
+		{
+			bool consumed = false;
+			for (auto it = Attachments.rbegin(); it != Attachments.rend() && !consumed; ++it)
+			{
+				consumed = (*it)->Receive(e);
+				if (consumed)
+					return true;
+			}
 			return false;
 		}
-		//inline bool Receive(Event::ControllerAxis *e) override;
 
 
 		inline void Add(IAttachable *e)
