@@ -482,6 +482,14 @@ void Voxel::VoxelWorld::AfterDraw()
 	CheckLoadingThread();
 	//ApplyChunkChanges();
 	PROFILE_POP();
+	PROFILE_PUSH("Do Pending Block Sets");
+	while (m_PendingBlockSets.size())
+	{
+		auto set = m_PendingBlockSets.back();
+		this->SetCube(set.first, set.second);
+		m_PendingBlockSets.pop_back();
+	}
+	PROFILE_POP();
 	PROFILE_POP();
 }
 
@@ -511,6 +519,16 @@ bool Voxel::VoxelWorld::Receive(Event::AfterPhysicsEvent *event)
 	}
 
 	return true;
+}
+
+void Voxel::VoxelWorld::SetCubeLater(BlockCoord coord, const SerialBlock& block)
+{
+	m_PendingBlockSets.push_back(std::make_pair(coord, block));
+}
+
+void Voxel::VoxelWorld::SetCubeLater(BlockCoord coord, const NamedBlock& block)
+{
+	return SetCube(coord, SerialBlock{ VoxelStore::Instance().GetIDFor(block.Name), block.Data });
 }
 
 void Voxel::VoxelWorld::SetCube(BlockCoord coords, std::unique_ptr<ICube> cube)

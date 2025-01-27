@@ -82,6 +82,8 @@ namespace Voxel
 		bool Receive(::Event::AfterPhysicsEvent *event) override;
 
 		// Static Modification
+		void SetCubeLater(BlockCoord coord, const SerialBlock& block); // Sets the cube on the next update
+		void SetCubeLater(BlockCoord coord, const NamedBlock& block); // Sets the cube on the next update
 		void SetCube(BlockCoord coord, std::unique_ptr<ICube> cube);
 		void SetCube(BlockCoord coord, const SerialBlock& block);
 		void SetCube(BlockCoord coord, const NamedBlock& block);
@@ -150,6 +152,9 @@ namespace Voxel
 		// Temporary measure to store changes and prevent them being unloaded
 		std::unordered_map<ChunkCoord, std::vector<std::pair<ChunkBlockCoord, std::unique_ptr<ICube>>>> m_UpdateBlockChanges;
 		std::unordered_map<ChunkCoord, std::vector<std::pair<ChunkBlockCoord, SerialBlock>>> m_BlockChanges;
+
+		// Slightly hacky change to allow setting a cube next update (to avoid a cube destroying itself and causing problems)
+		std::vector<std::pair<BlockCoord, SerialBlock>> m_PendingBlockSets;
 
 		std::unordered_map<Entity *, std::unique_ptr<Entity>> m_DynamicEntities;
 		std::vector<Entity *> m_ToRemoveEntities;
