@@ -337,7 +337,16 @@ blocks:
     faces: closed
     wants-update: true
     textures:
-        diffuse: shinier-metal-color.jpg
+        diffuse: checkpoint.jpg
+        normal: shinier-metal-normal.jpg
+        specular: shinier-metal-roughness.jpg
+-
+    block-name: checkpoint-active
+    atlas: global
+    faces: closed
+    wants-update: false
+    textures:
+        diffuse: checkpoint-active.jpg
         normal: shinier-metal-normal.jpg
         specular: shinier-metal-roughness.jpg
 

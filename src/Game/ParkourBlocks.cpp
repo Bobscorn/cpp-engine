@@ -2,6 +2,7 @@
 
 #include <Structure/BasicShapes.h>
 #include <Game/VoxelStuff/VoxelWorld.h>
+#include <Drawing/VoxelStore.h>
 
 Parkour::ParkourLightBlock::ParkourLightBlock(
 	G1::IGSpace* container, 
@@ -105,6 +106,19 @@ void Parkour::ParkourCheckpointBlock::AfterDraw()
 	if (airAboveCheckpoint.manhattan_distance(playerPos) < 2.f)
 	{
 		DINFO(std::string("Checkpoint set: (") + std::to_string(airAboveCheckpoint.x) + ", " + std::to_string(airAboveCheckpoint.y) + ", " + std::to_string(airAboveCheckpoint.z) + ")");
+
+		// Try reset existing checkpoint block
+		if (m_Tracker->GetRespawnPosition())
+		{
+			auto curRespawnPos = *m_Tracker->GetRespawnPosition();
+			auto curCheckPos = curRespawnPos - floaty3{ 0.f, 1.5f, 0.f };
+			auto curCheckBlockPos = m_World->GetBlockCoordFromPhys(curCheckPos);
+			if (Voxel::VoxelStore::Instance().GetDescOrEmpty(m_World->GetCubeDataAt(curCheckBlockPos).ID)->Name == "checkpoint-active")
+			{
+				m_World->SetCube(curCheckBlockPos, Voxel::NamedBlock{ "checkpoint", Voxel::CubeData() });
+			}
+		}
+		m_World->SetCubeLater(this->GetWorldPos(), Voxel::NamedBlock{ "checkpoint-active", Voxel::CubeData() });
 		m_Tracker->SetRespawnPosition(airAboveCheckpoint);
 	}
 }
