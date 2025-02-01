@@ -135,9 +135,9 @@ Config1::UIConfig::UIConfig(Events::EventManager *e, float dpi, Stringy Filename
 		FinalTooltipSize = TooltipFontSize * FontScale * dpi;
 
 		RegisterNewTextFormat("Small", { "Avara.ttf", 12 });
-		RegisterNewTextFormat("Normal", { "Avara.ttf", 20 });
-		RegisterNewTextFormat("Big", { "Avara.ttf", 28 });
-		RegisterNewTextFormat("Title", { "Zrnic.ttf", 28 });
+		RegisterNewTextFormat("Normal", { "Avara.ttf", 26 });
+		RegisterNewTextFormat("Big", { "Avara.ttf", 34 });
+		RegisterNewTextFormat("Title", { "Avara.ttf", 48 });
 
 		RegisterNewBrush("Text", { 200, 200, 200, 255 });
 		RegisterNewBrush("HoverText", { 220, 220, 220, 255 });

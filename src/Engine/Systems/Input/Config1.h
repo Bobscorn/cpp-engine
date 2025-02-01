@@ -116,8 +116,8 @@ namespace Config1
 		}
 
 		float FontScale = 1.f;
-		float BigFontSize = 24.f;
-		float NormalFontSize = 16.f;
+		float BigFontSize = 34.f;
+		float NormalFontSize = 26.f;
 		float SmallFontSize = 12.f;
 		float FinalBigSize = 0.f;
 		float FinalNormalSize = 0.f;
