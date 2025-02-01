@@ -114,10 +114,10 @@ namespace Parkour
 		UI1::RootElement UIRoot;
 		UI1I::TitleText Title;
 		UI1I::ButtonyContainer UIContainer;
-		UI1I::NormalButtony NewEasyGameButton;
-		UI1I::NormalButtony NewMediumGameButton;
-		UI1I::NormalButtony NewHardGameButton;
-		UI1I::SmallButtony ExitButton;
+		UI1I::BigButtony NewEasyGameButton;
+		UI1I::BigButtony NewMediumGameButton;
+		UI1I::BigButtony NewHardGameButton;
+		UI1I::NormalButtony ExitButton;
 
 		std::unique_ptr<IParkourDifficultyScene> NextScene;
 		SolidFader Faderer;
