@@ -586,6 +586,19 @@ void Voxel::VoxelPlayer::PlaceBlock(RayReturn ray)
 	m_World->SetCube(coord, VoxelStore::Instance().GetDescOrEmpty(m_SelectedBlockName)->BlockData);
 }
 
+void Voxel::VoxelPlayer::RotateBlock(RayReturn ray)
+{
+	floaty3 pos{ ray.hitPoint - ray.normal * 0.25f };
+	//auto thing = static_cast<Voxel::VoxelCube *>(ray.hold->Pointy);
+	auto coord = m_World->GetBlockCoordFromPhys(pos);
+	auto existing = m_World->GetCubeDataAt(coord);
+	existing.Data.Rotation = quat4(btQuaternion(90.f * Math::DegToRadF, 0.f, 0.f)) * existing.Data.Rotation;
+	if (existing.ID != 0)
+	{
+		m_World->SetCube(coord, existing);
+	}
+}
+
 void Voxel::VoxelPlayer::SetCrouchState(bool state)
 {
 	m_Crouched = state;

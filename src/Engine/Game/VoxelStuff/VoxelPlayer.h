@@ -87,6 +87,7 @@ namespace Voxel
 		void TmpEntityThing(RayReturn ray, Entity *entity);
 		void BreakBlock(RayReturn ray);
 		void PlaceBlock(RayReturn ray);
+		void RotateBlock(RayReturn ray);
 				
 		// Walking Stuff
 		float m_SprintMagnitude = 1.4f; // in m/s
