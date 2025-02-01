@@ -107,7 +107,7 @@ namespace Parkour
 			for (auto& block : step.Blocks)
 			{
 				auto toAdd = block.first;
-				toAdd.Data.Rotation *= currentRotation;
+				toAdd.Data.Rotation = currentRotation * toAdd.Data.Rotation;
 
 				auto pos = block.second;
 

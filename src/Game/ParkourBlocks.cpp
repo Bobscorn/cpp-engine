@@ -22,6 +22,7 @@ void Parkour::ParkourLightBlock::OnLoaded()
 	{
 		DINFO("Loading light shape");
 		auto pos = m_World->GetPhysPosFromBlockCoord(Voxel::BlockCoord{ m_Chunk->GetCoord(), m_Pos });
+		auto my_data = m_Chunk->get_data(m_Pos);
 
 		Light light;
 		light.Color = floaty3{ 1.f, 1.f, 1.f };
@@ -30,7 +31,7 @@ void Parkour::ParkourLightBlock::OnLoaded()
 		light.Enabled = true;
 		light.PositionWS = floaty4{ pos, 1.f };
 		light.PositionVS = floaty4{};
-		light.DirectionWS = floaty4{ 0.f, -1.f, 0.f, 1.f };
+		light.DirectionWS = floaty4{ my_data.Data.Rotation.rotate(floaty3{ 0.f, -1.f, 0.f }), 1.f };
 		light.DirectionVS = floaty4{};
 		light.Range = 50.f;
 		light.Type = LIGHT_SPOT;
