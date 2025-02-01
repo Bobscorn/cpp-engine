@@ -63,6 +63,7 @@ void Parkour::ParkourInGameHUD::Disable()
 
 Parkour::ParkourFinishMenu::ParkourFinishMenu(CommonResources* resources)
 	: FullResourceHolder(resources)
+	, m_CongratsText(resources, "Nice Job!")
 	, m_Container(resources, "menu_backdrop.jpeg", UI1I::ButtonyContainer::CENTRE_ALIGN, UI1I::ButtonyContainer::CENTRE_ALIGN)
 	, m_AgainButton(resources, "Begin Another Run", Requests::Request{ "RestartRun" })
 	, m_BackButton(resources, "Return to Menu", Requests::Request{ "ReturnToMenu" })
@@ -76,6 +77,7 @@ Parkour::ParkourFinishMenu::ParkourFinishMenu(CommonResources* resources)
 void Parkour::ParkourFinishMenu::AddTo(UI1::RootElement& root)
 {
 	root.AddChildTop(&m_Container);
+	root.AddChildTop(&m_CongratsText);
 }
 
 void Parkour::ParkourFinishMenu::Update()
@@ -85,6 +87,7 @@ void Parkour::ParkourFinishMenu::Update()
 		if (m_Fader.Fade() && !m_Container.IsUIEnabled())
 		{
 			m_Container.EnableUI();
+			m_CongratsText.EnableUI();
 		}
 	}
 }
@@ -100,5 +103,6 @@ void Parkour::ParkourFinishMenu::Disable()
 {
 	m_Fader.Stop();
 	m_Container.DisableUI();
+	m_CongratsText.DisableUI();
 	m_Enabled = false;
 }

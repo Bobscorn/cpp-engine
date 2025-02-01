@@ -41,6 +41,7 @@ namespace Parkour
 	class ParkourFinishMenu : public FullResourceHolder
 	{
 		SolidFader m_Fader;
+		UI1I::TitleText m_CongratsText;
 		UI1I::ButtonyContainer m_Container;
 		UI1I::BigButtony m_AgainButton;
 		UI1I::BigButtony m_BackButton;
