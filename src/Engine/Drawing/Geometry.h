@@ -116,7 +116,7 @@ namespace Drawing
 
 	struct RawMesh
 	{
-		VertexData VertexData;
+		VertexData vertexData;
 
 		std::vector<unsigned int> Indices;
 	};

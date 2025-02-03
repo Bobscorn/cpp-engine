@@ -347,13 +347,13 @@ namespace Drawing
 			{
 				auto& drawcall = drawcall_tmp.get();
 
-				if (!drawcall.Geometry)
+				if (!drawcall.geometry)
 					continue;
 
-				auto& storage = drawcall.Geometry->GetStorage();
+				auto& storage = drawcall.geometry->GetStorage();
 				if (!storage.Buffer)
 				{
-					DWARNING("DrawCall '" + drawcall.DebugString + "' has no geometry!");
+					DWARNING("DrawCall '" + drawcall.debugString + "' has no geometry!");
 					continue;
 				}
 
@@ -366,21 +366,21 @@ namespace Drawing
 				if (offsetData.IndicesCount < 1)
 					continue;
 
-				auto thisBuffer = drawcall.Geometry->GetStorage().Buffer->GetVBO().Get();
+				auto thisBuffer = drawcall.geometry->GetStorage().Buffer->GetVBO().Get();
 				if (thisBuffer != lastVertexBuffer)
 				{
-					program->BindTo(*drawcall.Geometry->GetStorage().Buffer);
+					program->BindTo(*drawcall.geometry->GetStorage().Buffer);
 				}
 				lastVertexBuffer = thisBuffer;
 
-				auto& world = *drawcall.Matrix;
+				auto& world = *drawcall.matrix;
 
 				perObject.WorldViewProj = Matrixy4x4::MultiplyE(world, lightViewProj);
 				UpdateBuffer(_perObjectBuffer, &perObject, sizeof(DefaultPerObjectStruct), m_bufferUpdateMode);
 
 				program->BindVAO();
 
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, drawcall.Geometry->GetStorage().Buffer->GetIBO().Get());
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, drawcall.geometry->GetStorage().Buffer->GetIBO().Get());
 
 				glDrawElementsBaseVertex(GL_TRIANGLES, (GLsizei)offsetData.IndicesCount, GL_UNSIGNED_INT, (GLvoid*)(offsetData.IndexStart * sizeof(GLuint)), (GLint)offsetData.IndexOffset);
 
@@ -436,13 +436,13 @@ namespace Drawing
 
 				auto& drawcall = drawcall_tmp.get();
 
-				if (!drawcall.Geometry)
+				if (!drawcall.geometry)
 					continue;
 
-				auto& storage = drawcall.Geometry->GetStorage();
+				auto& storage = drawcall.geometry->GetStorage();
 				if (!storage.Buffer)
 				{
-					DWARNING("DrawCall '" + drawcall.DebugString + "' has no geometry!");
+					DWARNING("DrawCall '" + drawcall.debugString + "' has no geometry!");
 					continue;
 				}
 
@@ -455,23 +455,23 @@ namespace Drawing
 				if (offsetData.IndicesCount < 1)
 					continue;
 
-				auto thisBuffer = drawcall.Geometry->GetStorage().Buffer->GetVBO().Get();
+				auto thisBuffer = drawcall.geometry->GetStorage().Buffer->GetVBO().Get();
 				if (thisBuffer != lastVertexBuffer)
 				{
-					program->BindTo(*drawcall.Geometry->GetStorage().Buffer);
+					program->BindTo(*drawcall.geometry->GetStorage().Buffer);
 				}
 				lastVertexBuffer = thisBuffer;
 
-				auto& world = *drawcall.Matrix;
+				auto& world = *drawcall.matrix;
 
 				UpdatePerObject(world, View, Proj);
-				UpdateMaterial(*program, *drawcall.Material);
-				UpdateTextures(*program, *drawcall.Material);
+				UpdateMaterial(*program, *drawcall.material);
+				UpdateTextures(*program, *drawcall.material);
 				UpdateShadowMaps(*program);
 					
 				program->BindVAO();
 
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, drawcall.Geometry->GetStorage().Buffer->GetIBO().Get());
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, drawcall.geometry->GetStorage().Buffer->GetIBO().Get());
 
 				glDrawElementsBaseVertex(GL_TRIANGLES, (GLsizei)offsetData.IndicesCount, GL_UNSIGNED_INT, (GLvoid*)(offsetData.IndexStart * sizeof(GLuint)), (GLint)offsetData.IndexOffset);
 
@@ -511,9 +511,9 @@ namespace Drawing
 		for (auto& call_pair : _drawCalls)
 		{
 			auto& drawCall = call_pair.second;
-			if (!drawCall.Material || !drawCall.Material->GetProgram().IsValid())
+			if (!drawCall.material || !drawCall.material->GetProgram().IsValid())
 				continue;
-			const auto& drawCallProgName = drawCall.Material->GetProgram().GetProgramName();
+			const auto& drawCallProgName = drawCall.material->GetProgram().GetProgramName();
 			auto& vec = m_DrawCallGroups[drawCallProgName];
 
 			vec.emplace_back(std::cref(drawCall));
@@ -719,7 +719,7 @@ namespace Drawing
 		if (is_new)
 			_drawCallsDirty = true;
 		else
-			_drawCallsDirty = it->second.Material->GetProgram() != call.Material->GetProgram();
+			_drawCallsDirty = it->second.material->GetProgram() != call.material->GetProgram();
 
 		_drawCalls[key] = std::move(call);
 		return !is_new;

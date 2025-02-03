@@ -158,10 +158,10 @@ namespace Drawing
 	{
 		auto prog = ProgramReference(ProgramName);
 		std::unordered_map<std::string, TextureReference> textures;
-		for (int i = 0; i < Textures.size(); ++i)
+		for (int i = 0; i < textures.size(); ++i)
 		{
 			// Handle special case Voxel Atlas textures
-			auto& name = Textures[i].second;
+			auto& name = this->textures[i].second;
 			if (name.size() > 6 && name.rfind("atlas-", 0) == 0)
 			{
 				Voxel::AtlasType type = Voxel::AtlasType::DIFFUSE;
@@ -202,12 +202,12 @@ namespace Drawing
 				}
 				if (atlasName.size() && atlasName[0] == '-')
 					atlasName = atlasName.substr(1);
-				textures[Textures[i].first] = TextureReference(Voxel::AtlasTextureName{ std::move(atlasName), type });
+				textures[this->textures[i].first] = TextureReference(Voxel::AtlasTextureName{ std::move(atlasName), type });
 				continue;
 			}
 
 			// Not an atlas texture :(
-			textures[Textures[i].first] = Textures[i].second;
+			textures[this->textures[i].first] = this->textures[i].second;
 		}
 
 		std::unordered_map<std::string, MaterialProperty> properties;
@@ -270,7 +270,7 @@ namespace Drawing
 								DWARNING("File '" + fileName + "' being parsed as a material, invalid texture entry found in 'textures' tag! (at line: " + std::to_string(it->second.Mark().line) + ")");
 								continue;
 							}
-							mat.Textures.emplace_back(std::make_pair(it->first.as<std::string>(), it->second.as<std::string>()));
+							mat.textures.emplace_back(std::make_pair(it->first.as<std::string>(), it->second.as<std::string>()));
 						}
 					}
 					else

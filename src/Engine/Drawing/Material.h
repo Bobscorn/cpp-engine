@@ -138,7 +138,7 @@ namespace Drawing
 	{
 		std::string MaterialName;
 		std::string ProgramName;
-		std::vector<std::pair<std::string, std::string>> Textures;
+		std::vector<std::pair<std::string, std::string>> textures;
 		std::vector<MaterialProperty> Properties;
 
 		Material ToMaterial() const;

@@ -32,17 +32,17 @@ namespace Drawing
 	template<class T>
 	struct MeshView
 	{
-		MeshView(RawMesh& mesh) : mesh(mesh) { if (sizeof(T) != mesh.VertexData.Description.GetVertexByteSize()) throw std::runtime_error("Mesh view type does not match mesh's!"); }
+		MeshView(RawMesh& mesh) : mesh(mesh) { if (sizeof(T) != mesh.vertexData.Description.GetVertexByteSize()) throw std::runtime_error("Mesh view type does not match mesh's!"); }
 
 		RawMesh& mesh;
 
 		std::vector<T> Copy()
 		{
-			size_t count = mesh.VertexData.NumVertices();
+			size_t count = mesh.vertexData.NumVertices();
 			size_t vsize = sizeof(T);
 			std::vector<T> gamer{ count, T{}, std::allocator<T>() };
 
-			std::memcpy(gamer.data(), mesh.VertexData.Vertices.data(), vsize * count);
+			std::memcpy(gamer.data(), mesh.vertexData.Vertices.data(), vsize * count);
 
 			return gamer;
 		}
@@ -51,19 +51,19 @@ namespace Drawing
 		{
 			size_t vsize = sizeof(T);
 
-			return *reinterpret_cast<T*>(&mesh.VertexData.Vertices[vsize * index]);
+			return *reinterpret_cast<T*>(&mesh.vertexData.Vertices[vsize * index]);
 		}
 
 		const T& operator[](size_t index) const
 		{
 			size_t vsize = sizeof(T);
 
-			return *reinterpret_cast<const T*>(&mesh.VertexData.Vertices[vsize * index]);
+			return *reinterpret_cast<const T*>(&mesh.vertexData.Vertices[vsize * index]);
 		}
 
 		size_t size() const
 		{
-			return mesh.VertexData.NumVertices();
+			return mesh.vertexData.NumVertices();
 		}
 	};
 }

@@ -431,28 +431,28 @@ Puzzle::G1I::FirstRoom::FirstRoom(G1::IGSpace * container, CommonResources * res
 	Drawing::DrawCall *dac = resources->Ren3->GetDrawCall(key);
 	if (dac)
 	{
-		dac->Textures = std::make_shared<Textures>(tex);
+		dac->textures = std::make_shared<Textures>(tex);
 		dac->Material->TextureBitmap = BIT_DIFFUSE | BIT_BUMP | BIT_SPECULARPOWER | BIT_NORMAL;
 	}
 	key = EastWall->GetDrawCallKey();
 	dac = resources->Ren3->GetDrawCall(key);
 	if (dac)
 	{
-		dac->Textures = std::make_shared<Textures>(tex);
+		dac->textures = std::make_shared<Textures>(tex);
 		dac->Material->TextureBitmap = BIT_DIFFUSE | BIT_BUMP | BIT_SPECULARPOWER | BIT_NORMAL;
 	}
 	key = SouthWall->GetDrawCallKey();
 	dac = resources->Ren3->GetDrawCall(key);
 	if (dac)
 	{
-		dac->Textures = std::make_shared<Textures>(tex);
+		dac->textures = std::make_shared<Textures>(tex);
 		dac->Material->TextureBitmap = BIT_DIFFUSE | BIT_BUMP | BIT_SPECULARPOWER | BIT_NORMAL;
 	}
 	key = WestWall->GetDrawCallKey();
 	dac = resources->Ren3->GetDrawCall(key);
 	if (dac)
 	{
-		dac->Textures = std::make_shared<Textures>(tex);
+		dac->textures = std::make_shared<Textures>(tex);
 		dac->Material->TextureBitmap = BIT_DIFFUSE | BIT_BUMP | BIT_SPECULARPOWER | BIT_NORMAL;
 	}
 
@@ -465,7 +465,7 @@ Puzzle::G1I::FirstRoom::FirstRoom(G1::IGSpace * container, CommonResources * res
 	dac = resources->Ren3->GetDrawCall(key);
 	if (dac)
 	{
-		dac->Textures = std::make_shared<Textures>(tex);
+		dac->textures = std::make_shared<Textures>(tex);
 		dac->Material->TextureBitmap = BIT_DIFFUSE | BIT_BUMP | BIT_SPECULARPOWER | BIT_NORMAL;
 	}
 

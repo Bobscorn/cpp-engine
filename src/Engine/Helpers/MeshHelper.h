@@ -54,6 +54,6 @@ namespace MeshHelp
 			newIndices[i] = it->second;
 		}
 
-		return Drawing::RawMesh{ Drawing::VertexData::FromDescription(uniqueVertices, mesh.mesh.VertexData.Description), newIndices };
+		return Drawing::RawMesh{ Drawing::VertexData::FromDescription(uniqueVertices, mesh.mesh.vertexData.Description), newIndices };
 	}
 }

@@ -80,7 +80,7 @@ void Drawing::DrawCaller::Apply(const std::vector<size_t> &keys)
 					do_transparent_pass = true;
 				}
 			}
-			bool Different = (TexGuy && call.Textures != lastcall.Textures) || (MatGuy && (call.Material.get() != lastcall.Material.get()));
+			bool Different = (TexGuy && call.textures != lastcall.textures) || (MatGuy && (call.Material.get() != lastcall.Material.get()));
 
 			if (!Different && call.Geometry == lastcall.Geometry)
 			{
@@ -103,8 +103,8 @@ void Drawing::DrawCaller::Apply(const std::vector<size_t> &keys)
 			{
 				if (MatGuy && call.Material != lastcall.Material)
 					MatGuy->ApplyMaterial(call.Material.get());
-				if (TexGuy && call.Textures != lastcall.Textures)
-					TexGuy->ApplyTextures(call.Textures.get());
+				if (TexGuy && call.textures != lastcall.textures)
+					TexGuy->ApplyTextures(call.textures.get());
 			}
 			lastcall = call;
 			if (do_transparent_pass)

@@ -9,7 +9,7 @@ G1I::SimpleRenderShape::SimpleRenderShape(G1::IShapeThings things, Drawing::Draw
 {
 	if (auto* pCall = m_DrawCall.GetDrawCall())
 	{
-		m_DrawCallTrans = pCall->Matrix;
+		m_DrawCallTrans = pCall->matrix;
 	}
 }
 

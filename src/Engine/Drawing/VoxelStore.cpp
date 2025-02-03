@@ -806,11 +806,11 @@ namespace Voxel
 
 	bool VoxelStore::TryGetAtlasTexture(const AtlasTextureName& name, std::shared_ptr<Drawing::Image2DArray>& out) const
 	{
-		auto it = _atlasLookup.find(name.AtlasName);
+		auto it = _atlasLookup.find(name.atlasName);
 		if (it == _atlasLookup.end())
 			return false;
 
-		out = it->second->GetImageFromType(name.AtlasType);
+		out = it->second->GetImageFromType(name.atlasType);
 		return true;
 	}
 

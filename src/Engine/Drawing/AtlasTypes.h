@@ -19,8 +19,8 @@ namespace Voxel
 
 	struct AtlasTextureName
 	{
-		std::string AtlasName;
-		AtlasType AtlasType;
+		std::string atlasName;
+		AtlasType atlasType;
 	};
 
 	constexpr std::array<AtlasType, 5> AtlasTypes{ AtlasType::DIFFUSE, AtlasType::SPECULAR, AtlasType::EMISSIVE, AtlasType::NORMAL, AtlasType::BUMP };

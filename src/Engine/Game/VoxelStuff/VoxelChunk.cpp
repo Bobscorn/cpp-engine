@@ -488,9 +488,9 @@ namespace Voxel
 		// Bvh
 		// v
 
-		if (deDupedMesh.VertexData.NumVertices())
+		if (deDupedMesh.vertexData.NumVertices())
 		{
-			size_t numVerts = deDupedMesh.VertexData.NumVertices();
+			size_t numVerts = deDupedMesh.vertexData.NumVertices();
 			// Copy vertices to permanent buffer
 			chunk->PhysicsPositions = std::make_unique<std::vector<floaty3>>();
 			chunk->PhysicsPositions->reserve(numVerts);

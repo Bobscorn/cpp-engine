@@ -183,7 +183,7 @@ namespace Drawing
 		if (_texture)
 			return _texture;
 
-		if (_atlasName.AtlasName.size())
+		if (_atlasName.atlasName.size())
 		{
 			std::shared_ptr<Drawing::Image2DArray> tmp{};
 			if (Voxel::VoxelStore::Instance().TryGetAtlasTexture(_atlasName, tmp))

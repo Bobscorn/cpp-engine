@@ -178,7 +178,7 @@ namespace Drawing
 	RawMesh CreateCubeMesh()
 	{
 		RawMesh mesh;
-		mesh.VertexData = VertexData::FromFull3DVertices(CubeVertices.cbegin(), CubeVertices.cend());
+		mesh.vertexData = VertexData::FromFull3DVertices(CubeVertices.cbegin(), CubeVertices.cend());
 
 		mesh.Indices = std::vector<unsigned int>(CubeIndices.cbegin(), CubeIndices.cend());
 		return mesh;

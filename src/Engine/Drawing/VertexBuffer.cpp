@@ -48,7 +48,7 @@ namespace Drawing
     VertexBuffer::VertexBuffer(const RawMesh& initialMesh)
         : VertexBuffer()
     {
-        _vertices = initialMesh.VertexData;
+        _vertices = initialMesh.vertexData;
 
         _dirty = true;
     }
@@ -58,24 +58,24 @@ namespace Drawing
         if (_vertices.Vertices.empty())
         {
             _dirty = true;
-            _vertices = mesh.VertexData;
+            _vertices = mesh.vertexData;
             _indices = mesh.Indices;
 
             _meshOffsets.clear();
-            _meshOffsets.emplace_back(InternalMeshData{ MeshOffsetData{ 0, 0, (GLsizei)mesh.Indices.size() }, (GLuint)mesh.VertexData.NumVertices(), 1 });
+            _meshOffsets.emplace_back(InternalMeshData{ MeshOffsetData{ 0, 0, (GLsizei)mesh.Indices.size() }, (GLuint)mesh.vertexData.NumVertices(), 1 });
             if (_nextKey == 1)
                 _nextKey = 2;
             return 1;
         }
 
-        if (mesh.VertexData.Description != _vertices.Description && _vertices.Vertices.size())
+        if (mesh.vertexData.Description != _vertices.Description && _vertices.Vertices.size())
         {
             DERROR("Trying to add an incompatible mesh to a vertex buffer! (Geometry descriptions do not match)");
             return 0; // Maybe throw?
         }
 
         GLuint offset = (GLuint)_vertices.NumVertices();
-        _vertices.Vertices.insert(_vertices.Vertices.end(), mesh.VertexData.Vertices.begin(), mesh.VertexData.Vertices.end());
+        _vertices.Vertices.insert(_vertices.Vertices.end(), mesh.vertexData.Vertices.begin(), mesh.vertexData.Vertices.end());
 
         GLuint start = (GLuint)_indices.size();
         _indices.insert(_indices.end(), mesh.Indices.begin(), mesh.Indices.end());
@@ -84,7 +84,7 @@ namespace Drawing
         data.Data.IndexOffset = offset;
         data.Data.IndexStart = start;
         data.Data.IndicesCount = (GLsizei)mesh.Indices.size();
-        data.VertexCount = (GLuint)mesh.VertexData.NumVertices();
+        data.VertexCount = (GLuint)mesh.vertexData.NumVertices();
         data.Key = _nextKey++;
 
         _meshOffsets.emplace_back(std::move(data));

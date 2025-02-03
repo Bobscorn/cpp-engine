@@ -48,7 +48,7 @@ namespace Voxel
 
 	template<class Type, class FrustumType = Frustum> bool InsideFrustum(const FrustumType &f, const Type &t);
 
-	bool SpheresIntersect(const Sphere &a, const Sphere &b)
+	inline bool SpheresIntersect(const Sphere &a, const Sphere &b)
 	{
 		return (a.Centre - b.Centre).mag2() < (a.Radius + b.Radius) * (a.Radius + b.Radius);
 	}
