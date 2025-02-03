@@ -91,11 +91,11 @@ namespace Vector
 namespace std
 {
 	template<>
-	struct std::hash<Vector::inty3>
+	struct hash<Vector::inty3>
 	{
 		size_t operator()(const Vector::inty3& v) const
 		{
-			return std::hash<int>()(v.x) ^ std::hash<int>()(v.y) ^ std::hash<int>()(v.z);
+			return hash<int>()(v.x) ^ hash<int>()(v.y) ^ hash<int>()(v.z);
 		}
 	};
 }

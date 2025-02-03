@@ -83,7 +83,7 @@ message("- Found YAML-CPP: ${YAML_CPP_VERSION}")
 message("- YAML_CPP_INCLUDE_DIR: ${YAML_CPP_INCLUDE_DIR}")
 message("- YAML_CPP_LIBRARIES: ${YAML_CPP_LIBRARIES}")
 
-find_package(ASSIMP REQUIRED)
+find_package(assimp REQUIRED)
 message("- Found Assimp: ${ASSIMP_VERSION}")
 message("- ASSIMP_INCLUDE_DIR: ${ASSIMP_INCLUDE_DIRS}")
 message("- ASSIMP_LIBRARIES: ${ASSIMP_LIBRARIES}")

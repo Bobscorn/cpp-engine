@@ -51,7 +51,9 @@ install(FILES ${ASSIMP_DLL_PATH} DESTINATION bin OPTIONAL)
 
 # End dlls example
 
-install(FILES $<TARGET_PDB_FILE:cpp_engine_game> DESTINATION bin OPTIONAL)
+if (MSVC)
+	install(FILES $<TARGET_PDB_FILE:cpp_engine_game> DESTINATION bin OPTIONAL)
+endif()
         
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/GLSL/" DESTINATION bin/Shaders/)
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Programs" DESTINATION bin)

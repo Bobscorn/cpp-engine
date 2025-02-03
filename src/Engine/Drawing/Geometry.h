@@ -84,7 +84,7 @@ namespace Drawing
 			return data;
 		}
 
-		template<class Iter, class Type = Iter::value_type>
+		template<class Iter, class Type = typename Iter::value_type>
 		static VertexData FromGeneric(const GeometryDescription& geoDesc, Iter begin, Iter end)
 		{
 			if (geoDesc.GetVertexByteSize() != sizeof(Type))
