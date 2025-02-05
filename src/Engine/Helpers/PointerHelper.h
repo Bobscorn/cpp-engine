@@ -193,7 +193,7 @@ namespace Pointer
 				control_block->add(this);
 		}
 
-		/*template<typename = std::enable_if<std::is_const<T>::value>::type>
+		/*template<typename = typename std::enable_if_t<std::is_const<T>::value>>
 		observing_ptr(const selfish_ptr<std::remove_const_t<T>>& other) : ptr(other.ptr), control_block(other.control_block)
 		{
 			if (control_block)
@@ -252,7 +252,7 @@ namespace Pointer
 			return *this;
 		}
 
-		/*template<typename = std::enable_if<std::is_const<T>::value>::type>
+		/*template<typename = typename std::enable_if_t<std::is_const<T>::value>>
 		inline observing_ptr<T>& operator=(const selfish_ptr<std::remove_const_t<T>>& other)
 		{
 			if (control_block)
@@ -329,7 +329,7 @@ namespace Pointer
 				control_block->add(this);
 		}
 
-		/*template<typename = std::enable_if<std::is_const<T>::value>::type>
+		/*template<typename = typename std::enable_if_t<std::is_const<T>::value>>
 		no_expire_obs_ptr(const selfish_ptr<std::remove_const_t<T>>& other) : ptr(other.ptr), control_block(other.control_block)
 		{
 			if (control_block)
@@ -388,7 +388,7 @@ namespace Pointer
 			return *this;
 		}
 
-		template<typename = std::enable_if<std::is_const<T>::value>::type>
+		template<typename = typename std::enable_if_t<std::is_const<T>::value>>
 		inline no_expire_obs_ptr<T>& operator=(const selfish_ptr<std::remove_const_t<T>>& other)
 		{
 			if (control_block)
@@ -467,7 +467,7 @@ namespace Pointer
 				control_block->add(this);
 		}
 
-		template<typename = std::enable_if<std::is_const<T>::value>::type>
+		template<typename = typename std::enable_if_t<std::is_const<T>::value>>
 		f_ptr(const selfish_ptr<std::remove_const_t<T>>& other) : ptr(other.ptr), control_block(other.control_block)
 		{
 			if (control_block)
@@ -574,7 +574,7 @@ namespace Pointer
 			return *this;
 		}
 
-		template<typename = std::enable_if<std::is_const<T>::value>::type>
+		template<typename = typename std::enable_if_t<std::is_const<T>::value>>
 		inline f_ptr<T>& operator=(const selfish_ptr<std::remove_const_t<T>>& other)
 		{
 			if (control_block)
@@ -682,7 +682,7 @@ namespace Pointer
 				control_block->add(this);
 		}
 
-		template<typename = std::enable_if<std::is_const<T>::value>::type>
+		template<typename = typename std::enable_if_t<std::is_const<T>::value>>
 		nef_ptr(const selfish_ptr<std::remove_const_t<T>>& other) : ptr(other.ptr), control_block(other.control_block)
 		{
 			if (control_block)
@@ -783,7 +783,7 @@ namespace Pointer
 			return *this;
 		}
 
-		template<typename = std::enable_if<std::is_const<T>::value>::type>
+		template<typename = typename std::enable_if_t<std::is_const<T>::value>>
 		inline nef_ptr<T>& operator=(const selfish_ptr<std::remove_const_t<T>>& other)
 		{
 			if (control_block)
