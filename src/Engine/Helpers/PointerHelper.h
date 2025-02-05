@@ -8,9 +8,6 @@
 #include <utility>
 #include <list>
 
-#define constyboi std::enable_if_t<std::is_const<T>::value>
-#define notconstyboi std::enable_if_t<!std::is_const<T>::value>
-
 namespace Pointer
 {
 	struct IObserver
@@ -196,7 +193,7 @@ namespace Pointer
 				control_block->add(this);
 		}
 
-		/*template<typename = constyboi>
+		/*template<typename = std::enable_if<std::is_const<T>::value>::type>
 		observing_ptr(const selfish_ptr<std::remove_const_t<T>>& other) : ptr(other.ptr), control_block(other.control_block)
 		{
 			if (control_block)
@@ -255,7 +252,7 @@ namespace Pointer
 			return *this;
 		}
 
-		/*template<typename = constyboi>
+		/*template<typename = std::enable_if<std::is_const<T>::value>::type>
 		inline observing_ptr<T>& operator=(const selfish_ptr<std::remove_const_t<T>>& other)
 		{
 			if (control_block)
@@ -332,7 +329,7 @@ namespace Pointer
 				control_block->add(this);
 		}
 
-		/*template<typename = constyboi>
+		/*template<typename = std::enable_if<std::is_const<T>::value>::type>
 		no_expire_obs_ptr(const selfish_ptr<std::remove_const_t<T>>& other) : ptr(other.ptr), control_block(other.control_block)
 		{
 			if (control_block)
@@ -391,7 +388,7 @@ namespace Pointer
 			return *this;
 		}
 
-		template<typename = constyboi>
+		template<typename = std::enable_if<std::is_const<T>::value>::type>
 		inline no_expire_obs_ptr<T>& operator=(const selfish_ptr<std::remove_const_t<T>>& other)
 		{
 			if (control_block)
@@ -470,7 +467,7 @@ namespace Pointer
 				control_block->add(this);
 		}
 
-		template<typename = constyboi>
+		template<typename = std::enable_if<std::is_const<T>::value>::type>
 		f_ptr(const selfish_ptr<std::remove_const_t<T>>& other) : ptr(other.ptr), control_block(other.control_block)
 		{
 			if (control_block)
@@ -577,7 +574,7 @@ namespace Pointer
 			return *this;
 		}
 
-		template<typename = constyboi>
+		template<typename = std::enable_if<std::is_const<T>::value>::type>
 		inline f_ptr<T>& operator=(const selfish_ptr<std::remove_const_t<T>>& other)
 		{
 			if (control_block)
@@ -685,7 +682,7 @@ namespace Pointer
 				control_block->add(this);
 		}
 
-		template<typename = constyboi>
+		template<typename = std::enable_if<std::is_const<T>::value>::type>
 		nef_ptr(const selfish_ptr<std::remove_const_t<T>>& other) : ptr(other.ptr), control_block(other.control_block)
 		{
 			if (control_block)
@@ -786,7 +783,7 @@ namespace Pointer
 			return *this;
 		}
 
-		template<typename = constyboi>
+		template<typename = std::enable_if<std::is_const<T>::value>::type>
 		inline nef_ptr<T>& operator=(const selfish_ptr<std::remove_const_t<T>>& other)
 		{
 			if (control_block)
@@ -937,6 +934,3 @@ namespace Pointer
 		}
 	}
 }
-
-#undef constyboi
-#undef notconstyboi
