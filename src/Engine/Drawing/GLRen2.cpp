@@ -22,12 +22,6 @@ namespace Drawing
 	GLuint DrawCallRenderer::PerObjectBufBinding = 0;
 	GLuint DrawCallRenderer::LightBufBinding = 0;
 
-	struct ProgramDrawCalls
-	{
-		std::shared_ptr<Program> Program;
-		std::vector<DrawCallv2> DrawCalls;
-	};
-
 	std::vector<floaty4> getFrustumCornersWorldSpace(const Matrixy4x4& proj, const Matrixy4x4& view)
 	{
 		const auto inv = Matrixy4x4::InvertedOrIdentity(Matrixy4x4::Multiply(proj, view));
