@@ -50,7 +50,7 @@ set_target_properties(cpp_engine_lib
 		) 
 
 # sanity
-if (!MSVC)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	target_compile_features(cpp_engine_lib PRIVATE cxx_std_17)
 endif()
 
@@ -90,9 +90,10 @@ endif()
 
 
 
-# Find test directories
-
-add_subdirectory(Tests)
-add_subdirectory(Game)
-add_subdirectory(Drawing)
-add_subdirectory(Math)
+# Find test directories for MSVC (not worth the time to get them working on gcc)
+if (MSVC)
+	add_subdirectory(Tests)
+	add_subdirectory(Game)
+	add_subdirectory(Drawing)
+	add_subdirectory(Math)
+endif()

@@ -72,33 +72,33 @@ endif()
 target_link_libraries(cpp_engine_game PRIVATE SDL2::SDL2main)
 
 
+if (MSVC)
+	add_executable(ParkourTests
+		"Parkour.cpp"
+	)
 
-add_executable(ParkourTests
-	"Parkour.cpp"
-)
+	set_target_properties(ParkourTests
+		PROPERTIES
+			CXX_STANDARD 17
+			CXX_STANDARD_REQUIRED YES
+			CXX_EXTENSIONS NO # Turning Extensions off for increased compatibility - see https://crascit.com/2015/03/28/enabling-cxx11-in-cmake/
+			) 
 
-set_target_properties(ParkourTests
-	PROPERTIES
-		CXX_STANDARD 17
-		CXX_STANDARD_REQUIRED YES
-		CXX_EXTENSIONS NO # Turning Extensions off for increased compatibility - see https://crascit.com/2015/03/28/enabling-cxx11-in-cmake/
-		) 
+	target_compile_definitions(ParkourTests PUBLIC CPP_GAME_TESTS=1)
 
-target_compile_definitions(ParkourTests PUBLIC CPP_GAME_TESTS=1)
+	target_include_directories(ParkourTests PRIVATE $<TARGET_PROPERTY:cpp_engine_lib,INCLUDE_DIRECTORIES>)
+	target_link_libraries(ParkourTests PRIVATE cpp_engine_lib)
+	target_link_libraries(ParkourTests PRIVATE GTest::gtest_main GTest::gmock)
 
-target_include_directories(ParkourTests PRIVATE $<TARGET_PROPERTY:cpp_engine_lib,INCLUDE_DIRECTORIES>)
-target_link_libraries(ParkourTests PRIVATE cpp_engine_lib)
-target_link_libraries(ParkourTests PRIVATE GTest::gtest_main GTest::gmock)
+	add_custom_command(TARGET ParkourTests POST_BUILD
+						COMMAND ${CMAKE_COMMAND} -E copy
+							$<TARGET_RUNTIME_DLLS:ParkourTests>
+							$<TARGET_FILE_DIR:ParkourTests>
+						COMMAND_EXPAND_LISTS)
 
-add_custom_command(TARGET ParkourTests POST_BUILD
-					COMMAND ${CMAKE_COMMAND} -E copy
-						$<TARGET_RUNTIME_DLLS:ParkourTests>
-						$<TARGET_FILE_DIR:ParkourTests>
-					COMMAND_EXPAND_LISTS)
-
-include(GoogleTest)
-gtest_discover_tests(ParkourTests)
-
+	include(GoogleTest)
+	gtest_discover_tests(ParkourTests)
+endif()
 
 
 get_target_property(CP_ENG_GAME_DEPS cpp_engine_game LINK_LIBRARIES)
