@@ -106,11 +106,6 @@ namespace Voxel
 		template <class proj_type, class ... Args>
 		void AddProjectile(Args ... args);
 
-		template<>
-		void AddProjectile<RayProjectile, floaty3, floaty3, float, Entity *, DamageDescription>(floaty3, floaty3, float, Entity *, DamageDescription);
-		template<>
-		void AddProjectile<HitScanProjectile, floaty3, floaty3, Entity *, DamageDescription>(floaty3, floaty3, Entity *, DamageDescription);
-
 		// Publicly accessible chunk recomputing
 		// Possibly move to a protected interface and give to consumers?
 		void ReloadChunkAt(ChunkCoord at, const ChunkData& srcData);
@@ -198,4 +193,10 @@ namespace Voxel
 
 		void DoRemoveEntities();
 	};
+
+	template<>
+	void VoxelWorld::AddProjectile<RayProjectile, floaty3, floaty3, float, Entity*, DamageDescription>(floaty3, floaty3, float, Entity*, DamageDescription);
+
+	template<>
+	void VoxelWorld::AddProjectile<HitScanProjectile, floaty3, floaty3, Entity*, DamageDescription>(floaty3, floaty3, Entity*, DamageDescription);
 }
