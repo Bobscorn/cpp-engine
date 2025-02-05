@@ -346,9 +346,9 @@ struct GLRen : IRen2D, IRen3D, Particles::IParticleDrawer, FullResourceHolder, D
 
 	size_t AddDrawCall(Drawing::DrawCall call) override;
 	std::shared_ptr<GeoThing> AddGeometry(std::vector<FullVertex> vertices, std::vector<unsigned int> indices) override;
-	void IRen3D::RemoveDrawCall(size_t Key) override;
+	void RemoveDrawCall(size_t Key) override;
 	void RemoveGeometry(size_t key) override;
-	Drawing::DrawCall *IRen3D::GetDrawCall(size_t key) override;
+	Drawing::DrawCall* GetDrawCall(size_t key) override;
 
 	void DrawCalls(Matrixy4x4 View, Matrixy4x4 Proj, Voxel::CameraFrustum frustum) override;
 	void ApplyMaterial(::Material *mat);
