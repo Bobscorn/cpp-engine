@@ -33,6 +33,10 @@ namespace Pointer
 		std::vector<no_expire_obs_ptr<T>*> benevolence2;
 		std::vector<IObserver*> uncertain_benevolence;
 	public:
+		selfish_control_block() = default;
+		selfish_control_block(selfish_control_block<T>&& other) = default;
+		selfish_control_block(const selfish_control_block<T>& other) = delete;
+
 		inline void add(observing_ptr<T>* ptr) { benevolence.push_back(ptr); }
 		inline void add(no_expire_obs_ptr<T>* ptr) { benevolence2.push_back(ptr); }
 		
@@ -388,7 +392,7 @@ namespace Pointer
 			return *this;
 		}
 
-		template<typename = typename std::enable_if_t<std::is_const<T>::value>>
+		template<typename T1 = T, typename = typename std::enable_if_t<std::is_const<T1>::value>>
 		inline no_expire_obs_ptr<T>& operator=(const selfish_ptr<std::remove_const_t<T>>& other)
 		{
 			if (control_block)
@@ -467,14 +471,14 @@ namespace Pointer
 				control_block->add(this);
 		}
 
-		template<typename = typename std::enable_if_t<std::is_const<T>::value>>
+		template<typename T1 = T, typename = typename std::enable_if_t<std::is_const<T1>::value>>
 		f_ptr(const selfish_ptr<std::remove_const_t<T>>& other) : ptr(other.ptr), control_block(other.control_block)
 		{
 			if (control_block)
 				control_block->add(this);
 		}
 
-		template<class B, typename = std::enable_if_t<std::is_base_of<T, B>::value>>
+		template<typename T1 = T, class B, typename = std::enable_if_t<std::is_base_of<T1, B>::value>>
 		explicit f_ptr(const selfish_ptr<B> &other) : ptr(other.get()), control_block(other.get_control())
 		{
 			if (control_block)
@@ -506,8 +510,8 @@ namespace Pointer
 			return *this;
 		}
 
-		template<class _T>
-		inline f_ptr<T>& operator=(const f_ptr<typename std::enable_if_t<std::is_base_of<T, _T>::value, _T>>& other)
+		template<typename T1 = T, class T2>
+		inline f_ptr<T>& operator=(const f_ptr<typename std::enable_if_t<std::is_base_of<T1, T2>::value, T2>>& other)
 		{
 			if (control_block)
 				control_block->remove(this);
@@ -540,8 +544,8 @@ namespace Pointer
 			return *this;
 		}
 
-		template<class _T>
-		inline f_ptr<T>& assign(f_ptr<typename std::enable_if_t<std::is_base_of<T, _T>::value, _T>>&& other)
+		template<class T1 = T, class T2>
+		inline f_ptr<T>& assign(f_ptr<typename std::enable_if_t<std::is_base_of<T1, T2>::value, T2>>&& other)
 		{
 			if (control_block)
 				control_block->remove(this);
@@ -574,8 +578,8 @@ namespace Pointer
 			return *this;
 		}
 
-		template<typename = typename std::enable_if_t<std::is_const<T>::value>>
-		inline f_ptr<T>& operator=(const selfish_ptr<std::remove_const_t<T>>& other)
+		template<typename T1 = T, typename = typename std::enable_if_t<std::is_const<T1>::value>>
+		inline f_ptr<T>& operator=(const selfish_ptr<std::remove_const_t<T1>>& other)
 		{
 			if (control_block)
 				control_block->remove(this);
@@ -588,17 +592,17 @@ namespace Pointer
 			return *this;
 		}
 
-		template<class T2>
-		static inline f_ptr<T> CreateFrom(const selfish_ptr<typename std::enable_if_t<std::is_base_of<T, T2>::value, T2>>& other)
+		template<typename T1 = T, class T2>
+		static inline f_ptr<T> CreateFrom(const selfish_ptr<typename std::enable_if_t<std::is_base_of<T1, T2>::value, T2>>& other)
 		{
-			f_ptr<typename std::enable_if_t<std::is_base_of<T, T2>::value, T2>> gass(other);
+			f_ptr<typename std::enable_if_t<std::is_base_of<T1, T2>::value, T2>> gass(other);
 			f_ptr<T> ass;
 			ass.assign<T2>(gass);
 
 			return ass;
 		}
 
-		template<class U, std::enable_if_t<std::is_convertible_v<T, U>, int> = 0>
+		template<typename T1 = T, class U, std::enable_if_t<std::is_convertible_v<T1, U>, int> = 0>
 		inline operator f_ptr<U>()
 		{
 			auto *casted = dynamic_cast<U*>(this->ptr);
@@ -682,14 +686,14 @@ namespace Pointer
 				control_block->add(this);
 		}
 
-		template<typename = typename std::enable_if_t<std::is_const<T>::value>>
+		template<typename T1 = T, typename = typename std::enable_if_t<std::is_const<T1>::value>>
 		nef_ptr(const selfish_ptr<std::remove_const_t<T>>& other) : ptr(other.ptr), control_block(other.control_block)
 		{
 			if (control_block)
 				control_block->add(this);
 		}
 
-		template<typename B, typename = std::enable_if_t<std::is_base_of<T, B>::value>>
+		template<typename T1 = T, typename B, typename = std::enable_if_t<std::is_base_of<T1, B>::value>>
 		explicit nef_ptr(const selfish_ptr<B> &other) : ptr(other.get()), control_block(other.get_control())
 		{
 			if (control_block)
@@ -715,8 +719,8 @@ namespace Pointer
 			return *this;
 		}
 
-		template<class _T>
-		inline nef_ptr<T>& operator=(const nef_ptr<typename std::enable_if_t<std::is_base_of<T, _T>::value, _T>>& other)
+		template<typename T1 = T, class T2>
+		inline nef_ptr<T>& operator=(const nef_ptr<typename std::enable_if_t<std::is_base_of<T1, T2>::value, T2>>& other)
 		{
 			if (control_block)
 				control_block->remove(this);
@@ -749,8 +753,8 @@ namespace Pointer
 			return *this;
 		}
 
-		template<class _T>
-		inline nef_ptr<T>& assign(nef_ptr<typename std::enable_if_t<std::is_base_of<T, _T>::value, _T>>&& other)
+		template<typename T1 = T, class T2>
+		inline nef_ptr<T>& assign(nef_ptr<typename std::enable_if_t<std::is_base_of<T1, T2>::value, T2>>&& other)
 		{
 			if (control_block)
 				control_block->remove(this);
@@ -783,7 +787,7 @@ namespace Pointer
 			return *this;
 		}
 
-		template<typename = typename std::enable_if_t<std::is_const<T>::value>>
+		template<typename T1 = T, typename = typename std::enable_if_t<std::is_const<T1>::value>>
 		inline nef_ptr<T>& operator=(const selfish_ptr<std::remove_const_t<T>>& other)
 		{
 			if (control_block)
