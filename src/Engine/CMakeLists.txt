@@ -45,7 +45,7 @@ set_target_properties(cpp_engine_lib
 	PROPERTIES
 		CXX_STANDARD 17
 		CXX_STANDARD_REQUIRED YES
-		CXX_EXTENSIONS NO # Turning Extensions off for increased compatibility - see https://crascit.com/2015/03/28/enabling-cxx11-in-cmake/
+		CXX_EXTENSIONS YES
 		$<EC_PROFILE:EXE_LINKER_FLAGS ${CMAKE_LINKER_FLAGS} /Profile>
 		) 
 
