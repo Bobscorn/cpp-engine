@@ -2,6 +2,8 @@
 
 #include "Helpers/ExceptionHelper.h"
 
+#include <cstring>
+
 GLProgram GLProgram::CreateProgram(std::vector<GLShaderPair> shaderfiles)
 {
 	if (shaderfiles.empty())
