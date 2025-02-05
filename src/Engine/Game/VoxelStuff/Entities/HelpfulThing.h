@@ -27,7 +27,7 @@ protected:
 	static std::weak_ptr<GeoThing> m_Geo;
 };
 
-template<intmax_t num, intmax_t den, uint32_t sliceCount = 3, uint32_t stackCount = 3>
+template<intmax_t num, intmax_t den, uint32_t sliceCount, uint32_t stackCount>
 std::weak_ptr<GeoThing> GeoMan<num, den, sliceCount, stackCount>::m_Geo = std::weak_ptr<GeoThing>();
 
 template<size_t index>
