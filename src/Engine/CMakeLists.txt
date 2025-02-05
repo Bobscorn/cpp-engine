@@ -49,6 +49,11 @@ set_target_properties(cpp_engine_lib
 		$<EC_PROFILE:EXE_LINKER_FLAGS ${CMAKE_LINKER_FLAGS} /Profile>
 		) 
 
+# sanity
+if (!MSVC)
+	target_compile_features(cpp_engine_lib PRIVATE cxx_std_17)
+endif()
+
         
 target_link_libraries(cpp_engine_lib INTERFACE ${ZLIB_LIBRARIES})
 

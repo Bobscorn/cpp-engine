@@ -9,13 +9,7 @@
 #include "Systems/Input/Input.h"
 #include "Config/Config.h"
 
-#ifdef __linux__
-#include <experimental/filesystem>
-typedef std::experimental::filesystem::directory_iterator std_directory_iterator;
-#else
 #include <filesystem>
-typedef std::filesystem::directory_iterator std_directory_iterator;
-#endif
 
 #ifdef CP_ENG_PLAYER_OUTPUT
 #define PLAYER_INFO(x) DINFO("Player: " + x)
@@ -1448,7 +1442,7 @@ std::vector<Audio::ALBufferI> Voxel::VoxelPlayer::GetFootstepSounds()
 	try
 	{
 		std::error_code error;
-		std_directory_iterator footsteps{ mResources->WorkingDirectory + "Sounds/Footsteps", error };
+		std::filesystem::directory_iterator footsteps{ mResources->WorkingDirectory + "Sounds/Footsteps", error };
 		size_t count = 0;
 		sounds.reserve(10ull); // Max 10 sounds
 		if (error.value() == 0)
