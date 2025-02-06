@@ -36,24 +36,32 @@ struct IRen2D
 	virtual void DrawPoint(floaty2 point, floaty4 color) = 0;
 	virtual void DrawLine(floaty2 a, floaty2 b, floaty4 color) = 0;
 
-	// A ---- \
-	// |      |
-	// \ ---- B
+	/*
+	 A---- \
+	 |      |
+	 \ ---- B 
+	*/
 	virtual void DrawRectangle(floaty2 topleft, floaty2 bottomright, floaty4 color) = 0;
 
-	// A ---- B
-	// |      |
-	// C ---- D
+	/*
+	  A ---- B
+	  |      |
+	  C ---- D
+	*/
 	virtual void DrawRectangle(floaty2 a, floaty2 b, floaty2 c, floaty2 d, floaty4 color) = 0;
 
-	// A ---- \
-	// |      |
-	// \ ---- B
+	/**
+	 A---- \
+	|      |
+	\ ---- B
+	*/
 	virtual void FillRectangle(floaty2 topleft, floaty2 bottomright, floaty4 color) = 0;
 
-	// A ---- B
-	// |      |
-	// C ---- D
+	/*
+	 A ---- B
+	 |      |
+	 C ---- D
+	 */
 	virtual void FillRectangle(floaty2 a, floaty2 b, floaty2 c, floaty2 d, floaty4 color) = 0;
 
 	virtual void DrawTriangle(floaty2 a, floaty2 b, floaty2 c, floaty4 color) = 0;
