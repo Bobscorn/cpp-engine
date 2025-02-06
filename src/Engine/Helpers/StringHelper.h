@@ -83,7 +83,7 @@ struct StringyList
 	{
 		std::list<std::string> ass = Items;
 		ass.push_back(string);
-		return std::move(ass);
+		return ass;
 	}
 
 	inline StringyList operator+(const StringyList &list)
