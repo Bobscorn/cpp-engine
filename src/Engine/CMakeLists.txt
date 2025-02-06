@@ -52,6 +52,7 @@ set_target_properties(cpp_engine_lib
 # sanity
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	target_compile_features(cpp_engine_lib PRIVATE cxx_std_17)
+	target_compile_options(cpp_engine_lib PUBLIC -Wno-pedantic -Wno-unknown-pragmas)
 endif()
 
         
