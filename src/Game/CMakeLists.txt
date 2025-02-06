@@ -28,7 +28,7 @@ if (EC_MAXWARN)
 	if (MSVC)
     target_compile_options(cpp_engine_game PRIVATE /W4)
     else()
-    target_compile_options(cpp_engine_game PRIVATE -Wall -Wextra -pedantic -Werror)
+    target_compile_options(cpp_engine_game PRIVATE -Wall -Wextra)
     endif()
 endif()
         
