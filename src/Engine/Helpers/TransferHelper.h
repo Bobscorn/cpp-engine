@@ -10,7 +10,7 @@ struct SDL_Window;
 
 #ifdef EC_PROFILE
 struct ProfileMcGee;
-#endif EC_PROFILE
+#endif // EC_PROFILE
 struct SDLRen2D;
 struct IRen2D;
 struct IRen3D;
