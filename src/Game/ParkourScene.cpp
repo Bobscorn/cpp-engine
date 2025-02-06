@@ -91,10 +91,10 @@ Debug::DebugReturn Parkour::ParkourScene::Initialize()
 	m_WorldShape->Update(m_PlayerShape->GetPosition());
 	mResources->InputAttachment->Add(m_PlayerShape.get());
 
-	if (!this->Events::IEventListener::ListeningTo)
+	if (!Events::IEventListener::ListeningTo)
 		mResources->Event->Add((Events::IEventListener*)this);
 
-	if (!this->Requests::IRequestable::GetMaster())
+	if (!Requests::IRequestable::GetMaster())
 		mResources->Request->Add(this);
 
 	m_GeneratorShape->Generate();
