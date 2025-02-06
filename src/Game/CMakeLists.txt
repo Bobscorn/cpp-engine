@@ -60,7 +60,6 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Programs" DESTINATION bin)
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Materials" DESTINATION bin)
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Textures" DESTINATION bin)
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Blocks" DESTINATION bin)
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Shaders" DESTINATION bin)
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Fonts" DESTINATION bin)
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Meshes" DESTINATION bin)
 
