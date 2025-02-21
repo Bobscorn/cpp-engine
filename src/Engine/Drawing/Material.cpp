@@ -158,7 +158,7 @@ namespace Drawing
 	{
 		auto prog = ProgramReference(ProgramName);
 		std::unordered_map<std::string, TextureReference> textures;
-		for (int i = 0; i < textures.size(); ++i)
+		for (int i = 0; i < this->textures.size(); ++i)
 		{
 			// Handle special case Voxel Atlas textures
 			auto& name = this->textures[i].second;
