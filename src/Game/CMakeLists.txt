@@ -13,7 +13,13 @@ set(CP_ENGINE_GAME_HDRS
 	"ParkourShapes.h"
  "ParkourScene.h" "ParkourLevels.h"  "ParkourUI.h" "ParkourTorchShape.h" )
 		
-add_executable(cpp_engine_game "Main.cpp" ${CP_ENG_GAME_SRCS} ${CP_ENGINE_GAME_HDRS})
+add_executable(
+	cpp_engine_game 
+	"Main.cpp" 
+	${CP_ENG_GAME_SRCS} 
+	${CP_ENGINE_GAME_HDRS}
+	"icon.rc"
+)
 target_link_libraries(cpp_engine_game PRIVATE cpp_engine_lib)
 		
 set_target_properties(cpp_engine_game
@@ -62,7 +68,7 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Textures" DESTINATION bin)
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Blocks" DESTINATION bin)
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Fonts" DESTINATION bin)
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Meshes" DESTINATION bin)
-install(FILES "${CMAKE_SOURCE_DIR}/Assets/cpp_engine_game.ico" DESTINATION bin)
+install(FILES "icon.ico" DESTINATION bin)
 
 if (NOT TARGET SDL2::SDL2main)
     message(FATAL_ERROR "SDL2::SDL2main is not found. Please install SDL2.")
