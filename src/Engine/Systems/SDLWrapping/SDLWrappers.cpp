@@ -59,6 +59,7 @@ void SDLW::Window::Create(char const * title, int x, int y, int width, int heigh
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
+	// Try with multisampling first
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 	//SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
@@ -68,8 +69,19 @@ void SDLW::Window::Create(char const * title, int x, int y, int width, int heigh
 
 	if (!win)
 	{
-		DERROR("Failed to create window, SDL Error: " + SDL_GetError());
-		return;
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+		win = SDL_CreateWindow(title, x, y, width, height, flags);
+
+		if (!win)
+		{
+			DERROR("Failed to create window, SDL Error: " + SDL_GetError());
+			throw Debug::GLExc("Failed to create a window with SDL");
+		}
+		else
+		{
+			DINFO("Multi-sampling was not supported");
+		}
 	}
 
 	GLC = SDL_GL_CreateContext(win);
