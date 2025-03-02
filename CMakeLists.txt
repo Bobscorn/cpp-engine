@@ -23,6 +23,7 @@ option(EC_PROFILE "Build and link with profiling in mind" OFF)
 option(EC_CONSOLE "Build with console enabled" ON)
 option(EC_MAXWARN "Build with highest level of warnings" ON)
 option(BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
+option(EC_TESTS "Configure and Build test executables using Google Test" OFF)
 
 # new stuff v
 
@@ -88,8 +89,9 @@ message("- Found Assimp: ${ASSIMP_VERSION}")
 message("- ASSIMP_INCLUDE_DIR: ${ASSIMP_INCLUDE_DIRS}")
 message("- ASSIMP_LIBRARIES: ${ASSIMP_LIBRARIES}")
 
-
-enable_testing()
+if (EC_TESTS)
+    enable_testing()
+endif()
 
 add_subdirectory(src/Engine)
 add_subdirectory(src/Game)

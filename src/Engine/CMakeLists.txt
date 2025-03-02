@@ -92,7 +92,7 @@ endif()
 
 
 # Find test directories for MSVC (not worth the time to get them working on gcc)
-if (MSVC)
+if (MSVC AND EC_TESTS)
 	add_subdirectory(Tests)
 	add_subdirectory(Game)
 	add_subdirectory(Drawing)
