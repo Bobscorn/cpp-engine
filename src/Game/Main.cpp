@@ -22,6 +22,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_filesystem.h>
 
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -38,6 +39,7 @@
 #include <exception>
 #include <random>
 #include <sstream>
+#include <filesystem>
 
 #include <Game/Scene/StartingScene.h>
 #include "ParkourScene.h"
@@ -154,7 +156,7 @@ int main(int argc, char *args[])
 	(void)argc;
 	(void)args;
 
-	std::cout << "Encapsulated!" << std::endl;
+	std::cout << "Cpp Engine Game!" << std::endl;
 	std::cout << ".." << std::endl;
 
 	bool Init = true;
@@ -248,6 +250,17 @@ int main(int argc, char *args[])
 		if (Audio::TestForALError(Audio::ALErrorGuy{ "Creating Context" }))
 			throw std::exception{ "Failed to Create Context or something" };
 		*/
+
+		auto* base_path = SDL_GetBasePath();
+		if (base_path == NULL)
+		{
+			DINFO("Could not get base path of executable! If you experience problems with missing files run this executable from its containing directory!");
+		}
+		else
+		{
+			DINFO("Setting working dir to: " + std::string(base_path));
+			std::filesystem::current_path(base_path);
+		}
 		
 		g_Engine = std::make_unique<Engine::GameEngine>();
 		g_Engine->SwitchScene(std::make_unique<Parkour::ParkourStartingScene>(&g_Engine->Resources, std::unique_ptr<Parkour::IParkourDifficultyScene>(new Parkour::ParkourScene(&g_Engine->Resources, 0))));
