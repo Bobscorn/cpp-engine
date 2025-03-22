@@ -68,7 +68,7 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Textures" DESTINATION bin)
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Blocks" DESTINATION bin)
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Fonts" DESTINATION bin)
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/Assets/Meshes" DESTINATION bin)
-install(FILES "icon.ico" DESTINATION bin)
+install(FILES "cpp_engine_game.ico" DESTINATION bin)
 
 if (NOT TARGET SDL2::SDL2main)
     message(FATAL_ERROR "SDL2::SDL2main is not found. Please install SDL2.")
