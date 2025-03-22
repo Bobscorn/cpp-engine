@@ -78,6 +78,7 @@ namespace Voxel
 	{
 		virtual std::unique_ptr<ChunkData> GetChunkData(ChunkCoord coord) const = 0;
 		virtual void SetChunkData(ChunkCoord coord, std::unique_ptr<ChunkData> data) = 0;
+		virtual void Reset() = 0;
 	};
 
 	struct IChunkUnloader

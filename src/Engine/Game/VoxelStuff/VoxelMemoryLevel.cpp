@@ -18,4 +18,9 @@ namespace Voxel
 			return nullptr;
 		return std::make_unique<ChunkData>(*it->second);
 	}
+
+	void VoxelMemoryLevel::Reset()
+	{
+		m_StoredChunks.clear();
+	}
 }

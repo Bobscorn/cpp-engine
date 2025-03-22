@@ -698,6 +698,8 @@ void Voxel::VoxelWorld::Reset()
 	m_UpdateBlockChanges.clear();
 	m_BlockChanges.clear();
 	m_Chunks.clear();
+	m_PendingBlockSets.clear();
+	m_Stuff.m_ChunkMemory->Reset();
 }
 
 Voxel::VoxelWorld::ChunkStatus Voxel::VoxelWorld::GetChunkStatus(ChunkCoord coord)

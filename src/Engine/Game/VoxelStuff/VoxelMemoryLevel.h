@@ -22,5 +22,7 @@ namespace Voxel
 
 		void SetChunkData(ChunkCoord coord, std::unique_ptr<ChunkData> data) override;
 		std::unique_ptr<ChunkData> GetChunkData(ChunkCoord coord) const override;
+
+		void Reset() override;
 	};
 }
