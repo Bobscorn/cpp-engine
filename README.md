@@ -46,6 +46,19 @@ Append a `-DCMAKE_PREFIX_PATH=C:\Users\me\where\the\dependency\install\is` to th
 Some dependencies may require tweaking the source code to compile and build properly (Freetype may require commenting out the define to use ZLIB).
 
 Once you have all the dependencies downloaded, build and install them somewhere.
+
+Some tweaks may be required for a few dependencies:
+
+#### Bullet Physics
+
+You will need to specify `-DINSTALL_LIBS` if using cmake to build the libraries yourself.
+
+#### Freetype
+
+There's a define for ZLIB somewhere that needs to be disabled, if someone actually encounters this error then message me and I'll add more instructions.
+
+#### Configuring and building cpp-engine
+
 Then in the `cpp-engine` directory:
 Generate the CMake configuration:
 ```
