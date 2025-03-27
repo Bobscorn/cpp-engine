@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL") # Make all libraries and crap link to dynamic MSVC runtime (Bullet does this itself, which basically forces this project to as well)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>") # Make all libraries and crap link to dynamic MSVC runtime (Bullet does this itself, which basically forces this project to as well)
 project(cpp_engine_game CXX)
 
 set(CP_ENG_GAME_SRCS 
@@ -28,6 +28,7 @@ set_target_properties(cpp_engine_game
 		CXX_STANDARD_REQUIRED YES
 		CXX_EXTENSIONS NO # Turning Extensions off for increased compatibility - see https://crascit.com/2015/03/28/enabling-cxx11-in-cmake/
 		$<EC_PROFILE:EXE_LINKER_FLAGS ${CMAKE_LINKER_FLAGS} /Profile>
+		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 		)
 
 if (EC_MAXWARN)
@@ -78,7 +79,7 @@ endif()
 target_link_libraries(cpp_engine_game PRIVATE SDL2::SDL2main)
 
 
-if (MSVC)
+if (MSVC AND EC_BUILD_TESTS)
 	add_executable(ParkourTests
 		"Parkour.cpp"
 	)
