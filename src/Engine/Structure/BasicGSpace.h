@@ -67,6 +67,8 @@ namespace G1I
 		BasicDebugDrawer debugdrawer;
 		bool DebugDrawing = false;
 		bool RealDrawing = true;
+
+		double m_PendingPhysicsTime = 0.0;
 	public:
 		observing_ptr<Camera> ExternalCamera;
 

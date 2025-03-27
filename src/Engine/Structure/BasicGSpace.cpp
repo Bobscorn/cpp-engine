@@ -10,6 +10,7 @@
 #include "Drawing/IRen3D.h"
 #include "Systems/Events/PhysicsEvent.h"
 #include "Systems/Events/Events.h"
+#include "Systems/Time/Time.h"
 
 #include <stdexcept>
 
@@ -76,7 +77,12 @@ void G1I::BasicGSpace::AfterDrawI()
 	mResources->Event->Send(&bfe);
 	PROFILE_POP();
 
-	this->DoPhysics();
+	m_PendingPhysicsTime += mResources->Time->GetDeltaTime();
+	while (m_PendingPhysicsTime > mResources->Time->GetFixedDeltaTime())
+	{
+		m_PendingPhysicsTime -= mResources->Time->GetFixedDeltaTime();
+		this->DoPhysics();
+	}
 
 	PROFILE_PUSH("AfterPhyicsEvent");
 	Event::AfterPhysicsEvent afe(this->DynamicsWorld.get(), *mResources->UpdateID);
